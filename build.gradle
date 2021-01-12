@@ -1,14 +1,201 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        maven { url ='https://files.minecraftforge.net/maven'}
+        jcenter()
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
+        classpath 'org.ow2.asm:asm:7.1'
+        classpath 'org.ow2.asm:asm-tree:7.1'
+        classpath 'com.github.jponge:lzma-java:1.3'
+    }
+}
 plugins {
-    id 'java'
+    id 'org.ajoberstar.grgit' version '3.1.1'
+    id 'de.undercouch.download' version '3.3.0'
+    id 'com.github.ben-manes.versions' version '0.22.0'
+}
+apply plugin: 'idea'
+
+def plugin_patcher = 'net.minecraftforge.gradle.patcher'
+def ct = "cherry tool"
+
+ext {
+    JAR_SIGNER = null
+    MAPPING_CHANNEL = 'snapshot'
+    MAPPING_VERSION = '20171003-1.12'
+    MC_VERSION = '1.12.2'
+    MCP_VERSION = '20200226.224830'
+    POST_PROCESSOR = [
+            tool: 'net.minecraftforge:mcpcleanup:2.3.2:fatjar',
+            repo: 'https://files.minecraftforge.net/maven/',
+            args: ['--input', '{input}', '--output', '{output}']
+    ]
 }
 
-group 'org.example'
-version '1.0-SNAPSHOT'
 
-repositories {
-    mavenCentral()
+
+
+project(':Base') {
+    apply plugin: 'net.minecraftforge.gradle.mcp'
+    if(!project.projectDir.exists())project.projectDir.mkdirs()
+    mcp {
+        config = MC_VERSION + '-' + MCP_VERSION
+        pipeline = 'joined'
+    }
 }
 
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+project(':Clean'){
+    evaluationDependsOn(':Base')
+    apply plugin: 'idea'
+    apply plugin: plugin_patcher
+    compileJava.sourceCompatibility = compileJava.targetCompatibility = sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation 'net.minecraftforge:mergetool:0.2.3.3:forge'
+        //installer ''
+    }
+
+    patcher {
+        parent = project(':Base')
+        mcVersion = MC_VERSION
+        patchedSrc = file('src/main/java')
+
+        mappings channel: MAPPING_CHANNEL, version: MAPPING_VERSION
+        processor = POST_PROCESSOR
+
+        
+        runs {
+
+            clean_server {
+                taskName 'clean_server1'
+
+                main 'net.minecraft.server.MinecraftServer'
+                workingDirectory project.file('run')
+            }
+
+        }
+
+
+    }
+
+}
+
+project(':Cherry'){
+    evaluationDependsOn(':Clean')
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'idea'
+    apply plugin: plugin_patcher
+    apply plugin: 'de.undercouch.download'
+    group = 'net.cherrymc'
+/*
+
+    compileJava.sourceCompatibility = compileJava.targetCompatibility = sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+    compileJava.options.encoding = 'UTF-8'
+*/
+
+    
+    sourceSets {
+        main {
+            java {
+                srcDirs = ["$rootDir/src/main/java"]
+            }
+            resources {
+                srcDirs = ["$rootDir/src/main/resources"]
+            }
+        }
+        test {
+            compileClasspath += sourceSets.main.runtimeClasspath
+            runtimeClasspath += sourceSets.main.runtimeClasspath
+            java {
+                srcDirs = ["$rootDir/src/test/java"]
+            }
+            resources {
+                srcDirs = ["$rootDir/src/test/resources"]
+            }
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+
+/*
+    ext {
+        LEGACY_MAJOR = 14 //Legacy versions have a API change prefix
+        LEGACY_BUILD = 2848 //Base build number to not conflict with existing build numbers
+        BUILD_NUMBER = 0 // LEGACY_BUILD + commit offset, used to mimic unique build from old versions
+
+        SPEC_VERSION = '23.5' // This is overwritten by git tag, but here so dev time doesnt explode
+        MCP_ARTIFACT = project(':Base').mcp.config
+        SPECIAL_SOURCE = 'net.md-5:SpecialSource:1.8.5'
+        VERSION_JSON = project(':Base').file('build/mcp/downloadJson/version.json')
+        BINPATCH_TOOL = 'net.minecraftforge:binarypatcher:1.1.1:fatjar'
+    }
+*/
+
+    patcher{
+        parent = project(':Clean')
+        exc=file("$rootDir/src/main/resources/forge.exc")
+        patches = file("$rootDir/patches/minecraft")
+        patchedSrc = file('src/main/java')
+        srgPatches = true
+        notchObf = true
+        accessTransformer = file("$rootDir/src/main/resources/forge_at.cfg")
+        processor = POST_PROCESSOR
+        runs {
+            forge_server {
+                taskName 'forge_server_test'
+                main 'net.cherrymc.Cherry'
+
+                environment 'tweakClass',       'net.minecraftforge.fml.common.launcher.FMLServerTweaker'
+                environment 'mainClass',        'net.minecraft.launchwrapper.Launch'
+                environment 'MC_VERSION',       '${MC_VERSION}'
+                environment 'MCP_MAPPINGS',     '{mcp_mappings}'
+                environment 'MCP_TO_SRG',       '{mcp_to_srg}'
+                environment 'FORGE_GROUP',      'net.minecraftforge'
+                environment 'FORGE_VERSION',    '14.23.5.2855'
+            }
+        }
+    }
+
+    applyPatches {
+        canonicalizeAccess true
+        canonicalizeWhitespace true
+        maxFuzz 3
+        originalPrefix = '../src-base/minecraft/'
+        modifiedPrefix = '../src-work/minecraft/'
+    }
+    genPatches {
+        originalPrefix = '../src-base/minecraft/'
+        modifiedPrefix = '../src-work/minecraft/'
+    }
+    
+    dependencies {
+
+//        installer 'java3d:vecmath:1.5.2'
+        implementation 'java3d:vecmath:1.5.2'
+        implementation 'lzma:lzma:0.0.1'
+        implementation 'net.minecraft:launchwrapper:1.12'
+        implementation 'org.apache.maven:maven-artifact:3.5.3'
+        implementation 'org.jline:jline:3.5.1'
+        implementation 'org.ow2.asm:asm-debug-all:5.2'
+        
+    }
+}
+
+    task setup{
+    group ct
+    dependsOn ":Clean:extractMapped"
+    dependsOn ":Cherry:extractMapped"
 }

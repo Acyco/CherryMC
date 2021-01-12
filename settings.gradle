@@ -1,2 +1,11 @@
 rootProject.name = 'CherryMC'
 
+include ":Base"
+include ":Cherry"
+include ":Clean"
+//include ":Forge"
+
+project(":Base").projectDir = file("Base")
+project(":Cherry").projectDir = file("Cherry")
+project(":Clean").projectDir = file("Clean")
+//project(":Forge").projectDir = file("Forge")

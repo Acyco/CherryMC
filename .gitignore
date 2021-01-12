@@ -1,3 +1,29 @@
-/gradle
-.idea
+# Eclipse
+/bin
+/.settings
+/.classpath
+/eclipse/
+.project
 
+# IDEA
+/.idea
+/classes
+*.iml
+*.ipr
+*.iws
+
+# Gradle
+/build
+/.gradle
+/buildSrc/build
+/projects/
+/resources/
+/server/
+
+
+# Projects
+/Base/
+/Clean/
+/Cherry/
+/Forge/
+/patches/
