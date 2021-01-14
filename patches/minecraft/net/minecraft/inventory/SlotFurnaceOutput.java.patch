@@ -1,6 +1,50 @@
 --- ../src-base/minecraft/net/minecraft/inventory/SlotFurnaceOutput.java
 +++ ../src-work/minecraft/net/minecraft/inventory/SlotFurnaceOutput.java
-@@ -79,5 +79,6 @@
+@@ -4,6 +4,7 @@
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.item.crafting.FurnaceRecipes;
++import net.minecraft.tileentity.TileEntityFurnace;
+ import net.minecraft.util.math.MathHelper;
+ 
+ public class SlotFurnaceOutput extends Slot
+@@ -51,8 +52,10 @@
+ 
+         if (!this.field_75229_a.field_70170_p.field_72995_K)
+         {
+-            int i = this.field_75228_b;
+-            float f = FurnaceRecipes.func_77602_a().func_151398_b(p_75208_1_);
++            
++            
++         /*   int i = this.removeCount;
++            float f = FurnaceRecipes.instance().getSmeltingExperience(stack);
+ 
+             if (f == 0.0F)
+             {
+@@ -60,9 +63,9 @@
+             }
+             else if (f < 1.0F)
+             {
+-                int j = MathHelper.func_76141_d((float)i * f);
++                int j = MathHelper.floor((float)i * f);
+ 
+-                if (j < MathHelper.func_76123_f((float)i * f) && Math.random() < (double)((float)i * f - (float)j))
++                if (j < MathHelper.ceil((float)i * f) && Math.random() < (double)((float)i * f - (float)j))
+                 {
+                     ++j;
+                 }
+@@ -72,12 +75,14 @@
+ 
+             while (i > 0)
+             {
+-                int k = EntityXPOrb.func_70527_a(i);
++                int k = EntityXPOrb.getXPSplit(i);
+                 i -= k;
+-                this.field_75229_a.field_70170_p.func_72838_d(new EntityXPOrb(this.field_75229_a.field_70170_p, this.field_75229_a.field_70165_t, this.field_75229_a.field_70163_u + 0.5D, this.field_75229_a.field_70161_v + 0.5D, k));
+-            }
++                this.player.world.spawnEntity(new EntityXPOrb(this.player.world, this.player.posX, this.player.posY + 0.5D, this.player.posZ + 0.5D, k));
++            }*/
++            ((TileEntityFurnace) this.field_75224_c).getExp(this.field_75229_a);
          }
  
          this.field_75228_b = 0;
