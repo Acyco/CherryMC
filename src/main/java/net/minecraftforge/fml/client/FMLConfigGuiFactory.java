@@ -39,8 +39,6 @@ import net.minecraftforge.fml.client.config.DummyConfigElement.DummyCategoryElem
 import net.minecraftforge.fml.client.config.DummyConfigElement.DummyListElement;
 import net.minecraftforge.fml.client.config.GuiConfigEntries.NumberSliderEntry;
 
-import net.minecraftforge.fml.client.IModGuiFactory.RuntimeOptionCategoryElement;
-
 public class FMLConfigGuiFactory implements IModGuiFactory
 {
     public static class FMLConfigGuiScreen extends GuiConfig
@@ -48,7 +46,7 @@ public class FMLConfigGuiFactory implements IModGuiFactory
 
         public FMLConfigGuiScreen(GuiScreen parent)
         {
-            super(parent, getConfigElements(), "FML", false, false, I18n.func_135052_a("fml.config.sample.title"));
+            super(parent, getConfigElements(), "FML", false, false, I18n.format("fml.config.sample.title"));
         }
 
         private static List<IConfigElement> getConfigElements()
@@ -123,10 +121,10 @@ public class FMLConfigGuiFactory implements IModGuiFactory
         }
 
         @Override
-        public void func_192634_a(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
         {
-            textFieldValue.func_146193_g((int) (Math.random() * 0xFFFFFF));
-            super.func_192634_a(slotIndex, x, y, listWidth, slotHeight, mouseX, mouseY, isSelected, partial);
+            textFieldValue.setTextColor((int) (Math.random() * 0xFFFFFF));
+            super.drawEntry(slotIndex, x, y, listWidth, slotHeight, mouseX, mouseY, isSelected, partial);
         }
     }
 

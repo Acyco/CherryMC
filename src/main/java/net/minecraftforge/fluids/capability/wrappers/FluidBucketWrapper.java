@@ -73,16 +73,16 @@ public class FluidBucketWrapper implements IFluidHandlerItem, ICapabilityProvide
     @Nullable
     public FluidStack getFluid()
     {
-        Item item = container.func_77973_b();
-        if (item == Items.field_151131_as)
+        Item item = container.getItem();
+        if (item == Items.WATER_BUCKET)
         {
             return new FluidStack(FluidRegistry.WATER, Fluid.BUCKET_VOLUME);
         }
-        else if (item == Items.field_151129_at)
+        else if (item == Items.LAVA_BUCKET)
         {
             return new FluidStack(FluidRegistry.LAVA, Fluid.BUCKET_VOLUME);
         }
-        else if (item == Items.field_151117_aB)
+        else if (item == Items.MILK_BUCKET)
         {
             return FluidRegistry.getFluidStack("milk", Fluid.BUCKET_VOLUME);
         }
@@ -107,7 +107,7 @@ public class FluidBucketWrapper implements IFluidHandlerItem, ICapabilityProvide
     protected void setFluid(@Nullable FluidStack fluidStack)
     {
         if (fluidStack == null)
-            container = new ItemStack(Items.field_151133_ar);
+            container = new ItemStack(Items.BUCKET);
         else
             container = FluidUtil.getFilledBucket(fluidStack);
     }
@@ -121,7 +121,7 @@ public class FluidBucketWrapper implements IFluidHandlerItem, ICapabilityProvide
     @Override
     public int fill(FluidStack resource, boolean doFill)
     {
-        if (container.func_190916_E() != 1 || resource == null || resource.amount < Fluid.BUCKET_VOLUME || container.func_77973_b() instanceof ItemBucketMilk || getFluid() != null || !canFillFluidType(resource))
+        if (container.getCount() != 1 || resource == null || resource.amount < Fluid.BUCKET_VOLUME || container.getItem() instanceof ItemBucketMilk || getFluid() != null || !canFillFluidType(resource))
         {
             return 0;
         }
@@ -138,7 +138,7 @@ public class FluidBucketWrapper implements IFluidHandlerItem, ICapabilityProvide
     @Override
     public FluidStack drain(FluidStack resource, boolean doDrain)
     {
-        if (container.func_190916_E() != 1 || resource == null || resource.amount < Fluid.BUCKET_VOLUME)
+        if (container.getCount() != 1 || resource == null || resource.amount < Fluid.BUCKET_VOLUME)
         {
             return null;
         }
@@ -160,7 +160,7 @@ public class FluidBucketWrapper implements IFluidHandlerItem, ICapabilityProvide
     @Override
     public FluidStack drain(int maxDrain, boolean doDrain)
     {
-        if (container.func_190916_E() != 1 || maxDrain < Fluid.BUCKET_VOLUME)
+        if (container.getCount() != 1 || maxDrain < Fluid.BUCKET_VOLUME)
         {
             return null;
         }

@@ -59,7 +59,7 @@ public abstract class EntityEquipmentInvWrapper implements IItemHandlerModifiabl
 
         for (final EntityEquipmentSlot slot : EntityEquipmentSlot.values())
         {
-            if (slot.func_188453_a() == slotType)
+            if (slot.getSlotType() == slotType)
             {
                 slots.add(slot);
             }
@@ -78,48 +78,48 @@ public abstract class EntityEquipmentInvWrapper implements IItemHandlerModifiabl
     @Override
     public ItemStack getStackInSlot(final int slot)
     {
-        return entity.func_184582_a(validateSlotIndex(slot));
+        return entity.getItemStackFromSlot(validateSlotIndex(slot));
     }
 
     @Nonnull
     @Override
     public ItemStack insertItem(final int slot, @Nonnull final ItemStack stack, final boolean simulate)
     {
-        if (stack.func_190926_b())
-            return ItemStack.field_190927_a;
+        if (stack.isEmpty())
+            return ItemStack.EMPTY;
 
         final EntityEquipmentSlot equipmentSlot = validateSlotIndex(slot);
 
-        final ItemStack existing = entity.func_184582_a(equipmentSlot);
+        final ItemStack existing = entity.getItemStackFromSlot(equipmentSlot);
 
         int limit = getStackLimit(slot, stack);
 
-        if (!existing.func_190926_b())
+        if (!existing.isEmpty())
         {
             if (!ItemHandlerHelper.canItemStacksStack(stack, existing))
                 return stack;
 
-            limit -= existing.func_190916_E();
+            limit -= existing.getCount();
         }
 
         if (limit <= 0)
             return stack;
 
-        boolean reachedLimit = stack.func_190916_E() > limit;
+        boolean reachedLimit = stack.getCount() > limit;
 
         if (!simulate)
         {
-            if (existing.func_190926_b())
+            if (existing.isEmpty())
             {
-                entity.func_184201_a(equipmentSlot, reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, limit) : stack);
+                entity.setItemStackToSlot(equipmentSlot, reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, limit) : stack);
             }
             else
             {
-                existing.func_190917_f(reachedLimit ? limit : stack.func_190916_E());
+                existing.grow(reachedLimit ? limit : stack.getCount());
             }
         }
 
-        return reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, stack.func_190916_E() - limit) : ItemStack.field_190927_a;
+        return reachedLimit ? ItemHandlerHelper.copyStackWithSize(stack, stack.getCount() - limit) : ItemStack.EMPTY;
     }
 
     @Nonnull
@@ -127,22 +127,22 @@ public abstract class EntityEquipmentInvWrapper implements IItemHandlerModifiabl
     public ItemStack extractItem(final int slot, final int amount, final boolean simulate)
     {
         if (amount == 0)
-            return ItemStack.field_190927_a;
+            return ItemStack.EMPTY;
 
         final EntityEquipmentSlot equipmentSlot = validateSlotIndex(slot);
 
-        final ItemStack existing = entity.func_184582_a(equipmentSlot);
+        final ItemStack existing = entity.getItemStackFromSlot(equipmentSlot);
 
-        if (existing.func_190926_b())
-            return ItemStack.field_190927_a;
+        if (existing.isEmpty())
+            return ItemStack.EMPTY;
 
-        final int toExtract = Math.min(amount, existing.func_77976_d());
+        final int toExtract = Math.min(amount, existing.getMaxStackSize());
 
-        if (existing.func_190916_E() <= toExtract)
+        if (existing.getCount() <= toExtract)
         {
             if (!simulate)
             {
-                entity.func_184201_a(equipmentSlot, ItemStack.field_190927_a);
+                entity.setItemStackToSlot(equipmentSlot, ItemStack.EMPTY);
             }
 
             return existing;
@@ -151,7 +151,7 @@ public abstract class EntityEquipmentInvWrapper implements IItemHandlerModifiabl
         {
             if (!simulate)
             {
-                entity.func_184201_a(equipmentSlot, ItemHandlerHelper.copyStackWithSize(existing, existing.func_190916_E() - toExtract));
+                entity.setItemStackToSlot(equipmentSlot, ItemHandlerHelper.copyStackWithSize(existing, existing.getCount() - toExtract));
             }
 
             return ItemHandlerHelper.copyStackWithSize(existing, toExtract);
@@ -162,21 +162,21 @@ public abstract class EntityEquipmentInvWrapper implements IItemHandlerModifiabl
     public int getSlotLimit(final int slot)
     {
         final EntityEquipmentSlot equipmentSlot = validateSlotIndex(slot);
-        return equipmentSlot.func_188453_a() == EntityEquipmentSlot.Type.ARMOR ? 1 : 64;
+        return equipmentSlot.getSlotType() == EntityEquipmentSlot.Type.ARMOR ? 1 : 64;
     }
 
     protected int getStackLimit(final int slot, @Nonnull final ItemStack stack)
     {
-        return Math.min(getSlotLimit(slot), stack.func_77976_d());
+        return Math.min(getSlotLimit(slot), stack.getMaxStackSize());
     }
 
     @Override
     public void setStackInSlot(final int slot, @Nonnull final ItemStack stack)
     {
         final EntityEquipmentSlot equipmentSlot = validateSlotIndex(slot);
-        if (ItemStack.func_77989_b(entity.func_184582_a(equipmentSlot), stack))
+        if (ItemStack.areItemStacksEqual(entity.getItemStackFromSlot(equipmentSlot), stack))
             return;
-        entity.func_184201_a(equipmentSlot, stack);
+        entity.setItemStackToSlot(equipmentSlot, stack);
     }
 
     @Override

@@ -49,9 +49,9 @@ public class GuiMultipleModsErrored extends GuiErrorBase
     }
 
     @Override
-    public void func_73866_w_()
+    public void initGui()
     {
-        super.func_73866_w_();
+        super.initGui();
         int additionalSize = missingModsExceptions.isEmpty() || wrongMinecraftExceptions.isEmpty() ? 20 : 55;
         for (MissingModsException exception : missingModsExceptions)
         {
@@ -61,27 +61,27 @@ public class GuiMultipleModsErrored extends GuiErrorBase
     }
 
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        this.func_146276_q_();
+        this.drawDefaultBackground();
         this.list.drawScreen(mouseX, mouseY, partialTicks);
-        this.func_73732_a(this.field_146289_q, I18n.func_135052_a("fml.messages.mod.missing.multiple", missingModsExceptions.size() + wrongMinecraftExceptions.size()), this.field_146294_l/2, 10, 0xFFFFFF);
-        super.func_73863_a(mouseX, mouseY, partialTicks);
+        this.drawCenteredString(this.fontRenderer, I18n.format("fml.messages.mod.missing.multiple", missingModsExceptions.size() + wrongMinecraftExceptions.size()), this.width/2, 10, 0xFFFFFF);
+        super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
     @Override
-    public void func_146284_a(GuiButton button)
+    public void actionPerformed(GuiButton button)
     {
         this.list.actionPerformed(button);
-        super.func_146284_a(button);
+        super.actionPerformed(button);
     }
 
     @Override
-    public void func_146274_d() throws IOException
+    public void handleMouseInput() throws IOException
     {
-        super.func_146274_d();
-        int mouseX = Mouse.getEventX() * this.field_146294_l / this.field_146297_k.field_71443_c;
-        int mouseY = this.field_146295_m - Mouse.getEventY() * this.field_146295_m / this.field_146297_k.field_71440_d - 1;
+        super.handleMouseInput();
+        int mouseX = Mouse.getEventX() * this.width / this.mc.displayWidth;
+        int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
         this.list.handleMouseInput(mouseX, mouseY);
     }
 
@@ -89,14 +89,14 @@ public class GuiMultipleModsErrored extends GuiErrorBase
     {
         public GuiList(int entryHeight)
         {
-            super(GuiMultipleModsErrored.this.field_146297_k,
-                  GuiMultipleModsErrored.this.field_146294_l-20,
-                  GuiMultipleModsErrored.this.field_146295_m -30,
-                  30, GuiMultipleModsErrored.this.field_146295_m-50,
+            super(GuiMultipleModsErrored.this.mc,
+                  GuiMultipleModsErrored.this.width-20,
+                  GuiMultipleModsErrored.this.height -30,
+                  30, GuiMultipleModsErrored.this.height-50,
                     10,
                   entryHeight,
-                  GuiMultipleModsErrored.this.field_146294_l,
-                  GuiMultipleModsErrored.this.field_146295_m);
+                  GuiMultipleModsErrored.this.width,
+                  GuiMultipleModsErrored.this.height);
         }
 
         @Override
@@ -117,34 +117,34 @@ public class GuiMultipleModsErrored extends GuiErrorBase
         @Override
         protected void drawBackground()
         {
-            func_146276_q_();
+            drawDefaultBackground();
         }
 
         @Override
         protected void drawSlot(int slotIdx, int entryRight, int slotTop, int slotBuffer, Tessellator tess)
         {
             int offset = slotTop;
-            FontRenderer renderer = GuiMultipleModsErrored.this.field_146289_q;
+            FontRenderer renderer = GuiMultipleModsErrored.this.fontRenderer;
             if (!wrongMinecraftExceptions.isEmpty())
             {
-                renderer.func_78276_b(TextFormatting.UNDERLINE + I18n.func_135052_a("fml.messages.mod.wrongminecraft", Loader.instance().getMinecraftModContainer().getVersion()), this.left, offset, 0xFFFFFF);
+                renderer.drawString(TextFormatting.UNDERLINE + I18n.format("fml.messages.mod.wrongminecraft", Loader.instance().getMinecraftModContainer().getVersion()), this.left, offset, 0xFFFFFF);
                 offset+=15;
                 for(WrongMinecraftVersionException exception : wrongMinecraftExceptions)
                 {
-                    renderer.func_78276_b(I18n.func_135052_a("fml.messages.mod.wrongminecraft.requirement", TextFormatting.BOLD + exception.mod.getName() + TextFormatting.RESET, exception.mod.getModId(), exception.mod.acceptableMinecraftVersionRange().toStringFriendly()), this.left, offset, 0xFFFFFF);
+                    renderer.drawString(I18n.format("fml.messages.mod.wrongminecraft.requirement", TextFormatting.BOLD + exception.mod.getName() + TextFormatting.RESET, exception.mod.getModId(), exception.mod.acceptableMinecraftVersionRange().toStringFriendly()), this.left, offset, 0xFFFFFF);
                     offset += 10;
                 }
                 offset+=5;
-                renderer.func_78276_b(I18n.func_135052_a("fml.messages.mod.wrongminecraft.fix.multiple"), this.left, offset, 0xFFFFFF);
+                renderer.drawString(I18n.format("fml.messages.mod.wrongminecraft.fix.multiple"), this.left, offset, 0xFFFFFF);
                 offset+=20;
             }
             if (!missingModsExceptions.isEmpty())
             {
-                renderer.func_78276_b(I18n.func_135052_a("fml.messages.mod.missing.dependencies.multiple.issues"), this.left, offset, 0xFFFFFF);
+                renderer.drawString(I18n.format("fml.messages.mod.missing.dependencies.multiple.issues"), this.left, offset, 0xFFFFFF);
                 offset+=15;
                 for (MissingModsException exception : missingModsExceptions)
                 {
-                    renderer.func_78276_b(exception.getModName() + ":", this.left, offset, 0xFFFFFF);
+                    renderer.drawString(exception.getModName() + ":", this.left, offset, 0xFFFFFF);
                     for (MissingModsException.MissingModInfo versionInfo : exception.getMissingModInfos())
                     {
                         ArtifactVersion acceptedVersion = versionInfo.getAcceptedVersion();
@@ -153,11 +153,11 @@ public class GuiMultipleModsErrored extends GuiErrorBase
                         String missingReason;
                         if (currentVersion == null)
                         {
-                            missingReason = I18n.func_135052_a("fml.messages.mod.missing.dependencies.missing");
+                            missingReason = I18n.format("fml.messages.mod.missing.dependencies.missing");
                         }
                         else
                         {
-                            missingReason = I18n.func_135052_a("fml.messages.mod.missing.dependencies.you.have", currentVersion.getVersionString());
+                            missingReason = I18n.format("fml.messages.mod.missing.dependencies.you.have", currentVersion.getVersionString());
                         }
                         String acceptedModVersionString = acceptedVersion.getRangeString();
                         if (acceptedVersion instanceof DefaultArtifactVersion)
@@ -174,14 +174,14 @@ public class GuiMultipleModsErrored extends GuiErrorBase
                         String message;
                         if (versionInfo.isRequired())
                         {
-                            message = I18n.func_135052_a("fml.messages.mod.missing.dependencies.requires", versionInfoText);
+                            message = I18n.format("fml.messages.mod.missing.dependencies.requires", versionInfoText);
                         }
                         else
                         {
-                            message = I18n.func_135052_a("fml.messages.mod.missing.dependencies.compatible.with", versionInfoText);
+                            message = I18n.format("fml.messages.mod.missing.dependencies.compatible.with", versionInfoText);
                         }
                         offset += 10;
-                        renderer.func_78276_b(message, this.left, offset, 0xEEEEEE);
+                        renderer.drawString(message, this.left, offset, 0xEEEEEE);
                     }
 
                     offset += 15;

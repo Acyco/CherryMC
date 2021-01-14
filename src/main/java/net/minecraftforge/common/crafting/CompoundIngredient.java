@@ -54,13 +54,13 @@ public class CompoundIngredient extends Ingredient
 
     @Override
     @Nonnull
-    public ItemStack[] func_193365_a()
+    public ItemStack[] getMatchingStacks()
     {
         if (stacks == null)
         {
             List<ItemStack> tmp = Lists.newArrayList();
             for (Ingredient child : children)
-                Collections.addAll(tmp, child.func_193365_a());
+                Collections.addAll(tmp, child.getMatchingStacks());
             stacks = tmp.toArray(new ItemStack[tmp.size()]);
 
         }
@@ -69,14 +69,14 @@ public class CompoundIngredient extends Ingredient
 
     @Override
     @Nonnull
-    public IntList func_194139_b()
+    public IntList getValidItemStacksPacked()
     {
         //TODO: Add a child.isInvalid()?
         if (this.itemIds == null)
         {
             this.itemIds = new IntArrayList();
             for (Ingredient child : children)
-                this.itemIds.addAll(child.func_194139_b());
+                this.itemIds.addAll(child.getValidItemStacksPacked());
             this.itemIds.sort(IntComparators.NATURAL_COMPARATOR);
         }
 

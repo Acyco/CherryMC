@@ -48,7 +48,7 @@ public class GuiSlotModList extends GuiScrollingList
 
     public GuiSlotModList(GuiModList parent, ArrayList<ModContainer> mods, int listWidth, int slotHeight)
     {
-        super(parent.getMinecraftInstance(), listWidth, parent.field_146295_m, 32, parent.field_146295_m - 88 + 4, 10, slotHeight, parent.field_146294_l, parent.field_146295_m);
+        super(parent.getMinecraftInstance(), listWidth, parent.height, 32, parent.height - 88 + 4, 10, slotHeight, parent.width, parent.height);
         this.parent = parent;
         this.mods = mods;
     }
@@ -74,7 +74,7 @@ public class GuiSlotModList extends GuiScrollingList
     @Override
     protected void drawBackground()
     {
-        this.parent.func_146276_q_();
+        this.parent.drawDefaultBackground();
     }
 
     @Override
@@ -92,31 +92,31 @@ public class GuiSlotModList extends GuiScrollingList
     protected void drawSlot(int idx, int right, int top, int height, Tessellator tess)
     {
         ModContainer mc       = mods.get(idx);
-        String       name     = StringUtils.func_76338_a(mc.getName());
-        String       version  = StringUtils.func_76338_a(mc.getDisplayVersion());
+        String       name     = StringUtils.stripControlCodes(mc.getName());
+        String       version  = StringUtils.stripControlCodes(mc.getDisplayVersion());
         FontRenderer font     = this.parent.getFontRenderer();
         CheckResult  vercheck = ForgeVersion.getResult(mc);
 
         if (Loader.instance().getModState(mc) == ModState.DISABLED)
         {
-            font.func_78276_b(font.func_78269_a(name,       listWidth - 10), this.left + 3 , top +  2, 0xFF2222);
-            font.func_78276_b(font.func_78269_a(version,    listWidth - (5 + height)), this.left + 3 , top + 12, 0xFF2222);
-            font.func_78276_b(font.func_78269_a("DISABLED", listWidth - 10), this.left + 3 , top + 22, 0xFF2222);
+            font.drawString(font.trimStringToWidth(name,       listWidth - 10), this.left + 3 , top +  2, 0xFF2222);
+            font.drawString(font.trimStringToWidth(version,    listWidth - (5 + height)), this.left + 3 , top + 12, 0xFF2222);
+            font.drawString(font.trimStringToWidth("DISABLED", listWidth - 10), this.left + 3 , top + 22, 0xFF2222);
         }
         else
         {
-            font.func_78276_b(font.func_78269_a(name,    listWidth - 10), this.left + 3 , top +  2, 0xFFFFFF);
-            font.func_78276_b(font.func_78269_a(version, listWidth - (5 + height)), this.left + 3 , top + 12, 0xCCCCCC);
-            font.func_78276_b(font.func_78269_a(mc.getMetadata() != null ? mc.getMetadata().getChildModCountString() : "Metadata not found", listWidth - 10), this.left + 3 , top + 22, 0xCCCCCC);
+            font.drawString(font.trimStringToWidth(name,    listWidth - 10), this.left + 3 , top +  2, 0xFFFFFF);
+            font.drawString(font.trimStringToWidth(version, listWidth - (5 + height)), this.left + 3 , top + 12, 0xCCCCCC);
+            font.drawString(font.trimStringToWidth(mc.getMetadata() != null ? mc.getMetadata().getChildModCountString() : "Metadata not found", listWidth - 10), this.left + 3 , top + 22, 0xCCCCCC);
 
             if (vercheck.status.shouldDraw())
             {
                 //TODO: Consider adding more icons for visualization
-                Minecraft.func_71410_x().func_110434_K().func_110577_a(VERSION_CHECK_ICONS);
-                GlStateManager.func_179131_c(1, 1, 1, 1);
-                GlStateManager.func_179094_E();
-                Gui.func_146110_a(right - (height / 2 + 4), top + (height / 2 - 4), vercheck.status.getSheetOffset() * 8, (vercheck.status.isAnimated() && ((System.currentTimeMillis() / 800 & 1)) == 1) ? 8 : 0, 8, 8, 64, 16);
-                GlStateManager.func_179121_F();
+                Minecraft.getMinecraft().getTextureManager().bindTexture(VERSION_CHECK_ICONS);
+                GlStateManager.color(1, 1, 1, 1);
+                GlStateManager.pushMatrix();
+                Gui.drawModalRectWithCustomSizedTexture(right - (height / 2 + 4), top + (height / 2 - 4), vercheck.status.getSheetOffset() * 8, (vercheck.status.isAnimated() && ((System.currentTimeMillis() / 800 & 1)) == 1) ? 8 : 0, 8, 8, 64, 16);
+                GlStateManager.popMatrix();
             }
         }
     }

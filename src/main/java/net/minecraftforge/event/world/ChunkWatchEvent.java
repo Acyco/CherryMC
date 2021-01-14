@@ -60,7 +60,7 @@ public class ChunkWatchEvent extends Event //TODO: extend ChunkEvent in 1.13
 
     public ChunkWatchEvent(Chunk chunk, EntityPlayerMP player)
     {
-        this.chunk = chunk.func_76632_l();
+        this.chunk = chunk.getPos();
         this.player = player;
         this.chunkInstance = chunk;
     }

@@ -117,7 +117,7 @@ public class FMLServerHandler implements IFMLSidedHandler
     @Override
     public File getSavesDirectory()
     {
-        return ((SaveFormatOld) server.func_71254_M()).field_75808_a;
+        return ((SaveFormatOld) server.getActiveAnvilConverter()).savesDirectory;
     }
 
     /**
@@ -180,18 +180,18 @@ public class FMLServerHandler implements IFMLSidedHandler
 
             boolean done = false;
 
-            while (!done && server.func_71278_l())
+            while (!done && server.isServerRunning())
             {
                 if (Thread.interrupted()) throw new InterruptedException();
 
                 DedicatedServer dedServer = (DedicatedServer) server;
 
                 // rudimentary command processing, check for fml confirm/cancel and stop commands
-                synchronized (dedServer.field_71341_l)
+                synchronized (dedServer.pendingCommandList)
                 {
-                    for (Iterator<PendingCommand> it = dedServer.field_71341_l.iterator(); it.hasNext(); )
+                    for (Iterator<PendingCommand> it = dedServer.pendingCommandList.iterator(); it.hasNext(); )
                     {
-                        String cmd = it.next().field_73702_a.trim().toLowerCase();
+                        String cmd = it.next().command.trim().toLowerCase();
 
                         if (cmd.equals("/fml confirm"))
                         {

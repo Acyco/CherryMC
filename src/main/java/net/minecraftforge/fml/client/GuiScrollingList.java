@@ -168,15 +168,15 @@ public abstract class GuiScrollingList
 
     public void actionPerformed(GuiButton button)
     {
-        if (button.field_146124_l)
+        if (button.enabled)
         {
-            if (button.field_146127_k == this.scrollUpActionId)
+            if (button.id == this.scrollUpActionId)
             {
                 this.scrollDistance -= (float)(this.slotHeight * 2 / 3);
                 this.initialMouseClickY = -2.0F;
                 this.applyScrollLimits();
             }
-            else if (button.field_146127_k == this.scrollDownActionId)
+            else if (button.id == this.scrollDownActionId)
             {
                 this.scrollDistance += (float)(this.slotHeight * 2 / 3);
                 this.initialMouseClickY = -2.0F;
@@ -276,33 +276,33 @@ public abstract class GuiScrollingList
 
         this.applyScrollLimits();
 
-        Tessellator tess = Tessellator.func_178181_a();
-        BufferBuilder worldr = tess.func_178180_c();
+        Tessellator tess = Tessellator.getInstance();
+        BufferBuilder worldr = tess.getBuffer();
 
         ScaledResolution res = new ScaledResolution(client);
-        double scaleW = client.field_71443_c / res.func_78327_c();
-        double scaleH = client.field_71440_d / res.func_78324_d();
+        double scaleW = client.displayWidth / res.getScaledWidth_double();
+        double scaleH = client.displayHeight / res.getScaledHeight_double();
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glScissor((int)(left      * scaleW), (int)(client.field_71440_d - (bottom * scaleH)),
+        GL11.glScissor((int)(left      * scaleW), (int)(client.displayHeight - (bottom * scaleH)),
                        (int)(listWidth * scaleW), (int)(viewHeight * scaleH));
 
-        if (this.client.field_71441_e != null)
+        if (this.client.world != null)
         {
             this.drawGradientRect(this.left, this.top, this.right, this.bottom, 0xC0101010, 0xD0101010);
         }
         else // Draw dark dirt background
         {
-            GlStateManager.func_179140_f();
-            GlStateManager.func_179106_n();
-            this.client.field_71446_o.func_110577_a(Gui.field_110325_k);
-            GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.disableLighting();
+            GlStateManager.disableFog();
+            this.client.renderEngine.bindTexture(Gui.OPTIONS_BACKGROUND);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             final float scale = 32.0F;
-            worldr.func_181668_a(GL11.GL_QUADS, DefaultVertexFormats.field_181709_i);
-            worldr.func_181662_b(this.left,  this.bottom, 0.0D).func_187315_a(this.left  / scale, (this.bottom + (int)this.scrollDistance) / scale).func_181669_b(0x20, 0x20, 0x20, 0xFF).func_181675_d();
-            worldr.func_181662_b(this.right, this.bottom, 0.0D).func_187315_a(this.right / scale, (this.bottom + (int)this.scrollDistance) / scale).func_181669_b(0x20, 0x20, 0x20, 0xFF).func_181675_d();
-            worldr.func_181662_b(this.right, this.top,    0.0D).func_187315_a(this.right / scale, (this.top    + (int)this.scrollDistance) / scale).func_181669_b(0x20, 0x20, 0x20, 0xFF).func_181675_d();
-            worldr.func_181662_b(this.left,  this.top,    0.0D).func_187315_a(this.left  / scale, (this.top    + (int)this.scrollDistance) / scale).func_181669_b(0x20, 0x20, 0x20, 0xFF).func_181675_d();
-            tess.func_78381_a();
+            worldr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+            worldr.pos(this.left,  this.bottom, 0.0D).tex(this.left  / scale, (this.bottom + (int)this.scrollDistance) / scale).color(0x20, 0x20, 0x20, 0xFF).endVertex();
+            worldr.pos(this.right, this.bottom, 0.0D).tex(this.right / scale, (this.bottom + (int)this.scrollDistance) / scale).color(0x20, 0x20, 0x20, 0xFF).endVertex();
+            worldr.pos(this.right, this.top,    0.0D).tex(this.right / scale, (this.top    + (int)this.scrollDistance) / scale).color(0x20, 0x20, 0x20, 0xFF).endVertex();
+            worldr.pos(this.left,  this.top,    0.0D).tex(this.left  / scale, (this.top    + (int)this.scrollDistance) / scale).color(0x20, 0x20, 0x20, 0xFF).endVertex();
+            tess.draw();
         }
 
         int baseY = this.top + border - (int)this.scrollDistance;
@@ -322,26 +322,26 @@ public abstract class GuiScrollingList
                 {
                     int min = this.left;
                     int max = entryRight;
-                    GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
-                    GlStateManager.func_179090_x();
-                    worldr.func_181668_a(GL11.GL_QUADS, DefaultVertexFormats.field_181709_i);
-                    worldr.func_181662_b(min,     slotTop + slotBuffer + 2, 0).func_187315_a(0, 1).func_181669_b(0x80, 0x80, 0x80, 0xFF).func_181675_d();
-                    worldr.func_181662_b(max,     slotTop + slotBuffer + 2, 0).func_187315_a(1, 1).func_181669_b(0x80, 0x80, 0x80, 0xFF).func_181675_d();
-                    worldr.func_181662_b(max,     slotTop              - 2, 0).func_187315_a(1, 0).func_181669_b(0x80, 0x80, 0x80, 0xFF).func_181675_d();
-                    worldr.func_181662_b(min,     slotTop              - 2, 0).func_187315_a(0, 0).func_181669_b(0x80, 0x80, 0x80, 0xFF).func_181675_d();
-                    worldr.func_181662_b(min + 1, slotTop + slotBuffer + 1, 0).func_187315_a(0, 1).func_181669_b(0x00, 0x00, 0x00, 0xFF).func_181675_d();
-                    worldr.func_181662_b(max - 1, slotTop + slotBuffer + 1, 0).func_187315_a(1, 1).func_181669_b(0x00, 0x00, 0x00, 0xFF).func_181675_d();
-                    worldr.func_181662_b(max - 1, slotTop              - 1, 0).func_187315_a(1, 0).func_181669_b(0x00, 0x00, 0x00, 0xFF).func_181675_d();
-                    worldr.func_181662_b(min + 1, slotTop              - 1, 0).func_187315_a(0, 0).func_181669_b(0x00, 0x00, 0x00, 0xFF).func_181675_d();
-                    tess.func_78381_a();
-                    GlStateManager.func_179098_w();
+                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                    GlStateManager.disableTexture2D();
+                    worldr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+                    worldr.pos(min,     slotTop + slotBuffer + 2, 0).tex(0, 1).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+                    worldr.pos(max,     slotTop + slotBuffer + 2, 0).tex(1, 1).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+                    worldr.pos(max,     slotTop              - 2, 0).tex(1, 0).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+                    worldr.pos(min,     slotTop              - 2, 0).tex(0, 0).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+                    worldr.pos(min + 1, slotTop + slotBuffer + 1, 0).tex(0, 1).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+                    worldr.pos(max - 1, slotTop + slotBuffer + 1, 0).tex(1, 1).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+                    worldr.pos(max - 1, slotTop              - 1, 0).tex(1, 0).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+                    worldr.pos(min + 1, slotTop              - 1, 0).tex(0, 0).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+                    tess.draw();
+                    GlStateManager.enableTexture2D();
                 }
 
                 this.drawSlot(slotIdx, entryRight, slotTop, slotBuffer, tess);
             }
         }
 
-        GlStateManager.func_179097_i();
+        GlStateManager.disableDepth();
 
         int extraHeight = (this.getContentHeight() + border) - viewHeight;
         if (extraHeight > 0)
@@ -359,32 +359,32 @@ public abstract class GuiScrollingList
                 barTop = this.top;
             }
 
-            GlStateManager.func_179090_x();
-            worldr.func_181668_a(GL11.GL_QUADS, DefaultVertexFormats.field_181709_i);
-            worldr.func_181662_b(scrollBarLeft,  this.bottom, 0.0D).func_187315_a(0.0D, 1.0D).func_181669_b(0x00, 0x00, 0x00, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarRight, this.bottom, 0.0D).func_187315_a(1.0D, 1.0D).func_181669_b(0x00, 0x00, 0x00, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarRight, this.top,    0.0D).func_187315_a(1.0D, 0.0D).func_181669_b(0x00, 0x00, 0x00, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarLeft,  this.top,    0.0D).func_187315_a(0.0D, 0.0D).func_181669_b(0x00, 0x00, 0x00, 0xFF).func_181675_d();
-            tess.func_78381_a();
-            worldr.func_181668_a(GL11.GL_QUADS, DefaultVertexFormats.field_181709_i);
-            worldr.func_181662_b(scrollBarLeft,  barTop + height, 0.0D).func_187315_a(0.0D, 1.0D).func_181669_b(0x80, 0x80, 0x80, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarRight, barTop + height, 0.0D).func_187315_a(1.0D, 1.0D).func_181669_b(0x80, 0x80, 0x80, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarRight, barTop,          0.0D).func_187315_a(1.0D, 0.0D).func_181669_b(0x80, 0x80, 0x80, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarLeft,  barTop,          0.0D).func_187315_a(0.0D, 0.0D).func_181669_b(0x80, 0x80, 0x80, 0xFF).func_181675_d();
-            tess.func_78381_a();
-            worldr.func_181668_a(GL11.GL_QUADS, DefaultVertexFormats.field_181709_i);
-            worldr.func_181662_b(scrollBarLeft,      barTop + height - 1, 0.0D).func_187315_a(0.0D, 1.0D).func_181669_b(0xC0, 0xC0, 0xC0, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarRight - 1, barTop + height - 1, 0.0D).func_187315_a(1.0D, 1.0D).func_181669_b(0xC0, 0xC0, 0xC0, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarRight - 1, barTop,              0.0D).func_187315_a(1.0D, 0.0D).func_181669_b(0xC0, 0xC0, 0xC0, 0xFF).func_181675_d();
-            worldr.func_181662_b(scrollBarLeft,      barTop,              0.0D).func_187315_a(0.0D, 0.0D).func_181669_b(0xC0, 0xC0, 0xC0, 0xFF).func_181675_d();
-            tess.func_78381_a();
+            GlStateManager.disableTexture2D();
+            worldr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+            worldr.pos(scrollBarLeft,  this.bottom, 0.0D).tex(0.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+            worldr.pos(scrollBarRight, this.bottom, 0.0D).tex(1.0D, 1.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+            worldr.pos(scrollBarRight, this.top,    0.0D).tex(1.0D, 0.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+            worldr.pos(scrollBarLeft,  this.top,    0.0D).tex(0.0D, 0.0D).color(0x00, 0x00, 0x00, 0xFF).endVertex();
+            tess.draw();
+            worldr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+            worldr.pos(scrollBarLeft,  barTop + height, 0.0D).tex(0.0D, 1.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+            worldr.pos(scrollBarRight, barTop + height, 0.0D).tex(1.0D, 1.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+            worldr.pos(scrollBarRight, barTop,          0.0D).tex(1.0D, 0.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+            worldr.pos(scrollBarLeft,  barTop,          0.0D).tex(0.0D, 0.0D).color(0x80, 0x80, 0x80, 0xFF).endVertex();
+            tess.draw();
+            worldr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+            worldr.pos(scrollBarLeft,      barTop + height - 1, 0.0D).tex(0.0D, 1.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
+            worldr.pos(scrollBarRight - 1, barTop + height - 1, 0.0D).tex(1.0D, 1.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
+            worldr.pos(scrollBarRight - 1, barTop,              0.0D).tex(1.0D, 0.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
+            worldr.pos(scrollBarLeft,      barTop,              0.0D).tex(0.0D, 0.0D).color(0xC0, 0xC0, 0xC0, 0xFF).endVertex();
+            tess.draw();
         }
 
         this.drawScreen(mouseX, mouseY);
-        GlStateManager.func_179098_w();
-        GlStateManager.func_179103_j(GL11.GL_FLAT);
-        GlStateManager.func_179141_d();
-        GlStateManager.func_179084_k();
+        GlStateManager.enableTexture2D();
+        GlStateManager.shadeModel(GL11.GL_FLAT);
+        GlStateManager.enableAlpha();
+        GlStateManager.disableBlend();
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
 

@@ -73,16 +73,16 @@ public abstract class FluidRegistry
     public static final Fluid WATER = new Fluid("water", new ResourceLocation("blocks/water_still"), new ResourceLocation("blocks/water_flow"), new ResourceLocation("blocks/water_overlay")) {
         @Override
         public String getLocalizedName(FluidStack fs) {
-            return I18n.func_74838_a("tile.water.name");
+            return I18n.translateToLocal("tile.water.name");
         }
-    }.setBlock(Blocks.field_150355_j).setUnlocalizedName(Blocks.field_150355_j.func_149739_a());
+    }.setBlock(Blocks.WATER).setUnlocalizedName(Blocks.WATER.getUnlocalizedName());
 
     public static final Fluid LAVA = new Fluid("lava", new ResourceLocation("blocks/lava_still"), new ResourceLocation("blocks/lava_flow")) {
         @Override
         public String getLocalizedName(FluidStack fs) {
-            return I18n.func_74838_a("tile.lava.name");
+            return I18n.translateToLocal("tile.lava.name");
         }
-    }.setBlock(Blocks.field_150353_l).setLuminosity(15).setDensity(3000).setViscosity(6000).setTemperature(1300).setUnlocalizedName(Blocks.field_150353_l.func_149739_a());
+    }.setBlock(Blocks.LAVA).setLuminosity(15).setDensity(3000).setViscosity(6000).setTemperature(1300).setUnlocalizedName(Blocks.LAVA.getUnlocalizedName());
 
     static
     {
@@ -329,13 +329,13 @@ public abstract class FluidRegistry
             }
             fluidBlocks = tmp;
         }
-        if (block == Blocks.field_150358_i)
+        if (block == Blocks.FLOWING_WATER)
         {
-            block = Blocks.field_150355_j;
+            block = Blocks.WATER;
         }
-        else if (block == Blocks.field_150356_k)
+        else if (block == Blocks.FLOWING_LAVA)
         {
-            block = Blocks.field_150353_l;
+            block = Blocks.LAVA;
         }
         return fluidBlocks.get(block);
     }
@@ -386,7 +386,7 @@ public abstract class FluidRegistry
             if (defaultFluidName != null)
             {
                 ResourceLocation fluidResourceName = new ResourceLocation(defaultFluidName);
-                return fluidResourceName.func_110624_b();
+                return fluidResourceName.getResourceDomain();
             }
         }
         return null;
@@ -395,13 +395,13 @@ public abstract class FluidRegistry
     public static void loadFluidDefaults(NBTTagCompound tag)
     {
         Set<String> defaults = Sets.newHashSet();
-        if (tag.func_150297_b("DefaultFluidList",9))
+        if (tag.hasKey("DefaultFluidList",9))
         {
             FMLLog.log.debug("Loading persistent fluid defaults from world");
-            NBTTagList tl = tag.func_150295_c("DefaultFluidList", 8);
-            for (int i = 0; i < tl.func_74745_c(); i++)
+            NBTTagList tl = tag.getTagList("DefaultFluidList", 8);
+            for (int i = 0; i < tl.tagCount(); i++)
             {
-                defaults.add(tl.func_150307_f(i));
+                defaults.add(tl.getStringTagAt(i));
             }
         }
         else
@@ -417,10 +417,10 @@ public abstract class FluidRegistry
 
         for (Entry<String, Fluid> def : fluids.entrySet())
         {
-            tagList.func_74742_a(new NBTTagString(getDefaultFluidName(def.getValue())));
+            tagList.appendTag(new NBTTagString(getDefaultFluidName(def.getValue())));
         }
 
-        forgeData.func_74782_a("DefaultFluidList", tagList);
+        forgeData.setTag("DefaultFluidList", tagList);
     }
 
     public static void validateFluidRegistry()

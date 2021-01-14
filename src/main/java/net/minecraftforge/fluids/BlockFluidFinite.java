@@ -48,27 +48,27 @@ public class BlockFluidFinite extends BlockFluidBase
 
     public BlockFluidFinite(Fluid fluid, Material material)
     {
-        this(fluid, material, material.func_151565_r());
+        this(fluid, material, material.getMaterialMapColor());
     }
 
     @Override
     public int getQuantaValue(IBlockAccess world, BlockPos pos)
     {
-        IBlockState state = world.func_180495_p(pos);
-        if (state.func_177230_c().isAir(state, world, pos))
+        IBlockState state = world.getBlockState(pos);
+        if (state.getBlock().isAir(state, world, pos))
         {
             return 0;
         }
 
-        if (state.func_177230_c() != this)
+        if (state.getBlock() != this)
         {
             return -1;
         }
-        return state.func_177229_b(LEVEL) + 1;
+        return state.getValue(LEVEL) + 1;
     }
 
     @Override
-    public boolean func_176209_a(@Nonnull IBlockState state, boolean fullHit)
+    public boolean canCollideCheck(@Nonnull IBlockState state, boolean fullHit)
     {
         return fullHit;
     }
@@ -80,10 +80,10 @@ public class BlockFluidFinite extends BlockFluidBase
     }
 
     @Override
-    public void func_180650_b(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand)
+    public void updateTick(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand)
     {
         boolean changed = false;
-        int quantaRemaining = state.func_177229_b(LEVEL) + 1;
+        int quantaRemaining = state.getValue(LEVEL) + 1;
 
         // Flow vertically if possible
         int prevRemaining = quantaRemaining;
@@ -98,7 +98,7 @@ public class BlockFluidFinite extends BlockFluidBase
             changed = true;
             if (quantaRemaining == 1)
             {
-                world.func_180501_a(pos, state.func_177226_a(LEVEL, quantaRemaining - 1), Constants.BlockFlags.SEND_TO_CLIENTS);
+                world.setBlockState(pos, state.withProperty(LEVEL, quantaRemaining - 1), Constants.BlockFlags.SEND_TO_CLIENTS);
                 return;
             }
         }
@@ -114,9 +114,9 @@ public class BlockFluidFinite extends BlockFluidBase
 
         for (EnumFacing side : EnumFacing.Plane.HORIZONTAL)
         {
-            BlockPos off = pos.func_177972_a(side);
+            BlockPos off = pos.offset(side);
             if (displaceIfPossible(world, off))
-                world.func_175698_g(off);
+                world.setBlockToAir(off);
 
             int quanta = getQuantaValueBelow(world, off, lowerThan);
             if (quanta >= 0)
@@ -130,7 +130,7 @@ public class BlockFluidFinite extends BlockFluidBase
         {
             if (changed)
             {
-                world.func_180501_a(pos, state.func_177226_a(LEVEL, quantaRemaining - 1), Constants.BlockFlags.SEND_TO_CLIENTS);
+                world.setBlockState(pos, state.withProperty(LEVEL, quantaRemaining - 1), Constants.BlockFlags.SEND_TO_CLIENTS);
             }
             return;
         }
@@ -140,7 +140,7 @@ public class BlockFluidFinite extends BlockFluidBase
 
         for (EnumFacing side : EnumFacing.Plane.HORIZONTAL)
         {
-            BlockPos off = pos.func_177972_a(side);
+            BlockPos off = pos.offset(side);
             int quanta = getQuantaValueBelow(world, off, lowerThan);
             if (quanta >= 0)
             {
@@ -155,13 +155,13 @@ public class BlockFluidFinite extends BlockFluidBase
                 {
                     if (newQuanta == 0)
                     {
-                        world.func_175698_g(off);
+                        world.setBlockToAir(off);
                     }
                     else
                     {
-                        world.func_180501_a(off, func_176223_P().func_177226_a(LEVEL, newQuanta - 1), Constants.BlockFlags.SEND_TO_CLIENTS);
+                        world.setBlockState(off, getDefaultState().withProperty(LEVEL, newQuanta - 1), Constants.BlockFlags.SEND_TO_CLIENTS);
                     }
-                    world.func_175684_a(off, this, tickRate);
+                    world.scheduleUpdate(off, this, tickRate);
                 }
                 --count;
             }
@@ -171,16 +171,16 @@ public class BlockFluidFinite extends BlockFluidBase
         {
             ++each;
         }
-        world.func_180501_a(pos, state.func_177226_a(LEVEL, each - 1), Constants.BlockFlags.SEND_TO_CLIENTS);
+        world.setBlockState(pos, state.withProperty(LEVEL, each - 1), Constants.BlockFlags.SEND_TO_CLIENTS);
     }
 
     public int tryToFlowVerticallyInto(World world, BlockPos pos, int amtToInput)
     {
-        IBlockState myState = world.func_180495_p(pos);
-        BlockPos other = pos.func_177982_a(0, densityDir, 0);
-        if (other.func_177956_o() < 0 || other.func_177956_o() >= world.func_72800_K())
+        IBlockState myState = world.getBlockState(pos);
+        BlockPos other = pos.add(0, densityDir, 0);
+        if (other.getY() < 0 || other.getY() >= world.getHeight())
         {
-            world.func_175698_g(pos);
+            world.setBlockToAir(pos);
             return 0;
         }
 
@@ -190,15 +190,15 @@ public class BlockFluidFinite extends BlockFluidBase
             amt += amtToInput;
             if (amt > quantaPerBlock)
             {
-                world.func_175656_a(other, myState.func_177226_a(LEVEL, quantaPerBlock - 1));
-                world.func_175684_a(other, this, tickRate);
+                world.setBlockState(other, myState.withProperty(LEVEL, quantaPerBlock - 1));
+                world.scheduleUpdate(other, this, tickRate);
                 return amt - quantaPerBlock;
             }
             else if (amt > 0)
             {
-                world.func_175656_a(other, myState.func_177226_a(LEVEL, amt - 1));
-                world.func_175684_a(other, this, tickRate);
-                world.func_175698_g(pos);
+                world.setBlockState(other, myState.withProperty(LEVEL, amt - 1));
+                world.scheduleUpdate(other, this, tickRate);
+                world.setBlockToAir(pos);
                 return 0;
             }
             return amtToInput;
@@ -210,9 +210,9 @@ public class BlockFluidFinite extends BlockFluidBase
             {
                 if (displaceIfPossible(world, other))
                 {
-                    world.func_175656_a(other, myState.func_177226_a(LEVEL, amtToInput - 1));
-                    world.func_175684_a(other, this, tickRate);
-                    world.func_175698_g(pos);
+                    world.setBlockState(other, myState.withProperty(LEVEL, amtToInput - 1));
+                    world.scheduleUpdate(other, this, tickRate);
+                    world.setBlockToAir(pos);
                     return 0;
                 }
                 else
@@ -225,11 +225,11 @@ public class BlockFluidFinite extends BlockFluidBase
             {
                 if (density_other < density) // then swap
                 {
-                    IBlockState state = world.func_180495_p(other);
-                    world.func_175656_a(other, myState.func_177226_a(LEVEL, amtToInput - 1));
-                    world.func_175656_a(pos,   state);
-                    world.func_175684_a(other, this, tickRate);
-                    world.func_175684_a(pos,   state.func_177230_c(), state.func_177230_c().func_149738_a(world));
+                    IBlockState state = world.getBlockState(other);
+                    world.setBlockState(other, myState.withProperty(LEVEL, amtToInput - 1));
+                    world.setBlockState(pos,   state);
+                    world.scheduleUpdate(other, this, tickRate);
+                    world.scheduleUpdate(pos,   state.getBlock(), state.getBlock().tickRate(world));
                     return 0;
                 }
             }
@@ -237,11 +237,11 @@ public class BlockFluidFinite extends BlockFluidBase
             {
                 if (density_other > density)
                 {
-                    IBlockState state = world.func_180495_p(other);
-                    world.func_175656_a(other, myState.func_177226_a(LEVEL, amtToInput - 1));
-                    world.func_175656_a(pos, state);
-                    world.func_175684_a(other, this,  tickRate);
-                    world.func_175684_a(pos, state.func_177230_c(), state.func_177230_c().func_149738_a(world));
+                    IBlockState state = world.getBlockState(other);
+                    world.setBlockState(other, myState.withProperty(LEVEL, amtToInput - 1));
+                    world.setBlockState(pos, state);
+                    world.scheduleUpdate(other, this,  tickRate);
+                    world.scheduleUpdate(pos, state.getBlock(), state.getBlock().tickRate(world));
                     return 0;
                 }
             }
@@ -253,7 +253,7 @@ public class BlockFluidFinite extends BlockFluidBase
     @Override
     public int place(World world, BlockPos pos, @Nonnull FluidStack fluidStack, boolean doPlace)
     {
-        IBlockState existing = world.func_180495_p(pos);
+        IBlockState existing = world.getBlockState(pos);
         float quantaAmount = Fluid.BUCKET_VOLUME / quantaPerBlockFloat;
         // If the stack contains more available fluid than the full source block,
         // set a source block
@@ -262,14 +262,14 @@ public class BlockFluidFinite extends BlockFluidBase
         if (fluidStack.amount < closest)
         {
             // Figure out maximum level to match stack amount
-            closest = MathHelper.func_76141_d(quantaAmount * MathHelper.func_76141_d(fluidStack.amount / quantaAmount));
-            quanta = MathHelper.func_76141_d(closest / quantaAmount);
+            closest = MathHelper.floor(quantaAmount * MathHelper.floor(fluidStack.amount / quantaAmount));
+            quanta = MathHelper.floor(closest / quantaAmount);
         }
-        if (existing.func_177230_c() == this)
+        if (existing.getBlock() == this)
         {
-            int existingQuanta = existing.func_177229_b(LEVEL) + 1;
+            int existingQuanta = existing.getValue(LEVEL) + 1;
             int missingQuanta = quantaPerBlock - existingQuanta;
-            closest = Math.min(closest, MathHelper.func_76141_d(missingQuanta * quantaAmount));
+            closest = Math.min(closest, MathHelper.floor(missingQuanta * quantaAmount));
             quanta = Math.min(quanta + existingQuanta, quantaPerBlock);
         }
 
@@ -280,7 +280,7 @@ public class BlockFluidFinite extends BlockFluidBase
         if (doPlace)
         {
             FluidUtil.destroyBlockOnFluidPlacement(world, pos);
-            world.func_180501_a(pos, func_176223_P().func_177226_a(LEVEL, quanta - 1), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+            world.setBlockState(pos, getDefaultState().withProperty(LEVEL, quanta - 1), Constants.BlockFlags.DEFAULT_AND_RERENDER);
         }
 
         return closest;
@@ -289,11 +289,11 @@ public class BlockFluidFinite extends BlockFluidBase
     @Override
     public FluidStack drain(World world, BlockPos pos, boolean doDrain)
     {
-        final FluidStack fluidStack = new FluidStack(getFluid(), MathHelper.func_76141_d(getQuantaPercentage(world, pos) * Fluid.BUCKET_VOLUME));
+        final FluidStack fluidStack = new FluidStack(getFluid(), MathHelper.floor(getQuantaPercentage(world, pos) * Fluid.BUCKET_VOLUME));
 
         if (doDrain)
         {
-            world.func_175698_g(pos);
+            world.setBlockToAir(pos);
         }
 
         return fluidStack;

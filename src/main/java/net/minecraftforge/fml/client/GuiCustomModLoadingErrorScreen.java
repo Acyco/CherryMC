@@ -27,16 +27,16 @@ public class GuiCustomModLoadingErrorScreen extends GuiErrorBase
         this.customException = customException;
     }
     @Override
-    public void func_73866_w_()
+    public void initGui()
     {
-        super.func_73866_w_();
-        this.customException.initGui(this, field_146289_q);
+        super.initGui();
+        this.customException.initGui(this, fontRenderer);
     }
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        this.func_146276_q_();
-        super.func_73863_a(mouseX, mouseY, partialTicks);
-        this.customException.drawScreen(this, field_146289_q, mouseX, mouseY, partialTicks);
+        this.drawDefaultBackground();
+        super.drawScreen(mouseX, mouseY, partialTicks);
+        this.customException.drawScreen(this, fontRenderer, mouseX, mouseY, partialTicks);
     }
 }

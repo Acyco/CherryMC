@@ -48,13 +48,13 @@ public class GuiSelectStringEntries extends GuiListExtended
 
     public GuiSelectStringEntries(GuiSelectString owningScreen, Minecraft mc, IConfigElement configElement, Map<Object, String> selectableValues)
     {
-        super(mc, owningScreen.field_146294_l, owningScreen.field_146295_m, owningScreen.titleLine2 != null ? (owningScreen.titleLine3 != null ? 43 : 33) : 23,
-                owningScreen.field_146295_m - 32, 11);
+        super(mc, owningScreen.width, owningScreen.height, owningScreen.titleLine2 != null ? (owningScreen.titleLine3 != null ? 43 : 33) : 23,
+                owningScreen.height - 32, 11);
         this.owningScreen = owningScreen;
         this.mc = mc;
         this.configElement = configElement;
         this.selectableValues = selectableValues;
-        this.func_193651_b(true);
+        this.setShowSelectionBox(true);
 
         listEntries = new ArrayList<IGuiSelectStringListEntry>();
 
@@ -65,8 +65,8 @@ public class GuiSelectStringEntries extends GuiListExtended
         for (Entry<Object, String> entry : sortedList)
         {
             listEntries.add(new ListEntry(this, entry));
-            if (mc.field_71466_p.func_78256_a(entry.getValue()) > maxEntryWidth)
-                maxEntryWidth = mc.field_71466_p.func_78256_a(entry.getValue());
+            if (mc.fontRenderer.getStringWidth(entry.getValue()) > maxEntryWidth)
+                maxEntryWidth = mc.fontRenderer.getStringWidth(entry.getValue());
 
             if (owningScreen.currentValue.equals(entry.getKey()))
             {
@@ -95,7 +95,7 @@ public class GuiSelectStringEntries extends GuiListExtended
      * The element in the slot that was clicked, boolean for whether it was double clicked or not
      */
     @Override
-    protected void func_148144_a(int index, boolean doubleClick, int mouseX, int mouseY)
+    protected void elementClicked(int index, boolean doubleClick, int mouseX, int mouseY)
     {
         selectedIndex = index;
         owningScreen.currentValue = listEntries.get(index).getValue();
@@ -105,34 +105,34 @@ public class GuiSelectStringEntries extends GuiListExtended
      * Returns true if the element passed in is currently selected
      */
     @Override
-    protected boolean func_148131_a(int index)
+    protected boolean isSelected(int index)
     {
         return index == selectedIndex;
     }
 
     @Override
-    protected int func_148137_d()
+    protected int getScrollBarX()
     {
-        return field_148155_a / 2 + this.maxEntryWidth / 2 + 5;
+        return width / 2 + this.maxEntryWidth / 2 + 5;
     }
 
     /**
      * Gets the width of the list
      */
     @Override
-    public int func_148139_c()
+    public int getListWidth()
     {
         return maxEntryWidth + 5;
     }
 
     @Override
-    public IGuiSelectStringListEntry func_148180_b(int index)
+    public IGuiSelectStringListEntry getListEntry(int index)
     {
         return listEntries.get(index);
     }
 
     @Override
-    protected int func_148127_b()
+    protected int getSize()
     {
         return listEntries.size();
     }
@@ -151,9 +151,9 @@ public class GuiSelectStringEntries extends GuiListExtended
     {
         if (owningScreen.slotIndex != -1 && owningScreen.parentScreen != null
                 && owningScreen.parentScreen instanceof GuiConfig
-                && ((GuiConfig) owningScreen.parentScreen).entryList.func_148180_b(owningScreen.slotIndex) instanceof SelectValueEntry)
+                && ((GuiConfig) owningScreen.parentScreen).entryList.getListEntry(owningScreen.slotIndex) instanceof SelectValueEntry)
         {
-            SelectValueEntry entry = (SelectValueEntry) ((GuiConfig) owningScreen.parentScreen).entryList.func_148180_b(owningScreen.slotIndex);
+            SelectValueEntry entry = (SelectValueEntry) ((GuiConfig) owningScreen.parentScreen).entryList.getListEntry(owningScreen.slotIndex);
 
             entry.setValueFromChildScreen(owningScreen.currentValue);
         }
@@ -173,19 +173,19 @@ public class GuiSelectStringEntries extends GuiListExtended
         }
 
         @Override
-        public void func_192634_a(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
         {
-            owningList.mc.field_71466_p.func_78276_b(value.getValue(), x + 1, y, slotIndex == owningList.selectedIndex ? 16777215 : 14737632);
+            owningList.mc.fontRenderer.drawString(value.getValue(), x + 1, y, slotIndex == owningList.selectedIndex ? 16777215 : 14737632);
         }
 
         @Override
-        public boolean func_148278_a(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
+        public boolean mousePressed(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
         {
             return false;
         }
 
         @Override
-        public void func_148277_b(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
+        public void mouseReleased(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
         {}
 
         @Override
@@ -195,7 +195,7 @@ public class GuiSelectStringEntries extends GuiListExtended
         }
 
         @Override
-        public void func_192633_a(int p_192633_1_, int p_192633_2_, int p_192633_3_, float p_192633_4_){}
+        public void updatePosition(int p_192633_1_, int p_192633_2_, int p_192633_3_, float p_192633_4_){}
     }
 
     public static interface IGuiSelectStringListEntry extends IGuiListEntry

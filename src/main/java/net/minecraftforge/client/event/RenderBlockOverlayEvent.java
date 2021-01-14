@@ -45,7 +45,7 @@ public class RenderBlockOverlayEvent extends Event {
     @Deprecated
     public RenderBlockOverlayEvent(EntityPlayer player, float renderPartialTicks, OverlayType type, Block block, int x, int y, int z)
     {
-        this(player, renderPartialTicks, type, block.func_176223_P(), new BlockPos(x, y, z));
+        this(player, renderPartialTicks, type, block.getDefaultState(), new BlockPos(x, y, z));
     }
     
     public RenderBlockOverlayEvent(EntityPlayer player, float renderPartialTicks, OverlayType type, IBlockState block, BlockPos blockPos)

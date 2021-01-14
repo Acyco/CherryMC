@@ -37,40 +37,40 @@ public class GuiCheckBox extends GuiButton
         super(id, xPos, yPos, displayString);
         this.isChecked = isChecked;
         this.boxWidth = 11;
-        this.field_146121_g = 11;
-        this.field_146120_f = this.boxWidth + 2 + Minecraft.func_71410_x().field_71466_p.func_78256_a(displayString);
+        this.height = 11;
+        this.width = this.boxWidth + 2 + Minecraft.getMinecraft().fontRenderer.getStringWidth(displayString);
     }
 
     @Override
-    public void func_191745_a(Minecraft mc, int mouseX, int mouseY, float partial)
+    public void drawButton(Minecraft mc, int mouseX, int mouseY, float partial)
     {
-        if (this.field_146125_m)
+        if (this.visible)
         {
-            this.field_146123_n = mouseX >= this.field_146128_h && mouseY >= this.field_146129_i && mouseX < this.field_146128_h + this.boxWidth && mouseY < this.field_146129_i + this.field_146121_g;
-            GuiUtils.drawContinuousTexturedBox(field_146122_a, this.field_146128_h, this.field_146129_i, 0, 46, this.boxWidth, this.field_146121_g, 200, 20, 2, 3, 2, 2, this.field_73735_i);
-            this.func_146119_b(mc, mouseX, mouseY);
+            this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.boxWidth && mouseY < this.y + this.height;
+            GuiUtils.drawContinuousTexturedBox(BUTTON_TEXTURES, this.x, this.y, 0, 46, this.boxWidth, this.height, 200, 20, 2, 3, 2, 2, this.zLevel);
+            this.mouseDragged(mc, mouseX, mouseY);
             int color = 14737632;
 
             if (packedFGColour != 0)
             {
                 color = packedFGColour;
             }
-            else if (!this.field_146124_l)
+            else if (!this.enabled)
             {
                 color = 10526880;
             }
 
             if (this.isChecked)
-                this.func_73732_a(mc.field_71466_p, "x", this.field_146128_h + this.boxWidth / 2 + 1, this.field_146129_i + 1, 14737632);
+                this.drawCenteredString(mc.fontRenderer, "x", this.x + this.boxWidth / 2 + 1, this.y + 1, 14737632);
 
-            this.func_73731_b(mc.field_71466_p, field_146126_j, this.field_146128_h + this.boxWidth + 2, this.field_146129_i + 2, color);
+            this.drawString(mc.fontRenderer, displayString, this.x + this.boxWidth + 2, this.y + 2, color);
         }
     }
 
     @Override
-    public boolean func_146116_c(Minecraft mc, int mouseX, int mouseY)
+    public boolean mousePressed(Minecraft mc, int mouseX, int mouseY)
     {
-        if (this.field_146124_l && this.field_146125_m && mouseX >= this.field_146128_h && mouseY >= this.field_146129_i && mouseX < this.field_146128_h + this.field_146120_f && mouseY < this.field_146129_i + this.field_146121_g)
+        if (this.enabled && this.visible && mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height)
         {
             this.isChecked = !this.isChecked;
             return true;

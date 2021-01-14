@@ -66,7 +66,7 @@ public class AnimationModelBase<T extends Entity> extends ModelBase implements I
 
     @SuppressWarnings("unchecked")
     @Override
-    public void func_78088_a(Entity entity, float limbSwing, float limbSwingSpeed, float timeAlive, float yawHead, float rotationPitch, float scale)
+    public void render(Entity entity, float limbSwing, float limbSwingSpeed, float timeAlive, float yawHead, float rotationPitch, float scale)
     {
         IAnimationStateMachine capability = entity.getCapability(CapabilityAnimation.ANIMATION_CAPABILITY, null);
         if (capability == null)
@@ -76,24 +76,24 @@ public class AnimationModelBase<T extends Entity> extends ModelBase implements I
         Pair<IModelState, Iterable<Event>> pair = capability.apply(timeAlive / 20);
         handleEvents((T)entity, timeAlive / 20, pair.getRight());
         IModel model = ModelLoaderRegistry.getModelOrMissing(modelLocation);
-        IBakedModel bakedModel = model.bake(pair.getLeft(), DefaultVertexFormats.field_176599_b, ModelLoader.defaultTextureGetter());
+        IBakedModel bakedModel = model.bake(pair.getLeft(), DefaultVertexFormats.ITEM, ModelLoader.defaultTextureGetter());
 
-        BlockPos pos = new BlockPos(entity.field_70165_t, entity.field_70163_u + entity.field_70131_O, entity.field_70161_v);
+        BlockPos pos = new BlockPos(entity.posX, entity.posY + entity.height, entity.posZ);
 
-        RenderHelper.func_74518_a();
-        GlStateManager.func_179094_E();
-        GlStateManager.func_179114_b(180, 0, 0, 1);
-        Tessellator tessellator = Tessellator.func_178181_a();
-        BufferBuilder builder = tessellator.func_178180_c();
-        builder.func_181668_a(GL11.GL_QUADS, DefaultVertexFormats.field_176600_a);
-        builder.func_178969_c(-0.5, -1.5, -0.5);
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.pushMatrix();
+        GlStateManager.rotate(180, 0, 0, 1);
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder builder = tessellator.getBuffer();
+        builder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
+        builder.setTranslation(-0.5, -1.5, -0.5);
 
         lighter.setParent(new VertexBufferConsumer(builder));
-        lighter.setWorld(entity.field_70170_p);
-        lighter.setState(Blocks.field_150350_a.func_176223_P());
+        lighter.setWorld(entity.world);
+        lighter.setState(Blocks.AIR.getDefaultState());
         lighter.setBlockPos(pos);
         boolean empty = true;
-        List<BakedQuad> quads = bakedModel.func_188616_a(null, null, 0);
+        List<BakedQuad> quads = bakedModel.getQuads(null, null, 0);
         if(!quads.isEmpty())
         {
             lighter.updateBlockInfo();
@@ -105,7 +105,7 @@ public class AnimationModelBase<T extends Entity> extends ModelBase implements I
         }
         for(EnumFacing side : EnumFacing.values())
         {
-            quads = bakedModel.func_188616_a(null, side, 0);
+            quads = bakedModel.getQuads(null, side, 0);
             if(!quads.isEmpty())
             {
                 if(empty) lighter.updateBlockInfo();
@@ -123,11 +123,11 @@ public class AnimationModelBase<T extends Entity> extends ModelBase implements I
         VertexBuffer.pos(1, 1, 1).color(0xFF, 0xFF, 0xFF, 0xFF).tex(1, 1).lightmap(240, 0).endVertex();
         VertexBuffer.pos(1, 1, 0).color(0xFF, 0xFF, 0xFF, 0xFF).tex(1, 0).lightmap(240, 0).endVertex();*/
 
-        builder.func_178969_c(0, 0, 0);
+        builder.setTranslation(0, 0, 0);
 
-        tessellator.func_78381_a();
-        GlStateManager.func_179121_F();
-        RenderHelper.func_74519_b();
+        tessellator.draw();
+        GlStateManager.popMatrix();
+        RenderHelper.enableStandardItemLighting();
     }
 
     @Override

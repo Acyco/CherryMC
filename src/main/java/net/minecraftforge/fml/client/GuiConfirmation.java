@@ -32,19 +32,19 @@ public class GuiConfirmation extends GuiNotification
     }
 
     @Override
-    public void func_73866_w_()
+    public void initGui()
     {
-        this.field_146292_n.add(new GuiOptionButton(0, this.field_146294_l / 2 - 155, this.field_146295_m - 38, I18n.func_135052_a("gui.yes")));
-        this.field_146292_n.add(new GuiOptionButton(1, this.field_146294_l / 2 - 155 + 160, this.field_146295_m - 38, I18n.func_135052_a("gui.no")));
+        this.buttonList.add(new GuiOptionButton(0, this.width / 2 - 155, this.height - 38, I18n.format("gui.yes")));
+        this.buttonList.add(new GuiOptionButton(1, this.width / 2 - 155 + 160, this.height - 38, I18n.format("gui.no")));
     }
 
     @Override
-    protected void func_146284_a(GuiButton button)
+    protected void actionPerformed(GuiButton button)
     {
-        if (button.field_146124_l && (button.field_146127_k == 0 || button.field_146127_k == 1))
+        if (button.enabled && (button.id == 0 || button.id == 1))
         {
             FMLClientHandler.instance().showGuiScreen(null);
-            query.setResult(button.field_146127_k == 0);
+            query.setResult(button.id == 0);
             query.finish();
         }
     }

@@ -46,9 +46,9 @@ public class BiomeManager
 
     static
     {
-        oceanBiomes.add(Biomes.field_76771_b);
-        oceanBiomes.add(Biomes.field_150575_M);
-        oceanBiomes.add(Biomes.field_76776_l);
+        oceanBiomes.add(Biomes.OCEAN);
+        oceanBiomes.add(Biomes.DEEP_OCEAN);
+        oceanBiomes.add(Biomes.FROZEN_OCEAN);
     }
 
     private static TrackedList<BiomeEntry>[] setupBiomes()
@@ -57,26 +57,26 @@ public class BiomeManager
         TrackedList<BiomeEntry>[] currentBiomes = new TrackedList[BiomeType.values().length];
         List<BiomeEntry> list = new ArrayList<BiomeEntry>();
 
-        list.add(new BiomeEntry(Biomes.field_76767_f, 10));
-        list.add(new BiomeEntry(Biomes.field_150585_R, 10));
-        list.add(new BiomeEntry(Biomes.field_76770_e, 10));
-        list.add(new BiomeEntry(Biomes.field_76772_c, 10));
-        list.add(new BiomeEntry(Biomes.field_150583_P, 10));
-        list.add(new BiomeEntry(Biomes.field_76780_h, 10));
+        list.add(new BiomeEntry(Biomes.FOREST, 10));
+        list.add(new BiomeEntry(Biomes.ROOFED_FOREST, 10));
+        list.add(new BiomeEntry(Biomes.EXTREME_HILLS, 10));
+        list.add(new BiomeEntry(Biomes.PLAINS, 10));
+        list.add(new BiomeEntry(Biomes.BIRCH_FOREST, 10));
+        list.add(new BiomeEntry(Biomes.SWAMPLAND, 10));
 
         currentBiomes[BiomeType.WARM.ordinal()] = new TrackedList<BiomeEntry>(list);
         list.clear();
 
-        list.add(new BiomeEntry(Biomes.field_76767_f, 10));
-        list.add(new BiomeEntry(Biomes.field_76770_e, 10));
-        list.add(new BiomeEntry(Biomes.field_76768_g, 10));
-        list.add(new BiomeEntry(Biomes.field_76772_c, 10));
+        list.add(new BiomeEntry(Biomes.FOREST, 10));
+        list.add(new BiomeEntry(Biomes.EXTREME_HILLS, 10));
+        list.add(new BiomeEntry(Biomes.TAIGA, 10));
+        list.add(new BiomeEntry(Biomes.PLAINS, 10));
 
         currentBiomes[BiomeType.COOL.ordinal()] = new TrackedList<BiomeEntry>(list);
         list.clear();
 
-        list.add(new BiomeEntry(Biomes.field_76774_n, 30));
-        list.add(new BiomeEntry(Biomes.field_150584_S, 10));
+        list.add(new BiomeEntry(Biomes.ICE_PLAINS, 30));
+        list.add(new BiomeEntry(Biomes.COLD_TAIGA, 10));
 
         currentBiomes[BiomeType.ICY.ordinal()] = new TrackedList<BiomeEntry>(list);
         list.clear();
@@ -88,21 +88,21 @@ public class BiomeManager
 
     public static void addVillageBiome(Biome biome, boolean canSpawn)
     {
-        if (!MapGenVillage.field_75055_e.contains(biome))
+        if (!MapGenVillage.VILLAGE_SPAWN_BIOMES.contains(biome))
         {
-            ArrayList<Biome> biomes = new ArrayList<Biome>(MapGenVillage.field_75055_e);
+            ArrayList<Biome> biomes = new ArrayList<Biome>(MapGenVillage.VILLAGE_SPAWN_BIOMES);
             biomes.add(biome);
-            MapGenVillage.field_75055_e = biomes;
+            MapGenVillage.VILLAGE_SPAWN_BIOMES = biomes;
         }
     }
 
     public static void removeVillageBiome(Biome biome)
     {
-        if (MapGenVillage.field_75055_e.contains(biome))
+        if (MapGenVillage.VILLAGE_SPAWN_BIOMES.contains(biome))
         {
-            ArrayList<Biome> biomes = new ArrayList<Biome>(MapGenVillage.field_75055_e);
+            ArrayList<Biome> biomes = new ArrayList<Biome>(MapGenVillage.VILLAGE_SPAWN_BIOMES);
             biomes.remove(biome);
-            MapGenVillage.field_75055_e = biomes;
+            MapGenVillage.VILLAGE_SPAWN_BIOMES = biomes;
         }
     }
 

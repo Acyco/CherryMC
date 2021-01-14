@@ -186,11 +186,11 @@ public class GuiScreenEvent extends Event
         public BackgroundDrawnEvent(GuiScreen gui)
         {
             super(gui);
-            final ScaledResolution scaledresolution = new ScaledResolution(gui.field_146297_k);
-            final int scaledWidth = scaledresolution.func_78326_a();
-            final int scaledHeight = scaledresolution.func_78328_b();
-            this.mouseX = Mouse.getX() * scaledWidth / gui.field_146297_k.field_71443_c;
-            this.mouseY = scaledHeight - Mouse.getY() * scaledHeight / gui.field_146297_k.field_71440_d - 1;
+            final ScaledResolution scaledresolution = new ScaledResolution(gui.mc);
+            final int scaledWidth = scaledresolution.getScaledWidth();
+            final int scaledHeight = scaledresolution.getScaledHeight();
+            this.mouseX = Mouse.getX() * scaledWidth / gui.mc.displayWidth;
+            this.mouseY = scaledHeight - Mouse.getY() * scaledHeight / gui.mc.displayHeight - 1;
         }
 
         /**

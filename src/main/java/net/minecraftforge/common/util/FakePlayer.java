@@ -45,17 +45,17 @@ public class FakePlayer extends EntityPlayerMP
         super(FMLCommonHandler.instance().getMinecraftServerInstance(), world, name, new PlayerInteractionManager(world));
     }
 
-    @Override public Vec3d func_174791_d(){ return new Vec3d(0, 0, 0); }
-    @Override public boolean func_70003_b(int i, String s){ return false; }
-    @Override public void func_146105_b(ITextComponent chatComponent, boolean actionBar){}
-    @Override public void func_145747_a(ITextComponent component) {}
-    @Override public void func_71064_a(StatBase par1StatBase, int par2){}
+    @Override public Vec3d getPositionVector(){ return new Vec3d(0, 0, 0); }
+    @Override public boolean canUseCommand(int i, String s){ return false; }
+    @Override public void sendStatusMessage(ITextComponent chatComponent, boolean actionBar){}
+    @Override public void sendMessage(ITextComponent component) {}
+    @Override public void addStat(StatBase par1StatBase, int par2){}
     @Override public void openGui(Object mod, int modGuiId, World world, int x, int y, int z){}
-    @Override public boolean func_180431_b(DamageSource source){ return true; }
-    @Override public boolean func_96122_a(EntityPlayer player){ return false; }
-    @Override public void func_70645_a(DamageSource source){ return; }
-    @Override public void func_70071_h_(){ return; }
+    @Override public boolean isEntityInvulnerable(DamageSource source){ return true; }
+    @Override public boolean canAttackPlayer(EntityPlayer player){ return false; }
+    @Override public void onDeath(DamageSource source){ return; }
+    @Override public void onUpdate(){ return; }
     @Override public Entity changeDimension(int dim, ITeleporter teleporter){ return this; }
-    @Override public void func_147100_a(CPacketClientSettings pkt){ return; }
-    @Override @Nullable public MinecraftServer func_184102_h() { return FMLCommonHandler.instance().getMinecraftServerInstance(); }
+    @Override public void handleClientSettings(CPacketClientSettings pkt){ return; }
+    @Override @Nullable public MinecraftServer getServer() { return FMLCommonHandler.instance().getMinecraftServerInstance(); }
 }

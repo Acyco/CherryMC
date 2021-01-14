@@ -57,7 +57,7 @@ public class BlockWrapper extends VoidFluidHandler
         if (doFill)
         {
             FluidUtil.destroyBlockOnFluidPlacement(world, blockPos);
-            world.func_180501_a(blockPos, block.func_176223_P(), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+            world.setBlockState(blockPos, block.getDefaultState(), Constants.BlockFlags.DEFAULT_AND_RERENDER);
         }
         return Fluid.BUCKET_VOLUME;
     }

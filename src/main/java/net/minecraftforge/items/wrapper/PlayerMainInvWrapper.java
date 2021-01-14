@@ -35,7 +35,7 @@ public class PlayerMainInvWrapper extends RangedWrapper
 
     public PlayerMainInvWrapper(InventoryPlayer inv)
     {
-        super(new InvWrapper(inv), 0, inv.field_70462_a.size());
+        super(new InvWrapper(inv), 0, inv.mainInventory.size());
         inventoryPlayer = inv;
     }
 
@@ -44,18 +44,18 @@ public class PlayerMainInvWrapper extends RangedWrapper
     public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate)
     {
         ItemStack rest = super.insertItem(slot, stack, simulate);
-        if (rest.func_190916_E()!= stack.func_190916_E())
+        if (rest.getCount()!= stack.getCount())
         {
             // the stack in the slot changed, animate it
             ItemStack inSlot = getStackInSlot(slot);
-            if(!inSlot.func_190926_b())
+            if(!inSlot.isEmpty())
             {
-                if (getInventoryPlayer().field_70458_d.field_70170_p.field_72995_K)
+                if (getInventoryPlayer().player.world.isRemote)
                 {
-                    inSlot.func_190915_d(5);
+                    inSlot.setAnimationsToGo(5);
                 }
-                else if(getInventoryPlayer().field_70458_d instanceof EntityPlayerMP) {
-                    getInventoryPlayer().field_70458_d.field_71070_bA.func_75142_b();
+                else if(getInventoryPlayer().player instanceof EntityPlayerMP) {
+                    getInventoryPlayer().player.openContainer.detectAndSendChanges();
                 }
             }
         }

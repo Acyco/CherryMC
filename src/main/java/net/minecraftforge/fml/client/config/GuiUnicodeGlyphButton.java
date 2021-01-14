@@ -41,50 +41,50 @@ public class GuiUnicodeGlyphButton extends GuiButtonExt
     }
 
     @Override
-    public void func_191745_a(Minecraft mc, int mouseX, int mouseY, float partial)
+    public void drawButton(Minecraft mc, int mouseX, int mouseY, float partial)
     {
-        if (this.field_146125_m)
+        if (this.visible)
         {
-            this.field_146123_n = mouseX >= this.field_146128_h && mouseY >= this.field_146129_i && mouseX < this.field_146128_h + this.field_146120_f && mouseY < this.field_146129_i + this.field_146121_g;
-            int k = this.func_146114_a(this.field_146123_n);
-            GuiUtils.drawContinuousTexturedBox(GuiButton.field_146122_a, this.field_146128_h, this.field_146129_i, 0, 46 + k * 20, this.field_146120_f, this.field_146121_g, 200, 20, 2, 3, 2, 2, this.field_73735_i);
-            this.func_146119_b(mc, mouseX, mouseY);
+            this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+            int k = this.getHoverState(this.hovered);
+            GuiUtils.drawContinuousTexturedBox(GuiButton.BUTTON_TEXTURES, this.x, this.y, 0, 46 + k * 20, this.width, this.height, 200, 20, 2, 3, 2, 2, this.zLevel);
+            this.mouseDragged(mc, mouseX, mouseY);
             int color = 14737632;
 
             if (packedFGColour != 0)
             {
                 color = packedFGColour;
             }
-            else if (!this.field_146124_l)
+            else if (!this.enabled)
             {
                 color = 10526880;
             }
-            else if (this.field_146123_n)
+            else if (this.hovered)
             {
                 color = 16777120;
             }
 
-            String buttonText = this.field_146126_j;
-            int glyphWidth = (int) (mc.field_71466_p.func_78256_a(glyph) * glyphScale);
-            int strWidth = mc.field_71466_p.func_78256_a(buttonText);
-            int ellipsisWidth = mc.field_71466_p.func_78256_a("...");
+            String buttonText = this.displayString;
+            int glyphWidth = (int) (mc.fontRenderer.getStringWidth(glyph) * glyphScale);
+            int strWidth = mc.fontRenderer.getStringWidth(buttonText);
+            int ellipsisWidth = mc.fontRenderer.getStringWidth("...");
             int totalWidth = strWidth + glyphWidth;
 
-            if (totalWidth > field_146120_f - 6 && totalWidth > ellipsisWidth)
-                buttonText = mc.field_71466_p.func_78269_a(buttonText, field_146120_f - 6 - ellipsisWidth).trim() + "...";
+            if (totalWidth > width - 6 && totalWidth > ellipsisWidth)
+                buttonText = mc.fontRenderer.trimStringToWidth(buttonText, width - 6 - ellipsisWidth).trim() + "...";
 
-            strWidth = mc.field_71466_p.func_78256_a(buttonText);
+            strWidth = mc.fontRenderer.getStringWidth(buttonText);
             totalWidth = glyphWidth + strWidth;
 
-            GlStateManager.func_179094_E();
-            GlStateManager.func_179152_a(glyphScale, glyphScale, 1.0F);
-            this.func_73732_a(mc.field_71466_p, glyph,
-                    (int) (((this.field_146128_h + (this.field_146120_f / 2) - (strWidth / 2)) / glyphScale) - (glyphWidth / (2 * glyphScale)) + 2),
-                    (int) (((this.field_146129_i + ((this.field_146121_g - 8) / glyphScale) / 2) - 1) / glyphScale), color);
-            GlStateManager.func_179121_F();
+            GlStateManager.pushMatrix();
+            GlStateManager.scale(glyphScale, glyphScale, 1.0F);
+            this.drawCenteredString(mc.fontRenderer, glyph,
+                    (int) (((this.x + (this.width / 2) - (strWidth / 2)) / glyphScale) - (glyphWidth / (2 * glyphScale)) + 2),
+                    (int) (((this.y + ((this.height - 8) / glyphScale) / 2) - 1) / glyphScale), color);
+            GlStateManager.popMatrix();
 
-            this.func_73732_a(mc.field_71466_p, buttonText, (int) (this.field_146128_h + (this.field_146120_f / 2) + (glyphWidth / glyphScale)),
-                    this.field_146129_i + (this.field_146121_g - 8) / 2, color);
+            this.drawCenteredString(mc.fontRenderer, buttonText, (int) (this.x + (this.width / 2) + (glyphWidth / glyphScale)),
+                    this.y + (this.height - 8) / 2, color);
         }
     }
 }

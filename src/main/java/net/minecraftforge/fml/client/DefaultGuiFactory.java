@@ -26,8 +26,6 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.common.ModContainer;
 
-import net.minecraftforge.fml.client.IModGuiFactory.RuntimeOptionCategoryElement;
-
 public class DefaultGuiFactory implements IModGuiFactory
 {
     

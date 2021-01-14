@@ -79,7 +79,7 @@ public final class Clips
         }
 
         @Override
-        public String func_176610_l()
+        public String getName()
         {
             return "identity";
         }
@@ -291,7 +291,7 @@ public final class Clips
             public TRSRTransformation apply(float time)
             {
                 float clipTime = input.apply(time);
-                return fromClip.apply(clipTime).slerp(toClip.apply(clipTime), MathHelper.func_76131_a(progress.apply(time), 0, 1));
+                return fromClip.apply(clipTime).slerp(toClip.apply(clipTime), MathHelper.clamp(progress.apply(time), 0, 1));
             }
         };
     }
@@ -407,7 +407,7 @@ public final class Clips
         }
 
         @Override
-        public String func_176610_l()
+        public String getName()
         {
             return clipName;
         }
@@ -466,7 +466,7 @@ public final class Clips
                     // IdentityClip + ClipReference
                     if(clip instanceof IStringSerializable)
                     {
-                        out.value("#" + ((IStringSerializable)clip).func_176610_l());
+                        out.value("#" + ((IStringSerializable)clip).getName());
                         return;
                     }
                     else if(clip instanceof TimeClip)

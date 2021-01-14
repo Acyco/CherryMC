@@ -55,8 +55,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nullable;
 
-import net.minecraftforge.fml.common.EnhancedRuntimeException.WrappedPrintStream;
-
 public class EnumHelper
 {
     private static Object reflectionFactory      = null;

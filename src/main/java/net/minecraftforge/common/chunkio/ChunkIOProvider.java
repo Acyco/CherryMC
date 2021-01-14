@@ -98,16 +98,16 @@ class ChunkIOProvider implements Runnable
         }
 
         // Load Entities
-        this.loader.loadEntities(this.chunkInfo.world, this.nbt.func_74775_l("Level"), this.chunk);
+        this.loader.loadEntities(this.chunkInfo.world, this.nbt.getCompoundTag("Level"), this.chunk);
 
         MinecraftForge.EVENT_BUS.post(new ChunkDataEvent.Load(this.chunk, this.nbt)); // Don't call ChunkDataEvent.Load async
 
-        this.chunk.func_177432_b(provider.field_73251_h.func_82737_E());
-        this.provider.field_186029_c.func_180514_a(this.chunk, this.chunkInfo.x, this.chunkInfo.z);
+        this.chunk.setLastSaveTime(provider.world.getTotalWorldTime());
+        this.provider.chunkGenerator.recreateStructures(this.chunk, this.chunkInfo.x, this.chunkInfo.z);
 
-        provider.field_73244_f.put(ChunkPos.func_77272_a(this.chunkInfo.x, this.chunkInfo.z), this.chunk);
-        this.chunk.func_76631_c();
-        this.chunk.func_186030_a(provider, provider.field_186029_c);
+        provider.id2ChunkMap.put(ChunkPos.asLong(this.chunkInfo.x, this.chunkInfo.z), this.chunk);
+        this.chunk.onLoad();
+        this.chunk.populate(provider, provider.chunkGenerator);
 
         this.runCallbacks();
     }

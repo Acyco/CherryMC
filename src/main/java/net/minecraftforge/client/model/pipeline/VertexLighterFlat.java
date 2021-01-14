@@ -63,9 +63,9 @@ public class VertexLighterFlat extends QuadGatheringTransformer
 
     private void updateIndices()
     {
-        for(int i = 0; i < getVertexFormat().func_177345_h(); i++)
+        for(int i = 0; i < getVertexFormat().getElementCount(); i++)
         {
-            switch(getVertexFormat().func_177348_c(i).func_177375_c())
+            switch(getVertexFormat().getElement(i).getUsage())
             {
                 case POSITION:
                     posIndex = i;
@@ -77,7 +77,7 @@ public class VertexLighterFlat extends QuadGatheringTransformer
                     colorIndex = i;
                     break;
                 case UV:
-                    if(getVertexFormat().func_177348_c(i).func_177369_e() == 1)
+                    if(getVertexFormat().getElement(i).getIndex() == 1)
                     {
                         lightmapIndex = i;
                     }
@@ -108,19 +108,19 @@ public class VertexLighterFlat extends QuadGatheringTransformer
         updateIndices();
     }
 
-    private static final VertexFormat BLOCK_WITH_NORMAL = withNormalUncached(DefaultVertexFormats.field_176600_a);
+    private static final VertexFormat BLOCK_WITH_NORMAL = withNormalUncached(DefaultVertexFormats.BLOCK);
     static VertexFormat withNormal(VertexFormat format)
     {
         //This is the case in 99.99%. Cache the value, so we don't have to redo it every time, and the speed up the equals check in LightUtil
-        if (format == DefaultVertexFormats.field_176600_a)
+        if (format == DefaultVertexFormats.BLOCK)
             return BLOCK_WITH_NORMAL;
         return withNormalUncached(format);
     }
 
     private static VertexFormat withNormalUncached(VertexFormat format)
     {
-        if (format == null || format.func_177350_b()) return format;
-        return new VertexFormat(format).func_181721_a(NORMAL_4F);
+        if (format == null || format.hasNormal()) return format;
+        return new VertexFormat(format).addElement(NORMAL_4F);
     }
 
     @Override
@@ -165,7 +165,7 @@ public class VertexLighterFlat extends QuadGatheringTransformer
         }
 
         VertexFormat format = parent.getVertexFormat();
-        int count = format.func_177345_h();
+        int count = format.getElementCount();
 
         for(int v = 0; v < 4; v++)
         {
@@ -200,7 +200,7 @@ public class VertexLighterFlat extends QuadGatheringTransformer
                     color[v][i] *= d;
                 }
             }
-            if(EntityRenderer.field_78517_a)
+            if(EntityRenderer.anaglyphEnable)
             {
                 applyAnaglyph(color[v]);
             }
@@ -208,8 +208,8 @@ public class VertexLighterFlat extends QuadGatheringTransformer
             // no need for remapping cause all we could've done is add 1 element to the end
             for(int e = 0; e < count; e++)
             {
-                VertexFormatElement element = format.func_177348_c(e);
-                switch(element.func_177375_c())
+                VertexFormatElement element = format.getElement(e);
+                switch(element.getUsage())
                 {
                     case POSITION:
                         // position adding moved to VertexBufferConsumer due to x and z not fitting completely into a float
@@ -227,7 +227,7 @@ public class VertexLighterFlat extends QuadGatheringTransformer
                         parent.put(e, color[v]);
                         break;
                     case UV:
-                        if(element.func_177369_e() == 1)
+                        if(element.getIndex() == 1)
                         {
                             parent.put(e, lightmap[v]);
                             break;

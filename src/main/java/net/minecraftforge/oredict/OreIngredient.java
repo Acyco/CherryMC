@@ -46,15 +46,15 @@ public class OreIngredient extends Ingredient
 
     @Override
     @Nonnull
-    public ItemStack[] func_193365_a()
+    public ItemStack[] getMatchingStacks()
     {
         if (array == null || this.lastSizeA != ores.size())
         {
-            NonNullList<ItemStack> lst = NonNullList.func_191196_a();
+            NonNullList<ItemStack> lst = NonNullList.create();
             for (ItemStack itemstack : this.ores)
             {
-                if (itemstack.func_77960_j() == OreDictionary.WILDCARD_VALUE)
-                    itemstack.func_77973_b().func_150895_a(CreativeTabs.field_78027_g, lst);
+                if (itemstack.getMetadata() == OreDictionary.WILDCARD_VALUE)
+                    itemstack.getItem().getSubItems(CreativeTabs.SEARCH, lst);
                 else
                     lst.add(itemstack);
             }
@@ -67,7 +67,7 @@ public class OreIngredient extends Ingredient
 
     @Override
     @Nonnull
-    public IntList func_194139_b()
+    public IntList getValidItemStacksPacked()
     {
         if (this.itemIds == null || this.lastSizeL != ores.size())
         {
@@ -75,16 +75,16 @@ public class OreIngredient extends Ingredient
 
             for (ItemStack itemstack : this.ores)
             {
-                if (itemstack.func_77960_j() == OreDictionary.WILDCARD_VALUE)
+                if (itemstack.getMetadata() == OreDictionary.WILDCARD_VALUE)
                 {
-                    NonNullList<ItemStack> lst = NonNullList.func_191196_a();
-                    itemstack.func_77973_b().func_150895_a(CreativeTabs.field_78027_g, lst);
+                    NonNullList<ItemStack> lst = NonNullList.create();
+                    itemstack.getItem().getSubItems(CreativeTabs.SEARCH, lst);
                     for (ItemStack item : lst)
-                        this.itemIds.add(RecipeItemHelper.func_194113_b(item));
+                        this.itemIds.add(RecipeItemHelper.pack(item));
                 }
                 else
                 {
-                    this.itemIds.add(RecipeItemHelper.func_194113_b(itemstack));
+                    this.itemIds.add(RecipeItemHelper.pack(itemstack));
                 }
             }
 

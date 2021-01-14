@@ -113,19 +113,19 @@ public final class FMLContainer extends DummyModContainer implements WorldAccess
         for (ModContainer mc : Loader.instance().getActiveModList())
         {
             NBTTagCompound mod = new NBTTagCompound();
-            mod.func_74778_a("ModId", mc.getModId());
-            mod.func_74778_a("ModVersion", mc.getVersion());
-            modList.func_74742_a(mod);
+            mod.setString("ModId", mc.getModId());
+            mod.setString("ModVersion", mc.getVersion());
+            modList.appendTag(mod);
         }
-        fmlData.func_74782_a("ModList", modList);
+        fmlData.setTag("ModList", modList);
 
         NBTTagCompound registries = new NBTTagCompound();
-        fmlData.func_74782_a("Registries", registries);
-        FMLLog.log.debug("Gathering id map for writing to world save {}", info.func_76065_j());
+        fmlData.setTag("Registries", registries);
+        FMLLog.log.debug("Gathering id map for writing to world save {}", info.getWorldName());
 
         for (Map.Entry<ResourceLocation, ForgeRegistry.Snapshot> e : RegistryManager.ACTIVE.takeSnapshot(true).entrySet())
         {
-            registries.func_74782_a(e.getKey().toString(), e.getValue().write());
+            registries.setTag(e.getKey().toString(), e.getValue().write());
         }
         return fmlData;
     }
@@ -133,14 +133,14 @@ public final class FMLContainer extends DummyModContainer implements WorldAccess
     @Override
     public void readData(SaveHandler handler, WorldInfo info, Map<String, NBTBase> propertyMap, NBTTagCompound tag)
     {
-        if (tag.func_74764_b("ModList"))
+        if (tag.hasKey("ModList"))
         {
-            NBTTagList modList = tag.func_150295_c("ModList", (byte)10);
-            for (int i = 0; i < modList.func_74745_c(); i++)
+            NBTTagList modList = tag.getTagList("ModList", (byte)10);
+            for (int i = 0; i < modList.tagCount(); i++)
             {
-                NBTTagCompound mod = modList.func_150305_b(i);
-                String modId = mod.func_74779_i("ModId");
-                String modVersion = mod.func_74779_i("ModVersion");
+                NBTTagCompound mod = modList.getCompoundTagAt(i);
+                String modId = mod.getString("ModId");
+                String modVersion = mod.getString("ModVersion");
                 ModContainer container = Loader.instance().getIndexedModList().get(modId);
                 if (container == null)
                 {
@@ -156,18 +156,18 @@ public final class FMLContainer extends DummyModContainer implements WorldAccess
 
         Multimap<ResourceLocation, ResourceLocation> failedElements = null;
 
-        if (tag.func_74764_b("ModItemData") || tag.func_74764_b("ItemData")) // Pre 1.7
+        if (tag.hasKey("ModItemData") || tag.hasKey("ItemData")) // Pre 1.7
         {
             StartupQuery.notify("This save predates 1.7.10, it can no longer be loaded here. Please load in 1.7.10 or 1.8 first");
             StartupQuery.abort();
         }
-        else if (tag.func_74764_b("Registries")) // 1.8, genericed out the 'registries' list
+        else if (tag.hasKey("Registries")) // 1.8, genericed out the 'registries' list
         {
             Map<ResourceLocation, ForgeRegistry.Snapshot> snapshot = Maps.newHashMap();
-            NBTTagCompound regs = tag.func_74775_l("Registries");
-            for (String key : regs.func_150296_c())
+            NBTTagCompound regs = tag.getCompoundTag("Registries");
+            for (String key : regs.getKeySet())
             {
-                snapshot.put(new ResourceLocation(key), ForgeRegistry.Snapshot.read(regs.func_74775_l(key)));
+                snapshot.put(new ResourceLocation(key), ForgeRegistry.Snapshot.read(regs.getCompoundTag(key)));
             }
             failedElements = GameData.injectSnapshot(snapshot, true, true);
         }

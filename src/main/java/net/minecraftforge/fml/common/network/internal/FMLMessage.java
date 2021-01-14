@@ -114,7 +114,7 @@ public abstract class FMLMessage {
         @Override
         void toBytes(ByteBuf buf)
         {
-            buf.writeInt(entity.func_145782_y());
+            buf.writeInt(entity.getEntityId());
         }
 
         @Override
@@ -154,19 +154,19 @@ public abstract class FMLMessage {
             super.toBytes(buf);
             ByteBufUtils.writeUTF8String(buf, modId);
             buf.writeInt(modEntityTypeId);
-            buf.writeLong(entity.func_110124_au().getMostSignificantBits());
-            buf.writeLong(entity.func_110124_au().getLeastSignificantBits());
+            buf.writeLong(entity.getUniqueID().getMostSignificantBits());
+            buf.writeLong(entity.getUniqueID().getLeastSignificantBits());
             // posX, posY, posZ
-            buf.writeDouble(entity.field_70165_t);
-            buf.writeDouble(entity.field_70163_u);
-            buf.writeDouble(entity.field_70161_v);
+            buf.writeDouble(entity.posX);
+            buf.writeDouble(entity.posY);
+            buf.writeDouble(entity.posZ);
             // yaw, pitch
-            buf.writeByte((byte)(entity.field_70177_z * 256.0F / 360.0F));
-            buf.writeByte((byte) (entity.field_70125_A * 256.0F / 360.0F));
+            buf.writeByte((byte)(entity.rotationYaw * 256.0F / 360.0F));
+            buf.writeByte((byte) (entity.rotationPitch * 256.0F / 360.0F));
             // head yaw
             if (entity instanceof EntityLivingBase)
             {
-                buf.writeByte((byte) (((EntityLivingBase)entity).field_70759_as * 256.0F / 360.0F));
+                buf.writeByte((byte) (((EntityLivingBase)entity).rotationYawHead * 256.0F / 360.0F));
             }
             else
             {
@@ -176,7 +176,7 @@ public abstract class FMLMessage {
             PacketBuffer pb = new PacketBuffer(tmpBuf);
             try
             {
-                entity.func_184212_Q().func_187216_a(pb);
+                entity.getDataManager().writeEntries(pb);
             }
             catch (IOException e)
             {
@@ -188,11 +188,11 @@ public abstract class FMLMessage {
             if (entity instanceof IThrowableEntity)
             {
                 Entity owner = ((IThrowableEntity)entity).getThrower();
-                buf.writeInt(owner == null ? entity.func_145782_y() : owner.func_145782_y());
+                buf.writeInt(owner == null ? entity.getEntityId() : owner.getEntityId());
                 double maxVel = 3.9D;
-                double mX = entity.field_70159_w;
-                double mY = entity.field_70181_x;
-                double mZ = entity.field_70179_y;
+                double mX = entity.motionX;
+                double mY = entity.motionY;
+                double mZ = entity.motionZ;
                 if (mX < -maxVel) mX = -maxVel;
                 if (mY < -maxVel) mY = -maxVel;
                 if (mZ < -maxVel) mZ = -maxVel;
@@ -229,7 +229,7 @@ public abstract class FMLMessage {
             scaledHeadYaw = dat.readByte() * 360F / 256F;
             try
             {
-                dataWatcherList = EntityDataManager.func_187215_b(new PacketBuffer(dat));
+                dataWatcherList = EntityDataManager.readEntries(new PacketBuffer(dat));
             }
             catch (IOException e)
             {

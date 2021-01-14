@@ -63,7 +63,7 @@ public class FluidStack
 
         if (nbt != null)
         {
-            tag = (NBTTagCompound) nbt.func_74737_b();
+            tag = (NBTTagCompound) nbt.copy();
         }
     }
 
@@ -83,33 +83,33 @@ public class FluidStack
         {
             return null;
         }
-        if (!nbt.func_150297_b("FluidName", Constants.NBT.TAG_STRING))
+        if (!nbt.hasKey("FluidName", Constants.NBT.TAG_STRING))
         {
             return null;
         }
 
-        String fluidName = nbt.func_74779_i("FluidName");
+        String fluidName = nbt.getString("FluidName");
         if (FluidRegistry.getFluid(fluidName) == null)
         {
             return null;
         }
-        FluidStack stack = new FluidStack(FluidRegistry.getFluid(fluidName), nbt.func_74762_e("Amount"));
+        FluidStack stack = new FluidStack(FluidRegistry.getFluid(fluidName), nbt.getInteger("Amount"));
 
-        if (nbt.func_74764_b("Tag"))
+        if (nbt.hasKey("Tag"))
         {
-            stack.tag = nbt.func_74775_l("Tag");
+            stack.tag = nbt.getCompoundTag("Tag");
         }
         return stack;
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound nbt)
     {
-        nbt.func_74778_a("FluidName", FluidRegistry.getFluidName(getFluid()));
-        nbt.func_74768_a("Amount", amount);
+        nbt.setString("FluidName", FluidRegistry.getFluidName(getFluid()));
+        nbt.setInteger("Amount", amount);
 
         if (tag != null)
         {
-            nbt.func_74782_a("Tag", tag);
+            nbt.setTag("Tag", tag);
         }
         return nbt;
     }

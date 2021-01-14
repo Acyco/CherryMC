@@ -78,12 +78,12 @@ public class GuiSlider extends GuiButtonExt
             precision = 0;
         }
 
-        field_146126_j = dispString + val + suffix;
+        displayString = dispString + val + suffix;
 
         drawString = drawStr;
         if(!drawString)
         {
-            field_146126_j = "";
+            displayString = "";
         }
     }
 
@@ -97,7 +97,7 @@ public class GuiSlider extends GuiButtonExt
      * this button.
      */
     @Override
-    public int func_146114_a(boolean par1)
+    public int getHoverState(boolean par1)
     {
         return 0;
     }
@@ -106,17 +106,17 @@ public class GuiSlider extends GuiButtonExt
      * Fired when the mouse button is dragged. Equivalent of MouseListener.mouseDragged(MouseEvent e).
      */
     @Override
-    protected void func_146119_b(Minecraft par1Minecraft, int par2, int par3)
+    protected void mouseDragged(Minecraft par1Minecraft, int par2, int par3)
     {
-        if (this.field_146125_m)
+        if (this.visible)
         {
             if (this.dragging)
             {
-                this.sliderValue = (par2 - (this.field_146128_h + 4)) / (float)(this.field_146120_f - 8);
+                this.sliderValue = (par2 - (this.x + 4)) / (float)(this.width - 8);
                 updateSlider();
             }
 
-            GuiUtils.drawContinuousTexturedBox(field_146122_a, this.field_146128_h + (int)(this.sliderValue * (float)(this.field_146120_f - 8)), this.field_146129_i, 0, 66, 8, this.field_146121_g, 200, 20, 2, 3, 2, 2, this.field_73735_i);
+            GuiUtils.drawContinuousTexturedBox(BUTTON_TEXTURES, this.x + (int)(this.sliderValue * (float)(this.width - 8)), this.y, 0, 66, 8, this.height, 200, 20, 2, 3, 2, 2, this.zLevel);
         }
     }
 
@@ -125,11 +125,11 @@ public class GuiSlider extends GuiButtonExt
      * e).
      */
     @Override
-    public boolean func_146116_c(Minecraft par1Minecraft, int par2, int par3)
+    public boolean mousePressed(Minecraft par1Minecraft, int par2, int par3)
     {
-        if (super.func_146116_c(par1Minecraft, par2, par3))
+        if (super.mousePressed(par1Minecraft, par2, par3))
         {
-            this.sliderValue = (float)(par2 - (this.field_146128_h + 4)) / (float)(this.field_146120_f - 8);
+            this.sliderValue = (float)(par2 - (this.x + 4)) / (float)(this.width - 8);
             updateSlider();
             this.dragging = true;
             return true;
@@ -182,7 +182,7 @@ public class GuiSlider extends GuiButtonExt
 
         if(drawString)
         {
-            field_146126_j = dispString + val + suffix;
+            displayString = dispString + val + suffix;
         }
 
         if (parent != null)
@@ -195,7 +195,7 @@ public class GuiSlider extends GuiButtonExt
      * Fired when the mouse button is released. Equivalent of MouseListener.mouseReleased(MouseEvent e).
      */
     @Override
-    public void func_146118_a(int par1, int par2)
+    public void mouseReleased(int par1, int par2)
     {
         this.dragging = false;
     }

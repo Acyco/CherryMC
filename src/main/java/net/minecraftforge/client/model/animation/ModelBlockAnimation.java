@@ -334,7 +334,7 @@ public class ModelBlockAnimation
                 {
                     int length = loop ? var.samples.length : (var.samples.length - 1);
                     float timeScaled = time * length;
-                    int s1 = MathHelper.func_76125_a((int)Math.round(Math.floor(timeScaled)), 0, length - 1);
+                    int s1 = MathHelper.clamp((int)Math.round(Math.floor(timeScaled)), 0, length - 1);
                     float progress = timeScaled - s1;
                     int s2 = s1 + 1;
                     if(s2 == length && loop) s2 = 0;
@@ -553,9 +553,9 @@ public class ModelBlockAnimation
     {
         try
         {
-            try (IResource resource = manager.func_110536_a(armatureLocation))
+            try (IResource resource = manager.getResource(armatureLocation))
             {
-                ModelBlockAnimation mba = mbaGson.fromJson(new InputStreamReader(resource.func_110527_b(), StandardCharsets.UTF_8), ModelBlockAnimation.class);
+                ModelBlockAnimation mba = mbaGson.fromJson(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8), ModelBlockAnimation.class);
                 //String json = mbaGson.toJson(mba);
                 return mba;
             }

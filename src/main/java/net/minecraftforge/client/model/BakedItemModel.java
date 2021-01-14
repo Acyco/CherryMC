@@ -66,14 +66,14 @@ public class BakedItemModel implements IBakedModel
         return guiTransform == null || guiTransform.isIdentity();
     }
 
-    @Override public boolean func_177555_b() { return true; }
-    @Override public boolean func_177556_c() { return false; }
-    @Override public boolean func_188618_c() { return false; }
-    @Override public TextureAtlasSprite func_177554_e() { return particle; }
-    @Override public ItemOverrideList func_188617_f() { return overrides; }
+    @Override public boolean isAmbientOcclusion() { return true; }
+    @Override public boolean isGui3d() { return false; }
+    @Override public boolean isBuiltInRenderer() { return false; }
+    @Override public TextureAtlasSprite getParticleTexture() { return particle; }
+    @Override public ItemOverrideList getOverrides() { return overrides; }
 
     @Override
-    public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+    public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
     {
         if (side == null)
         {
@@ -102,7 +102,7 @@ public class BakedItemModel implements IBakedModel
             ImmutableList.Builder<BakedQuad> builder = ImmutableList.builder();
             for (BakedQuad quad : originalModel.quads)
             {
-                if (quad.func_178210_d() == EnumFacing.SOUTH)
+                if (quad.getFace() == EnumFacing.SOUTH)
                 {
                     builder.add(quad);
                 }
@@ -111,7 +111,7 @@ public class BakedItemModel implements IBakedModel
         }
 
         @Override
-        public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
         {
             if(side == null)
             {

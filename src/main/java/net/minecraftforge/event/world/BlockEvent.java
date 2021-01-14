@@ -43,8 +43,6 @@ import com.google.common.collect.ImmutableList;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraftforge.fml.common.eventhandler.Event.HasResult;
-
 public class BlockEvent extends Event
 {
     private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("forge.debugBlockEvent", "false"));
@@ -127,15 +125,15 @@ public class BlockEvent extends Event
             super(world, pos, state);
             this.player = player;
 
-            if (state == null || !ForgeHooks.canHarvestBlock(state.func_177230_c(), player, world, pos) || // Handle empty block or player unable to break block scenario
-                (state.func_177230_c().canSilkHarvest(world, pos, world.func_180495_p(pos), player) && EnchantmentHelper.func_77506_a(Enchantments.field_185306_r, player.func_184614_ca()) > 0)) // If the block is being silk harvested, the exp dropped is 0
+            if (state == null || !ForgeHooks.canHarvestBlock(state.getBlock(), player, world, pos) || // Handle empty block or player unable to break block scenario
+                (state.getBlock().canSilkHarvest(world, pos, world.getBlockState(pos), player) && EnchantmentHelper.getEnchantmentLevel(Enchantments.SILK_TOUCH, player.getHeldItemMainhand()) > 0)) // If the block is being silk harvested, the exp dropped is 0
             {
                 this.exp = 0;
             }
             else
             {
-                int bonusLevel = EnchantmentHelper.func_77506_a(Enchantments.field_185308_t, player.func_184614_ca());
-                this.exp = state.func_177230_c().getExpDrop(state, world, pos, bonusLevel);
+                int bonusLevel = EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, player.getHeldItemMainhand());
+                this.exp = state.getBlock().getExpDrop(state, world, pos, bonusLevel);
             }
         }
 
@@ -217,14 +215,14 @@ public class BlockEvent extends Event
             this.hand = hand;
             if (DEBUG)
             {
-                System.out.printf("Created PlaceEvent - [PlacedBlock: %s ][PlacedAgainst: %s ][ItemStack: %s ][Player: %s ][Hand: %s]\n", getPlacedBlock(), placedAgainst, player.func_184586_b(hand), player, hand);
+                System.out.printf("Created PlaceEvent - [PlacedBlock: %s ][PlacedAgainst: %s ][ItemStack: %s ][Player: %s ][Hand: %s]\n", getPlacedBlock(), placedAgainst, player.getHeldItem(hand), player, hand);
             }
         }
 
         public EntityPlayer getPlayer() { return player; }
         @Nonnull
         @Deprecated
-        public ItemStack getItemInHand() { return player.func_184586_b(hand); }
+        public ItemStack getItemInHand() { return player.getHeldItem(hand); }
         public EnumHand getHand() { return hand; }
     }
 
@@ -279,7 +277,7 @@ public class BlockEvent extends Event
             this.blockSnapshots = ImmutableList.copyOf(blockSnapshots);
             if (DEBUG)
             {
-                System.out.printf("Created MultiPlaceEvent - [PlacedAgainst: %s ][ItemInHand: %s ][Player: %s ]\n", placedAgainst, player.func_184586_b(hand), player);
+                System.out.printf("Created MultiPlaceEvent - [PlacedAgainst: %s ][ItemInHand: %s ][Player: %s ]\n", placedAgainst, player.getHeldItem(hand), player);
             }
         }
 
@@ -368,7 +366,7 @@ public class BlockEvent extends Event
             super(world, pos, state);
             this.liquidPos = liquidPos;
             this.newState = state;
-            this.origState = world.func_180495_p(pos);
+            this.origState = world.getBlockState(pos);
         }
 
         /**

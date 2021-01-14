@@ -60,16 +60,16 @@ public class BlockInfo
     {
         if(cachedTint == tint) return cachedMultiplier;
         cachedTint = tint;
-        cachedMultiplier = colors.func_186724_a(state, world, blockPos, tint);
+        cachedMultiplier = colors.colorMultiplier(state, world, blockPos, tint);
         return cachedMultiplier;
     }
 
     public void updateShift()
     {
-        Vec3d offset = state.func_191059_e(world, blockPos);
-        shx = (float) offset.field_72450_a;
-        shy = (float) offset.field_72448_b;
-        shz = (float) offset.field_72449_c;
+        Vec3d offset = state.getOffset(world, blockPos);
+        shx = (float) offset.x;
+        shy = (float) offset.y;
+        shz = (float) offset.z;
     }
 
     public void setWorld(IBlockAccess world)
@@ -121,13 +121,13 @@ public class BlockInfo
             {
                 for(int z = 0; z <= 2; z++)
                 {
-                    BlockPos pos = blockPos.func_177982_a(x - 1, y - 1, z - 1);
-                    IBlockState state = world.func_180495_p(pos);
+                    BlockPos pos = blockPos.add(x - 1, y - 1, z - 1);
+                    IBlockState state = world.getBlockState(pos);
                     t[x][y][z] = state.getLightOpacity(world, pos) < 15;
-                    int brightness = state.func_185889_a(world, pos);
+                    int brightness = state.getPackedLightmapCoords(world, pos);
                     s[x][y][z] = (brightness >> 0x14) & 0xF;
                     b[x][y][z] = (brightness >> 0x04) & 0xF;
-                    ao[x][y][z] = state.func_185892_j();
+                    ao[x][y][z] = state.getAmbientOcclusionLightValue();
                 }
             }
         }
@@ -135,9 +135,9 @@ public class BlockInfo
         {
             if(!state.doesSideBlockRendering(world, blockPos, side))
             {
-                int x = side.func_82601_c() + 1;
-                int y = side.func_96559_d() + 1;
-                int z = side.func_82599_e() + 1;
+                int x = side.getFrontOffsetX() + 1;
+                int y = side.getFrontOffsetY() + 1;
+                int z = side.getFrontOffsetZ() + 1;
                 s[x][y][z] = Math.max(s[1][1][1] - 1, s[x][y][z]);
                 b[x][y][z] = Math.max(b[1][1][1] - 1, b[x][y][z]);
             }
@@ -185,13 +185,13 @@ public class BlockInfo
 
     public void updateFlatLighting()
     {
-        full = state.func_185917_h();
-        packed[0] = state.func_185889_a(world, blockPos);
+        full = state.isFullCube();
+        packed[0] = state.getPackedLightmapCoords(world, blockPos);
 
         for (EnumFacing side : SIDES)
         {
             int i = side.ordinal() + 1;
-            packed[i] = state.func_185889_a(world, blockPos.func_177972_a(side));
+            packed[i] = state.getPackedLightmapCoords(world, blockPos.offset(side));
         }
     }
 

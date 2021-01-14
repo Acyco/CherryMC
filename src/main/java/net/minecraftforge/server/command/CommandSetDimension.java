@@ -37,69 +37,69 @@ import java.util.List;
 public class CommandSetDimension extends CommandBase
 {
     @Override
-    public String func_71517_b()
+    public String getName()
     {
         return "setdimension";
     }
 
     @Override
-    public List<String> func_71514_a()
+    public List<String> getAliases()
     {
         return Collections.singletonList("setdim");
     }
 
     @Override
-    public String func_71518_a(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
         return "commands.forge.setdim.usage";
     }
 
     @Override
-    public List<String> func_184883_a(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
     {
         if (args.length > 2 && args.length <= 5)
         {
-            return func_175771_a(args, 2, targetPos);
+            return getTabCompletionCoordinate(args, 2, targetPos);
         }
         return Collections.emptyList();
     }
 
     @Override
-    public int func_82362_a()
+    public int getRequiredPermissionLevel()
     {
         return 2;
     }
 
     @Override
-    public void func_184881_a(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         // args: <entity> <dim> [<x> <y> <z>]
         if (args.length != 2 && args.length != 5)
         {
             throw new WrongUsageException("commands.forge.setdim.usage");
         }
-        Entity entity = func_184885_b(server, sender, args[0]);
+        Entity entity = getEntity(server, sender, args[0]);
         if (!checkEntity(entity))
         {
-            throw new CommandException("commands.forge.setdim.invalid.entity", entity.func_70005_c_());
+            throw new CommandException("commands.forge.setdim.invalid.entity", entity.getName());
         }
-        int dimension = func_175755_a(args[1]);
+        int dimension = parseInt(args[1]);
         if (!DimensionManager.isDimensionRegistered(dimension))
         {
             throw new CommandException("commands.forge.setdim.invalid.dim", dimension);
         }
-        if (dimension == entity.field_71093_bK)
+        if (dimension == entity.dimension)
         {
-            throw new CommandException("commands.forge.setdim.invalid.nochange", entity.func_70005_c_(), dimension);
+            throw new CommandException("commands.forge.setdim.invalid.nochange", entity.getName(), dimension);
         }
-        BlockPos pos = args.length == 5 ? func_175757_a(sender, args, 2, false) : sender.func_180425_c();
+        BlockPos pos = args.length == 5 ? parseBlockPos(sender, args, 2, false) : sender.getPosition();
         entity.changeDimension(dimension, new CommandTeleporter(pos));
     }
 
     private static boolean checkEntity(Entity entity)
     {
         // use vanilla portal logic, try to avoid doing anything too silly
-        return !entity.func_184218_aH() && !entity.func_184207_aI() && entity.func_184222_aU();
+        return !entity.isRiding() && !entity.isBeingRidden() && entity.isNonBoss();
     }
 
     private static class CommandTeleporter implements ITeleporter
@@ -114,7 +114,7 @@ public class CommandSetDimension extends CommandBase
         @Override
         public void placeEntity(World world, Entity entity, float yaw)
         {
-            entity.func_174828_a(targetPos, yaw, entity.field_70125_A);
+            entity.moveToBlockPosAndAngles(targetPos, yaw, entity.rotationPitch);
         }
     }
 }

@@ -293,7 +293,7 @@ public class Fluid
     {
         if (block == null)
             return false;
-        return block.func_176223_P().func_185904_a() == Material.field_151586_h;
+        return block.getDefaultState().getMaterial() == Material.WATER;
     }
 
 	/**
@@ -308,11 +308,11 @@ public class Fluid
      */
     public void vaporize(@Nullable EntityPlayer player, World worldIn, BlockPos pos, FluidStack fluidStack)
     {
-        worldIn.func_184133_a(player, pos, SoundEvents.field_187646_bt, SoundCategory.BLOCKS, 0.5F, 2.6F + (worldIn.field_73012_v.nextFloat() - worldIn.field_73012_v.nextFloat()) * 0.8F);
+        worldIn.playSound(player, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.5F, 2.6F + (worldIn.rand.nextFloat() - worldIn.rand.nextFloat()) * 0.8F);
 
         for (int l = 0; l < 8; ++l)
         {
-            worldIn.func_175688_a(EnumParticleTypes.SMOKE_LARGE, (double) pos.func_177958_n() + Math.random(), (double) pos.func_177956_o() + Math.random(), (double) pos.func_177952_p() + Math.random(), 0.0D, 0.0D, 0.0D);
+            worldIn.spawnParticle(EnumParticleTypes.SMOKE_LARGE, (double) pos.getX() + Math.random(), (double) pos.getY() + Math.random(), (double) pos.getZ() + Math.random(), 0.0D, 0.0D, 0.0D);
         }
     }
 
@@ -322,7 +322,7 @@ public class Fluid
     public String getLocalizedName(FluidStack stack)
     {
         String s = this.getUnlocalizedName();
-        return s == null ? "" : I18n.func_74838_a(s);
+        return s == null ? "" : I18n.translateToLocal(s);
     }
 
     /**
@@ -397,13 +397,13 @@ public class Fluid
     {
         if(fillSound == null)
         {
-            if(getBlock() != null && getBlock().func_176223_P().func_185904_a() == Material.field_151587_i)
+            if(getBlock() != null && getBlock().getDefaultState().getMaterial() == Material.LAVA)
             {
-                fillSound = SoundEvents.field_187633_N;
+                fillSound = SoundEvents.ITEM_BUCKET_FILL_LAVA;
             }
             else
             {
-                fillSound = SoundEvents.field_187630_M;
+                fillSound = SoundEvents.ITEM_BUCKET_FILL;
             }
         }
 
@@ -414,13 +414,13 @@ public class Fluid
     {
         if(emptySound == null)
         {
-            if(getBlock() != null && getBlock().func_176223_P().func_185904_a() == Material.field_151587_i)
+            if(getBlock() != null && getBlock().getDefaultState().getMaterial() == Material.LAVA)
             {
-                emptySound = SoundEvents.field_187627_L;
+                emptySound = SoundEvents.ITEM_BUCKET_EMPTY_LAVA;
             }
             else
             {
-                emptySound = SoundEvents.field_187624_K;
+                emptySound = SoundEvents.ITEM_BUCKET_EMPTY;
             }
         }
 

@@ -136,10 +136,10 @@ public interface ISpecialArmor
                 System.out.println("Start: " + damage);
             }
             
-            double totalArmor = entity.func_70658_aO();
-            double totalToughness = entity.func_110148_a(SharedMonsterAttributes.field_189429_h).func_111126_e();
+            double totalArmor = entity.getTotalArmorValue();
+            double totalToughness = entity.getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS).getAttributeValue();
 
-            if (source.func_76363_c())
+            if (source.isUnblockable())
             {
                 totalArmor = 0;
                 totalToughness = 0;
@@ -150,27 +150,27 @@ public interface ISpecialArmor
             {
                 ItemStack stack = inventory.get(slot);
                 
-                if (stack.func_190926_b())
+                if (stack.isEmpty())
                 {
                     continue;
                 }
                 
                 ArmorProperties prop = null;
-                if (stack.func_77973_b() instanceof ISpecialArmor)
+                if (stack.getItem() instanceof ISpecialArmor)
                 {
-                    if (!source.func_76363_c() || ((ISpecialArmor) stack.func_77973_b()).handleUnblockableDamage(entity, stack, source, damage, slot)) {
-                        ISpecialArmor armor = (ISpecialArmor)stack.func_77973_b();
+                    if (!source.isUnblockable() || ((ISpecialArmor) stack.getItem()).handleUnblockableDamage(entity, stack, source, damage, slot)) {
+                        ISpecialArmor armor = (ISpecialArmor)stack.getItem();
                         prop = armor.getProperties(entity, stack, source, damage, slot).copy();
                         totalArmor += prop.Armor;
                         totalToughness += prop.Toughness;
                     }
                 }
-                else if (stack.func_77973_b() instanceof ItemArmor && !source.func_76363_c())
+                else if (stack.getItem() instanceof ItemArmor && !source.isUnblockable())
                 {
-                    ItemArmor armor = (ItemArmor)stack.func_77973_b();
+                    ItemArmor armor = (ItemArmor)stack.getItem();
                     prop = new ArmorProperties(0, 0, Integer.MAX_VALUE);
-                    prop.Armor = armor.field_77879_b;
-                    prop.Toughness = armor.field_189415_e;
+                    prop.Armor = armor.damageReduceAmount;
+                    prop.Toughness = armor.toughness;
                 }
                 if (prop != null)
                 {
@@ -199,9 +199,9 @@ public interface ISpecialArmor
                     {
                         ItemStack stack = inventory.get(prop.Slot);
                         int itemDamage = (int)Math.max(1, absorb);
-                        if (stack.func_77973_b() instanceof ISpecialArmor)
+                        if (stack.getItem() instanceof ISpecialArmor)
                         {
-                            ((ISpecialArmor)stack.func_77973_b()).damageArmor(entity, stack, source, itemDamage, prop.Slot);
+                            ((ISpecialArmor)stack.getItem()).damageArmor(entity, stack, source, itemDamage, prop.Slot);
                         }
                         else
                         {
@@ -209,15 +209,15 @@ public interface ISpecialArmor
                             {
                                 System.out.println("Item: " + stack.toString() + " Absorbed: " + absorb + " Damaged: " + itemDamage);
                             }
-                            stack.func_77972_a(itemDamage, entity);
+                            stack.damageItem(itemDamage, entity);
                         }
-                        if (stack.func_190926_b())
+                        if (stack.isEmpty())
                         {
                             /*if (entity instanceof EntityPlayer)
                             {
                                 stack.onItemDestroyedByUse((EntityPlayer)entity);
                             }*/
-                            inventory.set(prop.Slot, ItemStack.field_190927_a);
+                            inventory.set(prop.Slot, ItemStack.EMPTY);
                         }
                     }
                 }
@@ -229,17 +229,17 @@ public interface ISpecialArmor
                 
                 for (int i = 0; i < inventory.size(); i++)
                 {
-                    if (inventory.get(i).func_77973_b() instanceof ItemArmor)
+                    if (inventory.get(i).getItem() instanceof ItemArmor)
                     {
-                        inventory.get(i).func_77972_a((int)armorDamage, entity);
+                        inventory.get(i).damageItem((int)armorDamage, entity);
                         
-                        if (inventory.get(i).func_190916_E() == 0)
+                        if (inventory.get(i).getCount() == 0)
                         {
-                            inventory.set(i, ItemStack.field_190927_a);
+                            inventory.set(i, ItemStack.EMPTY);
                         }
                     }
                 }
-                damage = CombatRules.func_189427_a((float)damage, (float)totalArmor, (float)totalToughness);
+                damage = CombatRules.getDamageAfterAbsorb((float)damage, (float)totalArmor, (float)totalToughness);
             }
             if (DEBUG)
             {

@@ -262,67 +262,67 @@ public class BiomeDictionary
      */
     public static void makeBestGuess(Biome biome)
     {
-        if (biome.field_76760_I.field_76832_z >= 3)
+        if (biome.decorator.treesPerChunk >= 3)
         {
-            if (biome.func_76736_e() && biome.func_185353_n() >= 0.9F)
+            if (biome.isHighHumidity() && biome.getDefaultTemperature() >= 0.9F)
             {
                 BiomeDictionary.addTypes(biome, JUNGLE);
             }
-            else if (!biome.func_76736_e())
+            else if (!biome.isHighHumidity())
             {
                 BiomeDictionary.addTypes(biome, FOREST);
 
-                if (biome.func_185353_n() <= 0.2f)
+                if (biome.getDefaultTemperature() <= 0.2f)
                 {
                     BiomeDictionary.addTypes(biome, CONIFEROUS);
                 }
             }
         }
-        else if (biome.func_185360_m() <= 0.3F && biome.func_185360_m() >= 0.0F)
+        else if (biome.getHeightVariation() <= 0.3F && biome.getHeightVariation() >= 0.0F)
         {
-            if (!biome.func_76736_e() || biome.func_185355_j() >= 0.0F)
+            if (!biome.isHighHumidity() || biome.getBaseHeight() >= 0.0F)
             {
                 BiomeDictionary.addTypes(biome, PLAINS);
             }
         }
 
-        if (biome.func_76727_i() > 0.85f)
+        if (biome.getRainfall() > 0.85f)
         {
             BiomeDictionary.addTypes(biome, WET);
         }
 
-        if (biome.func_76727_i() < 0.15f)
+        if (biome.getRainfall() < 0.15f)
         {
             BiomeDictionary.addTypes(biome, DRY);
         }
 
-        if (biome.func_185353_n() > 0.85f)
+        if (biome.getDefaultTemperature() > 0.85f)
         {
             BiomeDictionary.addTypes(biome, HOT);
         }
 
-        if (biome.func_185353_n() < 0.15f)
+        if (biome.getDefaultTemperature() < 0.15f)
         {
             BiomeDictionary.addTypes(biome, COLD);
         }
 
-        if (biome.field_76760_I.field_76832_z > 0 && biome.field_76760_I.field_76832_z < 3)
+        if (biome.decorator.treesPerChunk > 0 && biome.decorator.treesPerChunk < 3)
         {
             BiomeDictionary.addTypes(biome, SPARSE);
         }
-        else if (biome.field_76760_I.field_76832_z >= 10)
+        else if (biome.decorator.treesPerChunk >= 10)
         {
             BiomeDictionary.addTypes(biome, DENSE);
         }
 
-        if (biome.func_76736_e() && biome.func_185355_j() < 0.0F && (biome.func_185360_m() <= 0.3F && biome.func_185360_m() >= 0.0F))
+        if (biome.isHighHumidity() && biome.getBaseHeight() < 0.0F && (biome.getHeightVariation() <= 0.3F && biome.getHeightVariation() >= 0.0F))
         {
             BiomeDictionary.addTypes(biome, SWAMP);
         }
 
-        if (biome.func_185355_j() <= -0.5F)
+        if (biome.getBaseHeight() <= -0.5F)
         {
-            if (biome.func_185360_m() == 0.0F)
+            if (biome.getHeightVariation() == 0.0F)
             {
                 BiomeDictionary.addTypes(biome, RIVER);
             }
@@ -332,35 +332,35 @@ public class BiomeDictionary
             }
         }
 
-        if (biome.func_185360_m() >= 0.4F && biome.func_185360_m() < 1.5F)
+        if (biome.getHeightVariation() >= 0.4F && biome.getHeightVariation() < 1.5F)
         {
             BiomeDictionary.addTypes(biome, HILLS);
         }
 
-        if (biome.func_185360_m() >= 1.5F)
+        if (biome.getHeightVariation() >= 1.5F)
         {
             BiomeDictionary.addTypes(biome, MOUNTAIN);
         }
 
-        if (biome.func_76746_c())
+        if (biome.getEnableSnow())
         {
             BiomeDictionary.addTypes(biome, SNOWY);
         }
 
-        if (biome.field_76752_A.func_177230_c() != Blocks.field_150354_m && biome.func_185353_n() >= 1.0f && biome.func_76727_i() < 0.2f)
+        if (biome.topBlock.getBlock() != Blocks.SAND && biome.getDefaultTemperature() >= 1.0f && biome.getRainfall() < 0.2f)
         {
             BiomeDictionary.addTypes(biome, SAVANNA);
         }
 
-        if (biome.field_76752_A.func_177230_c() == Blocks.field_150354_m)
+        if (biome.topBlock.getBlock() == Blocks.SAND)
         {
             BiomeDictionary.addTypes(biome, SANDY);
         }
-        else if (biome.field_76752_A.func_177230_c() == Blocks.field_150391_bh)
+        else if (biome.topBlock.getBlock() == Blocks.MYCELIUM)
         {
             BiomeDictionary.addTypes(biome, MUSHROOM);
         }
-        if (biome.field_76753_B.func_177230_c() == Blocks.field_150405_ch)
+        if (biome.fillerBlock.getBlock() == Blocks.HARDENED_CLAY)
         {
             BiomeDictionary.addTypes(biome, MESA);
         }
@@ -406,68 +406,68 @@ public class BiomeDictionary
 
     private static void registerVanillaBiomes()
     {
-        addTypes(Biomes.field_76771_b,                            OCEAN                                                   );
-        addTypes(Biomes.field_76772_c,                           PLAINS                                                  );
-        addTypes(Biomes.field_76769_d,                           HOT,      DRY,        SANDY                             );
-        addTypes(Biomes.field_76770_e,                    MOUNTAIN, HILLS                                         );
-        addTypes(Biomes.field_76767_f,                           FOREST                                                  );
-        addTypes(Biomes.field_76768_g,                            COLD,     CONIFEROUS, FOREST                            );
-        addTypes(Biomes.field_76780_h,                        WET,      SWAMP                                         );
-        addTypes(Biomes.field_76781_i,                            RIVER                                                   );
-        addTypes(Biomes.field_76778_j,                             HOT,      DRY,        NETHER                            );
-        addTypes(Biomes.field_76779_k,                              COLD,     DRY,        END                               );
-        addTypes(Biomes.field_76776_l,                     COLD,     OCEAN,      SNOWY                             );
-        addTypes(Biomes.field_76777_m,                     COLD,     RIVER,      SNOWY                             );
-        addTypes(Biomes.field_76774_n,                       COLD,     SNOWY,      WASTELAND                         );
-        addTypes(Biomes.field_76775_o,                    COLD,     SNOWY,      MOUNTAIN                          );
-        addTypes(Biomes.field_76789_p,                  MUSHROOM, RARE                                          );
-        addTypes(Biomes.field_76788_q,            MUSHROOM, BEACH,      RARE                              );
-        addTypes(Biomes.field_76787_r,                            BEACH                                                   );
-        addTypes(Biomes.field_76786_s,                     HOT,      DRY,        SANDY,    HILLS                   );
-        addTypes(Biomes.field_76785_t,                     FOREST,   HILLS                                         );
-        addTypes(Biomes.field_76784_u,                      COLD,     CONIFEROUS, FOREST,   HILLS                   );
-        addTypes(Biomes.field_76783_v,               MOUNTAIN                                                );
-        addTypes(Biomes.field_76782_w,                           HOT,      WET,        DENSE,    JUNGLE                  );
-        addTypes(Biomes.field_76792_x,                     HOT,      WET,        DENSE,    JUNGLE,   HILLS         );
-        addTypes(Biomes.field_150574_L,                      HOT,      WET,        JUNGLE,   FOREST,   RARE          );
-        addTypes(Biomes.field_150575_M,                       OCEAN                                                   );
-        addTypes(Biomes.field_150576_N,                      BEACH                                                   );
-        addTypes(Biomes.field_150577_O,                       COLD,     BEACH,      SNOWY                             );
-        addTypes(Biomes.field_150583_P,                     FOREST                                                  );
-        addTypes(Biomes.field_150582_Q,               FOREST,   HILLS                                         );
-        addTypes(Biomes.field_150585_R,                    SPOOKY,   DENSE,      FOREST                            );
-        addTypes(Biomes.field_150584_S,                       COLD,     CONIFEROUS, FOREST,   SNOWY                   );
-        addTypes(Biomes.field_150579_T,                 COLD,     CONIFEROUS, FOREST,   SNOWY,    HILLS         );
-        addTypes(Biomes.field_150578_U,                    COLD,     CONIFEROUS, FOREST                            );
-        addTypes(Biomes.field_150581_V,              COLD,     CONIFEROUS, FOREST,   HILLS                   );
-        addTypes(Biomes.field_150580_W,         MOUNTAIN, FOREST,     SPARSE                            );
-        addTypes(Biomes.field_150588_X,                          HOT,      SAVANNA,    PLAINS,   SPARSE                  );
-        addTypes(Biomes.field_150587_Y,                  HOT,      SAVANNA,    PLAINS,   SPARSE,   RARE          );
-        addTypes(Biomes.field_150589_Z,                             MESA,     SANDY,      DRY                               );
-        addTypes(Biomes.field_150607_aa,                        MESA,     SANDY,      DRY,      SPARSE                  );
-        addTypes(Biomes.field_150608_ab,                  MESA,     SANDY,      DRY                               );
-        addTypes(Biomes.field_185440_P,                             VOID                                                    );
-        addTypes(Biomes.field_185441_Q,                   PLAINS,   RARE                                          );
-        addTypes(Biomes.field_185442_R,                   HOT,      DRY,        SANDY,    RARE                    );
-        addTypes(Biomes.field_185443_S,            MOUNTAIN, SPARSE,     RARE                              );
-        addTypes(Biomes.field_185444_T,                   FOREST,   HILLS,      RARE                              );
-        addTypes(Biomes.field_150590_f,                    COLD,     CONIFEROUS, FOREST,   MOUNTAIN, RARE          );
-        addTypes(Biomes.field_150599_m,                WET,      SWAMP,      HILLS,    RARE                    );
-        addTypes(Biomes.field_185445_W,                COLD,     SNOWY,      HILLS,    RARE                    );
-        addTypes(Biomes.field_185446_X,                   HOT,      WET,        DENSE,    JUNGLE,   MOUNTAIN, RARE);
-        addTypes(Biomes.field_185447_Y,              HOT,      SPARSE,     JUNGLE,   HILLS,    RARE          );
-        addTypes(Biomes.field_185448_Z,             FOREST,   DENSE,      HILLS,    RARE                    );
-        addTypes(Biomes.field_185429_aa,       FOREST,   DENSE,      MOUNTAIN, RARE                    );
-        addTypes(Biomes.field_185430_ab,            SPOOKY,   DENSE,      FOREST,   MOUNTAIN, RARE          );
-        addTypes(Biomes.field_185431_ac,               COLD,     CONIFEROUS, FOREST,   SNOWY,    MOUNTAIN, RARE);
-        addTypes(Biomes.field_185432_ad,            DENSE,    FOREST,     RARE                              );
-        addTypes(Biomes.field_185433_ae,      DENSE,    FOREST,     HILLS,    RARE                    );
-        addTypes(Biomes.field_185434_af, MOUNTAIN, SPARSE,     RARE                              );
-        addTypes(Biomes.field_185435_ag,                  HOT,      DRY,        SPARSE,   SAVANNA,  MOUNTAIN, RARE);
-        addTypes(Biomes.field_185436_ah,             HOT,      DRY,        SPARSE,   SAVANNA,  HILLS,    RARE);
-        addTypes(Biomes.field_185437_ai,                     HOT,      DRY,        SPARSE,   MOUNTAIN, RARE          );
-        addTypes(Biomes.field_185438_aj,                HOT,      DRY,        SPARSE,   HILLS,    RARE          );
-        addTypes(Biomes.field_185439_ak,          HOT,      DRY,        SPARSE,   MOUNTAIN, RARE          );
+        addTypes(Biomes.OCEAN,                            OCEAN                                                   );
+        addTypes(Biomes.PLAINS,                           PLAINS                                                  );
+        addTypes(Biomes.DESERT,                           HOT,      DRY,        SANDY                             );
+        addTypes(Biomes.EXTREME_HILLS,                    MOUNTAIN, HILLS                                         );
+        addTypes(Biomes.FOREST,                           FOREST                                                  );
+        addTypes(Biomes.TAIGA,                            COLD,     CONIFEROUS, FOREST                            );
+        addTypes(Biomes.SWAMPLAND,                        WET,      SWAMP                                         );
+        addTypes(Biomes.RIVER,                            RIVER                                                   );
+        addTypes(Biomes.HELL,                             HOT,      DRY,        NETHER                            );
+        addTypes(Biomes.SKY,                              COLD,     DRY,        END                               );
+        addTypes(Biomes.FROZEN_OCEAN,                     COLD,     OCEAN,      SNOWY                             );
+        addTypes(Biomes.FROZEN_RIVER,                     COLD,     RIVER,      SNOWY                             );
+        addTypes(Biomes.ICE_PLAINS,                       COLD,     SNOWY,      WASTELAND                         );
+        addTypes(Biomes.ICE_MOUNTAINS,                    COLD,     SNOWY,      MOUNTAIN                          );
+        addTypes(Biomes.MUSHROOM_ISLAND,                  MUSHROOM, RARE                                          );
+        addTypes(Biomes.MUSHROOM_ISLAND_SHORE,            MUSHROOM, BEACH,      RARE                              );
+        addTypes(Biomes.BEACH,                            BEACH                                                   );
+        addTypes(Biomes.DESERT_HILLS,                     HOT,      DRY,        SANDY,    HILLS                   );
+        addTypes(Biomes.FOREST_HILLS,                     FOREST,   HILLS                                         );
+        addTypes(Biomes.TAIGA_HILLS,                      COLD,     CONIFEROUS, FOREST,   HILLS                   );
+        addTypes(Biomes.EXTREME_HILLS_EDGE,               MOUNTAIN                                                );
+        addTypes(Biomes.JUNGLE,                           HOT,      WET,        DENSE,    JUNGLE                  );
+        addTypes(Biomes.JUNGLE_HILLS,                     HOT,      WET,        DENSE,    JUNGLE,   HILLS         );
+        addTypes(Biomes.JUNGLE_EDGE,                      HOT,      WET,        JUNGLE,   FOREST,   RARE          );
+        addTypes(Biomes.DEEP_OCEAN,                       OCEAN                                                   );
+        addTypes(Biomes.STONE_BEACH,                      BEACH                                                   );
+        addTypes(Biomes.COLD_BEACH,                       COLD,     BEACH,      SNOWY                             );
+        addTypes(Biomes.BIRCH_FOREST,                     FOREST                                                  );
+        addTypes(Biomes.BIRCH_FOREST_HILLS,               FOREST,   HILLS                                         );
+        addTypes(Biomes.ROOFED_FOREST,                    SPOOKY,   DENSE,      FOREST                            );
+        addTypes(Biomes.COLD_TAIGA,                       COLD,     CONIFEROUS, FOREST,   SNOWY                   );
+        addTypes(Biomes.COLD_TAIGA_HILLS,                 COLD,     CONIFEROUS, FOREST,   SNOWY,    HILLS         );
+        addTypes(Biomes.REDWOOD_TAIGA,                    COLD,     CONIFEROUS, FOREST                            );
+        addTypes(Biomes.REDWOOD_TAIGA_HILLS,              COLD,     CONIFEROUS, FOREST,   HILLS                   );
+        addTypes(Biomes.EXTREME_HILLS_WITH_TREES,         MOUNTAIN, FOREST,     SPARSE                            );
+        addTypes(Biomes.SAVANNA,                          HOT,      SAVANNA,    PLAINS,   SPARSE                  );
+        addTypes(Biomes.SAVANNA_PLATEAU,                  HOT,      SAVANNA,    PLAINS,   SPARSE,   RARE          );
+        addTypes(Biomes.MESA,                             MESA,     SANDY,      DRY                               );
+        addTypes(Biomes.MESA_ROCK,                        MESA,     SANDY,      DRY,      SPARSE                  );
+        addTypes(Biomes.MESA_CLEAR_ROCK,                  MESA,     SANDY,      DRY                               );
+        addTypes(Biomes.VOID,                             VOID                                                    );
+        addTypes(Biomes.MUTATED_PLAINS,                   PLAINS,   RARE                                          );
+        addTypes(Biomes.MUTATED_DESERT,                   HOT,      DRY,        SANDY,    RARE                    );
+        addTypes(Biomes.MUTATED_EXTREME_HILLS,            MOUNTAIN, SPARSE,     RARE                              );
+        addTypes(Biomes.MUTATED_FOREST,                   FOREST,   HILLS,      RARE                              );
+        addTypes(Biomes.MUTATED_TAIGA,                    COLD,     CONIFEROUS, FOREST,   MOUNTAIN, RARE          );
+        addTypes(Biomes.MUTATED_SWAMPLAND,                WET,      SWAMP,      HILLS,    RARE                    );
+        addTypes(Biomes.MUTATED_ICE_FLATS,                COLD,     SNOWY,      HILLS,    RARE                    );
+        addTypes(Biomes.MUTATED_JUNGLE,                   HOT,      WET,        DENSE,    JUNGLE,   MOUNTAIN, RARE);
+        addTypes(Biomes.MUTATED_JUNGLE_EDGE,              HOT,      SPARSE,     JUNGLE,   HILLS,    RARE          );
+        addTypes(Biomes.MUTATED_BIRCH_FOREST,             FOREST,   DENSE,      HILLS,    RARE                    );
+        addTypes(Biomes.MUTATED_BIRCH_FOREST_HILLS,       FOREST,   DENSE,      MOUNTAIN, RARE                    );
+        addTypes(Biomes.MUTATED_ROOFED_FOREST,            SPOOKY,   DENSE,      FOREST,   MOUNTAIN, RARE          );
+        addTypes(Biomes.MUTATED_TAIGA_COLD,               COLD,     CONIFEROUS, FOREST,   SNOWY,    MOUNTAIN, RARE);
+        addTypes(Biomes.MUTATED_REDWOOD_TAIGA,            DENSE,    FOREST,     RARE                              );
+        addTypes(Biomes.MUTATED_REDWOOD_TAIGA_HILLS,      DENSE,    FOREST,     HILLS,    RARE                    );
+        addTypes(Biomes.MUTATED_EXTREME_HILLS_WITH_TREES, MOUNTAIN, SPARSE,     RARE                              );
+        addTypes(Biomes.MUTATED_SAVANNA,                  HOT,      DRY,        SPARSE,   SAVANNA,  MOUNTAIN, RARE);
+        addTypes(Biomes.MUTATED_SAVANNA_ROCK,             HOT,      DRY,        SPARSE,   SAVANNA,  HILLS,    RARE);
+        addTypes(Biomes.MUTATED_MESA,                     HOT,      DRY,        SPARSE,   MOUNTAIN, RARE          );
+        addTypes(Biomes.MUTATED_MESA_ROCK,                HOT,      DRY,        SPARSE,   HILLS,    RARE          );
+        addTypes(Biomes.MUTATED_MESA_CLEAR_ROCK,          HOT,      DRY,        SPARSE,   MOUNTAIN, RARE          );
 
 
         if (DEBUG)
@@ -476,7 +476,7 @@ public class BiomeDictionary
             for (Type type : Type.byName.values())
             {
                 StringBuilder buf = new StringBuilder();
-                buf.append("    ").append(type.name).append(": ").append(type.biomes.stream().map(Biome::func_185359_l).collect(Collectors.joining(", ")));
+                buf.append("    ").append(type.name).append(": ").append(type.biomes.stream().map(Biome::getBiomeName).collect(Collectors.joining(", ")));
                 FMLLog.log.debug(buf.toString());
             }
         }

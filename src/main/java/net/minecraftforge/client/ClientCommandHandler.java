@@ -57,7 +57,7 @@ public class ClientCommandHandler extends CommandHandler
      *         0 if it doesn't exist or it was canceled (it's sent to the server)
      */
     @Override
-    public int func_71556_a(ICommandSender sender, String message)
+    public int executeCommand(ICommandSender sender, String message)
     {
         message = message.trim();
 
@@ -71,7 +71,7 @@ public class ClientCommandHandler extends CommandHandler
         String[] args = new String[temp.length - 1];
         String commandName = temp[0];
         System.arraycopy(temp, 1, args, 0, args.length);
-        ICommand icommand = func_71555_a().get(commandName);
+        ICommand icommand = getCommands().get(commandName);
 
         try
         {
@@ -80,7 +80,7 @@ public class ClientCommandHandler extends CommandHandler
                 return 0;
             }
 
-            if (icommand.func_184882_a(this.func_184879_a(), sender))
+            if (icommand.checkPermission(this.getServer(), sender))
             {
                 CommandEvent event = new CommandEvent(icommand, sender, args);
                 if (MinecraftForge.EVENT_BUS.post(event))
@@ -92,25 +92,25 @@ public class ClientCommandHandler extends CommandHandler
                     return 0;
                 }
 
-                this.func_175786_a(sender, args, icommand, message);
+                this.tryExecute(sender, args, icommand, message);
                 return 1;
             }
             else
             {
-                sender.func_145747_a(format(RED, "commands.generic.permission"));
+                sender.sendMessage(format(RED, "commands.generic.permission"));
             }
         }
         catch (WrongUsageException wue)
         {
-            sender.func_145747_a(format(RED, "commands.generic.usage", format(RED, wue.getMessage(), wue.func_74844_a())));
+            sender.sendMessage(format(RED, "commands.generic.usage", format(RED, wue.getMessage(), wue.getErrorObjects())));
         }
         catch (CommandException ce)
         {
-            sender.func_145747_a(format(RED, ce.getMessage(), ce.func_74844_a()));
+            sender.sendMessage(format(RED, ce.getMessage(), ce.getErrorObjects()));
         }
         catch (Throwable t)
         {
-            sender.func_145747_a(format(RED, "commands.generic.exception"));
+            sender.sendMessage(format(RED, "commands.generic.exception"));
             FMLLog.log.error("Command '{}' threw an exception:", message, t);
         }
 
@@ -121,7 +121,7 @@ public class ClientCommandHandler extends CommandHandler
     private TextComponentTranslation format(TextFormatting color, String str, Object... args)
     {
         TextComponentTranslation ret = new TextComponentTranslation(str, args);
-        ret.func_150256_b().func_150238_a(color);
+        ret.getStyle().setColor(color);
         return ret;
     }
 
@@ -134,9 +134,9 @@ public class ClientCommandHandler extends CommandHandler
             leftOfCursor = leftOfCursor.substring(1);
 
             Minecraft mc = FMLClientHandler.instance().getClient();
-            if (mc.field_71462_r instanceof GuiChat)
+            if (mc.currentScreen instanceof GuiChat)
             {
-                List<String> commands = func_180524_a(mc.field_71439_g, leftOfCursor, mc.field_71439_g.func_180425_c());
+                List<String> commands = getTabCompletions(mc.player, leftOfCursor, mc.player.getPosition());
                 if (!commands.isEmpty())
                 {
                     if (leftOfCursor.indexOf(' ') == -1)
@@ -161,7 +161,7 @@ public class ClientCommandHandler extends CommandHandler
     }
 
     @Override
-    protected MinecraftServer func_184879_a() {
-        return Minecraft.func_71410_x().func_71401_C();
+    protected MinecraftServer getServer() {
+        return Minecraft.getMinecraft().getIntegratedServer();
     }
 }

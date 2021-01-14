@@ -27,8 +27,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
-import net.minecraftforge.fml.common.eventhandler.Event.HasResult;
-
 /**
  * PopulateChunkEvent is fired when an event involving chunk terrain feature population occurs.<br>
  * If a method utilizes this {@link Event} as its parameter, the method will

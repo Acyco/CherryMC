@@ -49,8 +49,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import net.minecraftforge.fml.common.registry.EntityRegistry.EntityRegistration;
-
 /**
  * An entity registry entry builder.
  *
@@ -284,8 +282,8 @@ public final class EntityEntryBuilder<E extends Entity>
     {
         if (!this.statisticsRegistered && (this.killEntityStatistic != null && this.entityKilledByStatistic != null))
         {
-            this.killEntityStatistic.func_75971_g();
-            this.entityKilledByStatistic.func_75971_g();
+            this.killEntityStatistic.registerStat();
+            this.entityKilledByStatistic.registerStat();
             this.statisticsRegistered = true;
         }
     }
@@ -347,7 +345,7 @@ public final class EntityEntryBuilder<E extends Entity>
         }
 
         @Nonnull
-        private EntityRegistration createRegistration()
+        private EntityRegistry.EntityRegistration createRegistration()
         {
             EntityEntryBuilder<E> builder = EntityEntryBuilder.this;
             return EntityRegistry.instance().new EntityRegistration(
@@ -379,13 +377,13 @@ public final class EntityEntryBuilder<E extends Entity>
         final void insert()
         {
             for (final Biome biome : this.biomes) {
-                final List<Biome.SpawnListEntry> entries = biome.func_76747_a(this.type);
+                final List<Biome.SpawnListEntry> entries = biome.getSpawnableList(this.type);
                 boolean found = false;
                 for (final Biome.SpawnListEntry entry : entries) {
-                    if (entry.field_76300_b == EntityEntryBuilder.this.entity) {
-                        entry.field_76292_a = this.weight;
-                        entry.field_76301_c = this.min;
-                        entry.field_76299_d = this.max;
+                    if (entry.entityClass == EntityEntryBuilder.this.entity) {
+                        entry.itemWeight = this.weight;
+                        entry.minGroupCount = this.min;
+                        entry.maxGroupCount = this.max;
                         found = true;
                         break;
                     }

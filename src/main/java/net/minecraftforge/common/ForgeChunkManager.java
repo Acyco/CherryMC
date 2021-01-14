@@ -144,11 +144,11 @@ public class ForgeChunkManager
     {
         final ImmutableSetMultimap<ChunkPos, Ticket> persistentChunksFor = getPersistentChunksFor(world);
         final ImmutableSet.Builder<Chunk> builder = ImmutableSet.builder();
-        world.field_72984_F.func_76320_a("forcedChunkLoading");
-        builder.addAll(persistentChunksFor.keys().stream().filter(Objects::nonNull).map(input -> world.func_72964_e(input.field_77276_a, input.field_77275_b)).iterator());
-        world.field_72984_F.func_76318_c("regularChunkLoading");
+        world.profiler.startSection("forcedChunkLoading");
+        builder.addAll(persistentChunksFor.keys().stream().filter(Objects::nonNull).map(input -> world.getChunkFromChunkCoords(input.x, input.z)).iterator());
+        world.profiler.endStartSection("regularChunkLoading");
         builder.addAll(chunkIterator);
-        world.field_72984_F.func_76319_b();
+        world.profiler.endSection();
         return builder.build().iterator();
     }
 
@@ -452,8 +452,8 @@ public class ForgeChunkManager
             ;
             try
             {
-                NBTTagCompound forcedChunkData = CompressedStreamTools.func_74797_a(chunkLoaderData);
-                return forcedChunkData.func_150295_c("TicketList", Constants.NBT.TAG_COMPOUND).func_74745_c() > 0;
+                NBTTagCompound forcedChunkData = CompressedStreamTools.read(chunkLoaderData);
+                return forcedChunkData.getTagList("TicketList", Constants.NBT.TAG_COMPOUND).tagCount() > 0;
             }
             catch (IOException e)
             {
@@ -489,18 +489,18 @@ public class ForgeChunkManager
             NBTTagCompound forcedChunkData;
             try
             {
-                forcedChunkData = CompressedStreamTools.func_74797_a(chunkLoaderData);
+                forcedChunkData = CompressedStreamTools.read(chunkLoaderData);
             }
             catch (IOException e)
             {
                 FMLLog.log.warn("Unable to read forced chunk data at {} - it will be ignored", chunkLoaderData.getAbsolutePath(), e);
                 return;
             }
-            NBTTagList ticketList = forcedChunkData.func_150295_c("TicketList", Constants.NBT.TAG_COMPOUND);
-            for (int i = 0; i < ticketList.func_74745_c(); i++)
+            NBTTagList ticketList = forcedChunkData.getTagList("TicketList", Constants.NBT.TAG_COMPOUND);
+            for (int i = 0; i < ticketList.tagCount(); i++)
             {
-                NBTTagCompound ticketHolder = ticketList.func_150305_b(i);
-                String modId = ticketHolder.func_74779_i("Owner");
+                NBTTagCompound ticketHolder = ticketList.getCompoundTagAt(i);
+                String modId = ticketHolder.getString("Owner");
                 boolean isPlayer = ForgeVersion.MOD_ID.equals(modId);
 
                 if (!isPlayer && !Loader.isModLoaded(modId))
@@ -515,21 +515,21 @@ public class ForgeChunkManager
                     continue;
                 }
 
-                NBTTagList tickets = ticketHolder.func_150295_c("Tickets", Constants.NBT.TAG_COMPOUND);
-                for (int j = 0; j < tickets.func_74745_c(); j++)
+                NBTTagList tickets = ticketHolder.getTagList("Tickets", Constants.NBT.TAG_COMPOUND);
+                for (int j = 0; j < tickets.tagCount(); j++)
                 {
-                    NBTTagCompound ticket = tickets.func_150305_b(j);
-                    modId = ticket.func_74764_b("ModId") ? ticket.func_74779_i("ModId") : modId;
-                    Type type = Type.values()[ticket.func_74771_c("Type")];
+                    NBTTagCompound ticket = tickets.getCompoundTagAt(j);
+                    modId = ticket.hasKey("ModId") ? ticket.getString("ModId") : modId;
+                    Type type = Type.values()[ticket.getByte("Type")];
                     //byte ticketChunkDepth = ticket.getByte("ChunkListDepth");
                     Ticket tick = new Ticket(modId, type, world);
-                    if (ticket.func_74764_b("ModData"))
+                    if (ticket.hasKey("ModData"))
                     {
-                        tick.modData = ticket.func_74775_l("ModData");
+                        tick.modData = ticket.getCompoundTag("ModData");
                     }
-                    if (ticket.func_74764_b("Player"))
+                    if (ticket.hasKey("Player"))
                     {
-                        tick.player = ticket.func_74779_i("Player");
+                        tick.player = ticket.getString("Player");
                         if (!playerLoadedTickets.containsKey(tick.modId))
                         {
                             playerLoadedTickets.put(modId, ArrayListMultimap.create());
@@ -542,9 +542,9 @@ public class ForgeChunkManager
                     }
                     if (type == Type.ENTITY)
                     {
-                        tick.entityChunkX = ticket.func_74762_e("chunkX");
-                        tick.entityChunkZ = ticket.func_74762_e("chunkZ");
-                        UUID uuid = new UUID(ticket.func_74763_f("PersistentIDMSB"), ticket.func_74763_f("PersistentIDLSB"));
+                        tick.entityChunkX = ticket.getInteger("chunkX");
+                        tick.entityChunkZ = ticket.getInteger("chunkZ");
+                        UUID uuid = new UUID(ticket.getLong("PersistentIDMSB"), ticket.getLong("PersistentIDLSB"));
                         // add the ticket to the "pending entity" list
                         pendingEntities.put(uuid, tick);
                     }
@@ -558,7 +558,7 @@ public class ForgeChunkManager
                     // force the world to load the entity's chunk
                     // the load will come back through the loadEntity method and attach the entity
                     // to the ticket
-                    world.func_72964_e(tick.entityChunkX, tick.entityChunkZ);
+                    world.getChunkFromChunkCoords(tick.entityChunkX, tick.entityChunkZ);
                 }
             }
             for (Ticket tick : ImmutableSet.copyOf(pendingEntities.values()))
@@ -628,7 +628,7 @@ public class ForgeChunkManager
             dormantChunkCache.remove(world);
         }
         // integrated server is shutting down
-        if (!FMLCommonHandler.instance().getMinecraftServerInstance().func_71278_l())
+        if (!FMLCommonHandler.instance().getMinecraftServerInstance().isServerRunning())
         {
             playerTickets.clear();
             tickets.clear();
@@ -891,7 +891,7 @@ public class ForgeChunkManager
      */
     public static ImmutableSetMultimap<ChunkPos, Ticket> getPersistentChunksFor(World world)
     {
-        if (world.field_72995_K) return ImmutableSetMultimap.of();
+        if (world.isRemote) return ImmutableSetMultimap.of();
         ImmutableSetMultimap<ChunkPos, Ticket> persistentChunks = forcedChunks.get(world);
         return persistentChunks != null ? persistentChunks : ImmutableSetMultimap.of();
     }
@@ -909,53 +909,53 @@ public class ForgeChunkManager
 
         NBTTagCompound forcedChunkData = new NBTTagCompound();
         NBTTagList ticketList = new NBTTagList();
-        forcedChunkData.func_74782_a("TicketList", ticketList);
+        forcedChunkData.setTag("TicketList", ticketList);
 
         Multimap<String, Ticket> ticketSet = tickets.get(worldServer);
         if (ticketSet == null) return;
         for (String modId : ticketSet.keySet())
         {
             NBTTagCompound ticketHolder = new NBTTagCompound();
-            ticketList.func_74742_a(ticketHolder);
+            ticketList.appendTag(ticketHolder);
 
-            ticketHolder.func_74778_a("Owner", modId);
+            ticketHolder.setString("Owner", modId);
             NBTTagList tickets = new NBTTagList();
-            ticketHolder.func_74782_a("Tickets", tickets);
+            ticketHolder.setTag("Tickets", tickets);
 
             for (Ticket tick : ticketSet.get(modId))
             {
                 NBTTagCompound ticket = new NBTTagCompound();
-                ticket.func_74774_a("Type", (byte) tick.ticketType.ordinal());
-                ticket.func_74774_a("ChunkListDepth", (byte) tick.maxDepth);
+                ticket.setByte("Type", (byte) tick.ticketType.ordinal());
+                ticket.setByte("ChunkListDepth", (byte) tick.maxDepth);
                 if (tick.isPlayerTicket())
                 {
-                    ticket.func_74778_a("ModId", tick.modId);
-                    ticket.func_74778_a("Player", tick.player);
+                    ticket.setString("ModId", tick.modId);
+                    ticket.setString("Player", tick.player);
                 }
                 if (tick.modData != null)
                 {
-                    ticket.func_74782_a("ModData", tick.modData);
+                    ticket.setTag("ModData", tick.modData);
                 }
-                if (tick.ticketType == Type.ENTITY && tick.entity != null && tick.entity.func_70039_c(new NBTTagCompound()))
+                if (tick.ticketType == Type.ENTITY && tick.entity != null && tick.entity.writeToNBTOptional(new NBTTagCompound()))
                 {
-                    ticket.func_74768_a("chunkX", MathHelper.func_76141_d(tick.entity.field_70176_ah));
-                    ticket.func_74768_a("chunkZ", MathHelper.func_76141_d(tick.entity.field_70164_aj));
-                    ticket.func_74772_a("PersistentIDMSB", tick.entity.getPersistentID().getMostSignificantBits());
-                    ticket.func_74772_a("PersistentIDLSB", tick.entity.getPersistentID().getLeastSignificantBits());
-                    tickets.func_74742_a(ticket);
+                    ticket.setInteger("chunkX", MathHelper.floor(tick.entity.chunkCoordX));
+                    ticket.setInteger("chunkZ", MathHelper.floor(tick.entity.chunkCoordZ));
+                    ticket.setLong("PersistentIDMSB", tick.entity.getPersistentID().getMostSignificantBits());
+                    ticket.setLong("PersistentIDLSB", tick.entity.getPersistentID().getLeastSignificantBits());
+                    tickets.appendTag(ticket);
                 }
                 else if (tick.ticketType != Type.ENTITY)
                 {
-                    tickets.func_74742_a(ticket);
+                    tickets.appendTag(ticket);
                 }
             }
         }
 
         // Write the actual file on the IO thread rather than blocking the server thread
-        ThreadedFileIOBase.func_178779_a().func_75735_a(() -> {
+        ThreadedFileIOBase.getThreadedIOInstance().queueIO(() -> {
             try
             {
-                CompressedStreamTools.func_74795_b(forcedChunkData, chunkLoaderData);
+                CompressedStreamTools.write(forcedChunkData, chunkLoaderData);
             }
             catch (IOException e)
             {
@@ -979,7 +979,7 @@ public class ForgeChunkManager
     public static void putDormantChunk(long coords, Chunk chunk)
     {
         if (dormantChunkCacheSize == 0) return; // Skip if we're not dormant caching chunks
-        Cache<Long, ChunkEntry> cache = dormantChunkCache.get(chunk.func_177412_p());
+        Cache<Long, ChunkEntry> cache = dormantChunkCache.get(chunk.getWorld());
         if (cache != null)
         {
             cache.put(coords, new ChunkEntry(chunk));
@@ -990,21 +990,21 @@ public class ForgeChunkManager
     {
         if (dormantChunkCacheSize == 0) return;
 
-        Cache<Long, ChunkEntry> cache = dormantChunkCache.get(chunk.func_177412_p());
+        Cache<Long, ChunkEntry> cache = dormantChunkCache.get(chunk.getWorld());
         if (cache == null) return;
 
-        ChunkEntry entry = cache.getIfPresent(ChunkPos.func_77272_a(chunk.field_76635_g, chunk.field_76647_h));
+        ChunkEntry entry = cache.getIfPresent(ChunkPos.asLong(chunk.x, chunk.z));
         if (entry != null)
         {
-            entry.nbt.func_74782_a("Entities", nbt.func_150295_c("Entities", Constants.NBT.TAG_COMPOUND));
-            entry.nbt.func_74782_a("TileEntities", nbt.func_150295_c("TileEntities", Constants.NBT.TAG_COMPOUND));
+            entry.nbt.setTag("Entities", nbt.getTagList("Entities", Constants.NBT.TAG_COMPOUND));
+            entry.nbt.setTag("TileEntities", nbt.getTagList("TileEntities", Constants.NBT.TAG_COMPOUND));
 
-            ClassInheritanceMultiMap<Entity>[] entityLists = chunk.func_177429_s();
+            ClassInheritanceMultiMap<Entity>[] entityLists = chunk.getEntityLists();
             for (int i = 0; i < entityLists.length; ++i)
             {
                 entityLists[i] = new ClassInheritanceMultiMap<>(Entity.class);
             }
-            chunk.func_177434_r().clear();
+            chunk.getTileEntityMap().clear();
         }
     }
 
@@ -1027,18 +1027,18 @@ public class ForgeChunkManager
 
     private static void loadChunkEntities(Chunk chunk, NBTTagCompound nbt, World world)
     {
-        NBTTagList entities = nbt.func_150295_c("Entities", Constants.NBT.TAG_COMPOUND);
-        for (int i = 0; i < entities.func_74745_c(); ++i)
+        NBTTagList entities = nbt.getTagList("Entities", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < entities.tagCount(); ++i)
         {
-            AnvilChunkLoader.func_186050_a(entities.func_150305_b(i), world, chunk);
-            chunk.func_177409_g(true);
+            AnvilChunkLoader.readChunkEntity(entities.getCompoundTagAt(i), world, chunk);
+            chunk.setHasEntities(true);
         }
 
-        NBTTagList tileEntities = nbt.func_150295_c("TileEntities", Constants.NBT.TAG_COMPOUND);
-        for (int i = 0; i < tileEntities.func_74745_c(); ++i)
+        NBTTagList tileEntities = nbt.getTagList("TileEntities", Constants.NBT.TAG_COMPOUND);
+        for (int i = 0; i < tileEntities.tagCount(); ++i)
         {
-            TileEntity tileEntity = TileEntity.func_190200_a(world, tileEntities.func_150305_b(i));
-            if (tileEntity != null) chunk.func_150813_a(tileEntity);
+            TileEntity tileEntity = TileEntity.create(world, tileEntities.getCompoundTagAt(i));
+            if (tileEntity != null) chunk.addTileEntity(tileEntity);
         }
     }
 

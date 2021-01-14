@@ -156,7 +156,7 @@ enum FMLHandshakeClientState implements IHandshakeState<FMLHandshakeClientState>
 
             //Do the remapping on the Client's thread in case things are reset while the client is running. We stall the network thread until this is finished which can cause the IO thread to time out... Not sure if we can do anything about that.
             final Map<ResourceLocation, ForgeRegistry.Snapshot> snap_f = snap;
-            Multimap<ResourceLocation, ResourceLocation> locallyMissing = Futures.getUnchecked(Minecraft.func_71410_x().func_152343_a(() -> GameData.injectSnapshot(snap_f, false, false)));
+            Multimap<ResourceLocation, ResourceLocation> locallyMissing = Futures.getUnchecked(Minecraft.getMinecraft().addScheduledTask(() -> GameData.injectSnapshot(snap_f, false, false)));
             if (!locallyMissing.isEmpty())
             {
                 cons.accept(ERROR);
@@ -201,7 +201,7 @@ enum FMLHandshakeClientState implements IHandshakeState<FMLHandshakeClientState>
             {
                 cons.accept(HELLO);
                 //Run the revert on the client thread in case things are currently running to prevent race conditions while rebuilding the registries.
-                Minecraft.func_71410_x().func_152344_a(GameData::revertToFrozen);
+                Minecraft.getMinecraft().addScheduledTask(GameData::revertToFrozen);
             }
         }
     },

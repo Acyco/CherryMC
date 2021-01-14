@@ -27,8 +27,6 @@ import net.minecraftforge.fml.client.IDisplayableError;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import net.minecraftforge.fml.common.EnhancedRuntimeException.WrappedPrintStream;
-
 public class MultipleModsErrored extends EnhancedRuntimeException implements IDisplayableError
 {
     public final List<WrongMinecraftVersionException> wrongMinecraftExceptions;

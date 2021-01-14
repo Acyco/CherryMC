@@ -46,7 +46,7 @@ class NamespacedWrapper<V extends IForgeRegistryEntry<V>> extends RegistryNamesp
     }
 
     @Override
-    public void func_177775_a(int id, ResourceLocation key, V value)
+    public void register(int id, ResourceLocation key, V value)
     {
         if (locked)
             throw new IllegalStateException("Can not register to a locked registry. Modder should use Forge Register methods.");
@@ -62,42 +62,42 @@ class NamespacedWrapper<V extends IForgeRegistryEntry<V>> extends RegistryNamesp
     }
 
     @Override
-    public void func_82595_a(ResourceLocation key, V value)
+    public void putObject(ResourceLocation key, V value)
     {
-        func_177775_a(-1, key, value);
+        register(-1, key, value);
     }
 
 
     // Reading Functions
     @Override
     @Nullable
-    public V func_82594_a(@Nullable ResourceLocation name)
+    public V getObject(@Nullable ResourceLocation name)
     {
         return this.delegate.getValue(name);
     }
 
     @Override
     @Nullable
-    public ResourceLocation func_177774_c(V value)
+    public ResourceLocation getNameForObject(V value)
     {
         return this.delegate.getKey(value);
     }
 
     @Override
-    public boolean func_148741_d(ResourceLocation key)
+    public boolean containsKey(ResourceLocation key)
     {
         return this.delegate.containsKey(key);
     }
 
     @Override
-    public int func_148757_b(@Nullable V value)
+    public int getIDForObject(@Nullable V value)
     {
         return this.delegate.getID(value);
     }
 
     @Override
     @Nullable
-    public V func_148754_a(int id)
+    public V getObjectById(int id)
     {
         return this.delegate.getValue(id);
     }
@@ -109,14 +109,14 @@ class NamespacedWrapper<V extends IForgeRegistryEntry<V>> extends RegistryNamesp
     }
 
     @Override
-    public Set<ResourceLocation> func_148742_b()
+    public Set<ResourceLocation> getKeys()
     {
         return this.delegate.getKeys();
     }
 
     @Override
     @Nullable
-    public V func_186801_a(Random random)
+    public V getRandomObject(Random random)
     {
         Collection<V> values = this.delegate.getValuesCollection();
         return values.stream().skip(random.nextInt(values.size())).findFirst().orElse(null);

@@ -40,7 +40,7 @@ public class ChunkEvent extends WorldEvent
 
     public ChunkEvent(Chunk chunk)
     {
-        super(chunk.func_177412_p());
+        super(chunk.getWorld());
         this.chunk = chunk;
     }
 

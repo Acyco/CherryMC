@@ -27,8 +27,6 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 
-import net.minecraftforge.fml.common.eventhandler.Event.HasResult;
-
 /**
  * This Event and its subevents gets fired from  {@link EntityLivingBase} on the  {@link MinecraftForge#EVENT_BUS}.<br>
  */
@@ -63,14 +61,14 @@ public class PotionEvent extends LivingEvent
         
         public PotionRemoveEvent(EntityLivingBase living, Potion potion)
         {
-            super(living, living.func_70660_b(potion));
+            super(living, living.getActivePotionEffect(potion));
             this.potion = potion;
         }
         
         public PotionRemoveEvent(EntityLivingBase living, PotionEffect effect)
         {
             super(living, effect);
-            this.potion = effect.func_188419_a();            
+            this.potion = effect.getPotion();            
         }
         
         /**

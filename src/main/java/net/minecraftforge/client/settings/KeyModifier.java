@@ -32,7 +32,7 @@ public enum KeyModifier {
         @Override
         public boolean matches(int keyCode)
         {
-            if (Minecraft.field_142025_a)
+            if (Minecraft.IS_RUNNING_ON_MAC)
             {
                 return keyCode == Keyboard.KEY_LMETA || keyCode == Keyboard.KEY_RMETA;
             }
@@ -45,21 +45,21 @@ public enum KeyModifier {
         @Override
         public boolean isActive()
         {
-            return GuiScreen.func_146271_m();
+            return GuiScreen.isCtrlKeyDown();
         }
 
         @Override
         public boolean isActive(@Nullable IKeyConflictContext conflictContext)
         {
-            return GuiScreen.func_146271_m();
+            return GuiScreen.isCtrlKeyDown();
         }
 
         @Override
         public String getLocalizedComboName(int keyCode)
         {
-            String keyName = GameSettings.func_74298_c(keyCode);
-            String localizationFormatKey = Minecraft.field_142025_a ? "forge.controlsgui.control.mac" : "forge.controlsgui.control";
-            return I18n.func_135052_a(localizationFormatKey, keyName);
+            String keyName = GameSettings.getKeyDisplayString(keyCode);
+            String localizationFormatKey = Minecraft.IS_RUNNING_ON_MAC ? "forge.controlsgui.control.mac" : "forge.controlsgui.control";
+            return I18n.format(localizationFormatKey, keyName);
         }
     },
     SHIFT {
@@ -72,20 +72,20 @@ public enum KeyModifier {
         @Override
         public boolean isActive()
         {
-            return GuiScreen.func_146272_n();
+            return GuiScreen.isShiftKeyDown();
         }
 
         @Override
         public boolean isActive(@Nullable IKeyConflictContext conflictContext)
         {
-            return GuiScreen.func_146272_n();
+            return GuiScreen.isShiftKeyDown();
         }
 
         @Override
         public String getLocalizedComboName(int keyCode)
         {
-            String keyName = GameSettings.func_74298_c(keyCode);
-            return I18n.func_135052_a("forge.controlsgui.shift", keyName);
+            String keyName = GameSettings.getKeyDisplayString(keyCode);
+            return I18n.format("forge.controlsgui.shift", keyName);
         }
     },
     ALT {
@@ -98,20 +98,20 @@ public enum KeyModifier {
         @Override
         public boolean isActive()
         {
-            return GuiScreen.func_175283_s();
+            return GuiScreen.isAltKeyDown();
         }
 
         @Override
         public boolean isActive(@Nullable IKeyConflictContext conflictContext)
         {
-            return GuiScreen.func_175283_s();
+            return GuiScreen.isAltKeyDown();
         }
 
         @Override
         public String getLocalizedComboName(int keyCode)
         {
-            String keyName = GameSettings.func_74298_c(keyCode);
-            return I18n.func_135052_a("forge.controlsgui.alt", keyName);
+            String keyName = GameSettings.getKeyDisplayString(keyCode);
+            return I18n.format("forge.controlsgui.alt", keyName);
         }
     },
     NONE {
@@ -146,7 +146,7 @@ public enum KeyModifier {
         @Override
         public String getLocalizedComboName(int keyCode)
         {
-            return GameSettings.func_74298_c(keyCode);
+            return GameSettings.getKeyDisplayString(keyCode);
         }
     };
 

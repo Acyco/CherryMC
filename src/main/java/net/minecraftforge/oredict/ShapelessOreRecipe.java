@@ -46,8 +46,8 @@ import com.google.gson.JsonParseException;
 public class ShapelessOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implements IRecipe
 {
     @Nonnull
-    protected ItemStack output = ItemStack.field_190927_a;
-    protected NonNullList<Ingredient> input = NonNullList.func_191196_a();
+    protected ItemStack output = ItemStack.EMPTY;
+    protected NonNullList<Ingredient> input = NonNullList.create();
     protected ResourceLocation group;
     protected boolean isSimple = true;
 
@@ -56,7 +56,7 @@ public class ShapelessOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implem
     public ShapelessOreRecipe(ResourceLocation group, NonNullList<Ingredient> input, @Nonnull ItemStack result)
     {
         this.group = group;
-        output = result.func_77946_l();
+        output = result.copy();
         this.input = input;
         for (Ingredient i : input)
             this.isSimple &= i.isSimple();
@@ -64,7 +64,7 @@ public class ShapelessOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implem
     public ShapelessOreRecipe(ResourceLocation group, @Nonnull ItemStack result, Object... recipe)
     {
         this.group = group;
-        output = result.func_77946_l();
+        output = result.copy();
         for (Object in : recipe)
         {
             Ingredient ing = CraftingHelper.getIngredient(in);
@@ -88,23 +88,23 @@ public class ShapelessOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implem
 
     @Override
     @Nonnull
-    public ItemStack func_77571_b(){ return output; }
+    public ItemStack getRecipeOutput(){ return output; }
 
     @Override
     @Nonnull
-    public ItemStack func_77572_b(@Nonnull InventoryCrafting var1){ return output.func_77946_l(); }
+    public ItemStack getCraftingResult(@Nonnull InventoryCrafting var1){ return output.copy(); }
 
     @Override
-    public boolean func_77569_a(@Nonnull InventoryCrafting inv, @Nonnull World world)
+    public boolean matches(@Nonnull InventoryCrafting inv, @Nonnull World world)
     {
         int ingredientCount = 0;
         RecipeItemHelper recipeItemHelper = new RecipeItemHelper();
         List<ItemStack> items = Lists.newArrayList();
 
-        for (int i = 0; i < inv.func_70302_i_(); ++i)
+        for (int i = 0; i < inv.getSizeInventory(); ++i)
         {
-            ItemStack itemstack = inv.func_70301_a(i);
-            if (!itemstack.func_190926_b())
+            ItemStack itemstack = inv.getStackInSlot(i);
+            if (!itemstack.isEmpty())
             {
                 ++ingredientCount;
                 if (this.isSimple)
@@ -118,43 +118,43 @@ public class ShapelessOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implem
             return false;
 
         if (this.isSimple)
-            return recipeItemHelper.func_194116_a(this, null);
+            return recipeItemHelper.canCraft(this, null);
 
         return RecipeMatcher.findMatches(items, this.input) != null;
     }
 
     @Override
     @Nonnull
-    public NonNullList<Ingredient> func_192400_c()
+    public NonNullList<Ingredient> getIngredients()
     {
         return this.input;
     }
 
     @Override
     @Nonnull
-    public String func_193358_e()
+    public String getGroup()
     {
         return this.group == null ? "" : this.group.toString();
     }
 
     @Override
-    public boolean func_194133_a(int p_194133_1_, int p_194133_2_)
+    public boolean canFit(int p_194133_1_, int p_194133_2_)
     {
         return p_194133_1_ * p_194133_2_ >= this.input.size();
     }
 
     public static ShapelessOreRecipe factory(JsonContext context, JsonObject json)
     {
-        String group = JsonUtils.func_151219_a(json, "group", "");
+        String group = JsonUtils.getString(json, "group", "");
 
-        NonNullList<Ingredient> ings = NonNullList.func_191196_a();
-        for (JsonElement ele : JsonUtils.func_151214_t(json, "ingredients"))
+        NonNullList<Ingredient> ings = NonNullList.create();
+        for (JsonElement ele : JsonUtils.getJsonArray(json, "ingredients"))
             ings.add(CraftingHelper.getIngredient(ele, context));
 
         if (ings.isEmpty())
             throw new JsonParseException("No ingredients for shapeless recipe");
 
-        ItemStack itemstack = CraftingHelper.getItemStack(JsonUtils.func_152754_s(json, "result"), context);
+        ItemStack itemstack = CraftingHelper.getItemStack(JsonUtils.getJsonObject(json, "result"), context);
         return new ShapelessOreRecipe(group.isEmpty() ? null : new ResourceLocation(group), ings, itemstack);
     }
 }

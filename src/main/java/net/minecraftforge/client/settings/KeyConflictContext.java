@@ -49,7 +49,7 @@ public enum KeyConflictContext implements IKeyConflictContext
         @Override
         public boolean isActive()
         {
-            return Minecraft.func_71410_x().field_71462_r != null;
+            return Minecraft.getMinecraft().currentScreen != null;
         }
 
         @Override

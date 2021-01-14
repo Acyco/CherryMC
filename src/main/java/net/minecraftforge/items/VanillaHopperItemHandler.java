@@ -45,21 +45,21 @@ public class VanillaHopperItemHandler extends InvWrapper
         }
         else
         {
-            boolean wasEmpty = getInv().func_191420_l();
+            boolean wasEmpty = getInv().isEmpty();
 
-            int originalStackSize = stack.func_190916_E();
+            int originalStackSize = stack.getCount();
             stack = super.insertItem(slot, stack, simulate);
 
-            if (wasEmpty && originalStackSize > stack.func_190916_E())
+            if (wasEmpty && originalStackSize > stack.getCount())
             {
-                if (!hopper.func_174914_o())
+                if (!hopper.mayTransfer())
                 {
                     // This cooldown is always set to 8 in vanilla with one exception:
                     // Hopper -> Hopper transfer sets this cooldown to 7 when this hopper
                     // has not been updated as recently as the one pushing items into it.
                     // This vanilla behavior is preserved by VanillaInventoryCodeHooks#insertStack,
                     // the cooldown is set properly by the hopper that is pushing items into this one.
-                    hopper.func_145896_c(8);
+                    hopper.setTransferCooldown(8);
                 }
             }
 

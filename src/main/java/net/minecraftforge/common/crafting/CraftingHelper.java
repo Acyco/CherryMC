@@ -122,11 +122,11 @@ public class CraftingHelper {
         if (obj instanceof Ingredient)
             return (Ingredient)obj;
         else if (obj instanceof ItemStack)
-            return Ingredient.func_193369_a(((ItemStack)obj).func_77946_l());
+            return Ingredient.fromStacks(((ItemStack)obj).copy());
         else if (obj instanceof Item)
-            return Ingredient.func_193367_a((Item)obj);
+            return Ingredient.fromItem((Item)obj);
         else if (obj instanceof Block)
-            return Ingredient.func_193369_a(new ItemStack((Block)obj, 1, OreDictionary.WILDCARD_VALUE));
+            return Ingredient.fromStacks(new ItemStack((Block)obj, 1, OreDictionary.WILDCARD_VALUE));
         else if (obj instanceof String)
             return new OreIngredient((String)obj);
         else if (obj instanceof JsonElement)
@@ -181,13 +181,13 @@ public class CraftingHelper {
 
         JsonObject obj = (JsonObject)json;
 
-        String type = context.appendModId(JsonUtils.func_151219_a(obj, "type", "minecraft:item"));
+        String type = context.appendModId(JsonUtils.getString(obj, "type", "minecraft:item"));
         if (type.isEmpty())
             throw new JsonSyntaxException("Ingredient type can not be an empty string");
 
         if (type.equals("minecraft:item"))
         {
-            String item = JsonUtils.func_151200_h(obj, "item");
+            String item = JsonUtils.getString(obj, "item");
             if (item.startsWith("#"))
             {
                 Ingredient constant = context.getConstant(item.substring(1));
@@ -206,14 +206,14 @@ public class CraftingHelper {
 
     public static ItemStack getItemStack(JsonObject json, JsonContext context)
     {
-        String itemName = context.appendModId(JsonUtils.func_151200_h(json, "item"));
+        String itemName = context.appendModId(JsonUtils.getString(json, "item"));
 
         Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemName));
 
         if (item == null)
             throw new JsonSyntaxException("Unknown item '" + itemName + "'");
 
-        if (item.func_77614_k() && !json.has("data"))
+        if (item.getHasSubtypes() && !json.has("data"))
             throw new JsonParseException("Missing data for item '" + itemName + "'");
 
         if (json.has("nbt"))
@@ -224,21 +224,21 @@ public class CraftingHelper {
                 JsonElement element = json.get("nbt");
                 NBTTagCompound nbt;
                 if(element.isJsonObject())
-                    nbt = JsonToNBT.func_180713_a(GSON.toJson(element));
+                    nbt = JsonToNBT.getTagFromJson(GSON.toJson(element));
                 else
-                    nbt = JsonToNBT.func_180713_a(JsonUtils.func_151206_a(element, "nbt"));
+                    nbt = JsonToNBT.getTagFromJson(JsonUtils.getString(element, "nbt"));
 
                 NBTTagCompound tmp = new NBTTagCompound();
-                if (nbt.func_74764_b("ForgeCaps"))
+                if (nbt.hasKey("ForgeCaps"))
                 {
-                    tmp.func_74782_a("ForgeCaps", nbt.func_74781_a("ForgeCaps"));
-                    nbt.func_82580_o("ForgeCaps");
+                    tmp.setTag("ForgeCaps", nbt.getTag("ForgeCaps"));
+                    nbt.removeTag("ForgeCaps");
                 }
 
-                tmp.func_74782_a("tag", nbt);
-                tmp.func_74778_a("id", itemName);
-                tmp.func_74768_a("Count", JsonUtils.func_151208_a(json, "count", 1));
-                tmp.func_74768_a("Damage", JsonUtils.func_151208_a(json, "data", 0));
+                tmp.setTag("tag", nbt);
+                tmp.setString("id", itemName);
+                tmp.setInteger("Count", JsonUtils.getInt(json, "count", 1));
+                tmp.setInteger("Damage", JsonUtils.getInt(json, "data", 0));
 
                 return new ItemStack(tmp);
             }
@@ -248,23 +248,23 @@ public class CraftingHelper {
             }
         }
 
-        return new ItemStack(item, JsonUtils.func_151208_a(json, "count", 1), JsonUtils.func_151208_a(json, "data", 0));
+        return new ItemStack(item, JsonUtils.getInt(json, "count", 1), JsonUtils.getInt(json, "data", 0));
     }
 
 
     public static ItemStack getItemStackBasic(JsonObject json, JsonContext context)
     {
-        String itemName = context.appendModId(JsonUtils.func_151200_h(json, "item"));
+        String itemName = context.appendModId(JsonUtils.getString(json, "item"));
 
         Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemName));
 
         if (item == null)
             throw new JsonSyntaxException("Unknown item '" + itemName + "'");
 
-        if (item.func_77614_k() && !json.has("data"))
+        if (item.getHasSubtypes() && !json.has("data"))
             throw new JsonParseException("Missing data for item '" + itemName + "'");
 
-        return new ItemStack(item, 1, JsonUtils.func_151208_a(json, "data", 0));
+        return new ItemStack(item, 1, JsonUtils.getInt(json, "data", 0));
     }
 
     public static class ShapedPrimer {
@@ -322,7 +322,7 @@ public class CraftingHelper {
         }
 
         HashMap<Character, Ingredient> itemMap = Maps.newHashMap();
-        itemMap.put(' ', Ingredient.field_193370_a);
+        itemMap.put(' ', Ingredient.EMPTY);
 
         for (; idx < recipe.length; idx += 2)
         {
@@ -348,7 +348,7 @@ public class CraftingHelper {
             }
         }
 
-        ret.input = NonNullList.func_191197_a(ret.width * ret.height, Ingredient.field_193370_a);
+        ret.input = NonNullList.withSize(ret.width * ret.height, Ingredient.EMPTY);
 
         Set<Character> keys = Sets.newHashSet(itemMap.keySet());
         keys.remove(' ');
@@ -371,7 +371,7 @@ public class CraftingHelper {
 
     public static boolean processConditions(JsonObject json, String memberName, JsonContext context)
     {
-        return !json.has(memberName) || processConditions(JsonUtils.func_151214_t(json, memberName), context);
+        return !json.has(memberName) || processConditions(JsonUtils.getJsonArray(json, memberName), context);
     }
 
     public static boolean processConditions(JsonArray conditions, JsonContext context)
@@ -391,7 +391,7 @@ public class CraftingHelper {
 
     public static BooleanSupplier getCondition(JsonObject json, JsonContext context)
     {
-        ResourceLocation type = new ResourceLocation(context.appendModId(JsonUtils.func_151200_h(json, "type")));
+        ResourceLocation type = new ResourceLocation(context.appendModId(JsonUtils.getString(json, "type")));
         IConditionFactory factory = conditions.get(type);
         if (factory == null)
             throw new JsonSyntaxException("Unknown condition type: " + type.toString());
@@ -405,7 +405,7 @@ public class CraftingHelper {
         if (context == null)
             throw new IllegalArgumentException("getRecipe Context cannot be null");
 
-        String type = context.appendModId(JsonUtils.func_151200_h(json, "type"));
+        String type = context.appendModId(JsonUtils.getString(json, "type"));
         if (type.isEmpty())
             throw new JsonSyntaxException("Recipe type can not be an empty string");
 
@@ -428,19 +428,19 @@ public class CraftingHelper {
         recipes.clear();
 
         registerC("forge:mod_loaded", (context, json) -> {
-            String modid = JsonUtils.func_151200_h(json, "modid");
+            String modid = JsonUtils.getString(json, "modid");
             return () -> Loader.isModLoaded(modid);
         });
         registerC("minecraft:item_exists", (context, json) -> {
-            String itemName = context.appendModId(JsonUtils.func_151200_h(json, "item"));
+            String itemName = context.appendModId(JsonUtils.getString(json, "item"));
             return () -> ForgeRegistries.ITEMS.containsKey(new ResourceLocation(itemName));
         });
         registerC("forge:not", (context, json) -> {
-            BooleanSupplier child = CraftingHelper.getCondition(JsonUtils.func_152754_s(json, "value"), context);
+            BooleanSupplier child = CraftingHelper.getCondition(JsonUtils.getJsonObject(json, "value"), context);
             return () -> !child.getAsBoolean();
         });
         registerC("forge:or", (context, json) -> {
-            JsonArray values = JsonUtils.func_151214_t(json, "values");
+            JsonArray values = JsonUtils.getJsonArray(json, "values");
             List<BooleanSupplier> children = Lists.newArrayList();
             for (JsonElement j : values)
             {
@@ -451,7 +451,7 @@ public class CraftingHelper {
             return () -> children.stream().anyMatch(BooleanSupplier::getAsBoolean);
         });
         registerC("forge:and", (context, json) -> {
-            JsonArray values = JsonUtils.func_151214_t(json, "values");
+            JsonArray values = JsonUtils.getJsonArray(json, "values");
             List<BooleanSupplier> children = Lists.newArrayList();
             for (JsonElement j : values)
             {
@@ -466,12 +466,12 @@ public class CraftingHelper {
         });
 
         registerR("minecraft:crafting_shaped", (context, json) -> {
-            String group = JsonUtils.func_151219_a(json, "group", "");
+            String group = JsonUtils.getString(json, "group", "");
             //if (!group.isEmpty() && group.indexOf(':') == -1)
             //    group = context.getModId() + ":" + group;
 
             Map<Character, Ingredient> ingMap = Maps.newHashMap();
-            for (Entry<String, JsonElement> entry : JsonUtils.func_152754_s(json, "key").entrySet())
+            for (Entry<String, JsonElement> entry : JsonUtils.getJsonObject(json, "key").entrySet())
             {
                 if (entry.getKey().length() != 1)
                     throw new JsonSyntaxException("Invalid key entry: '" + entry.getKey() + "' is an invalid symbol (must be 1 character only).");
@@ -480,9 +480,9 @@ public class CraftingHelper {
 
                 ingMap.put(entry.getKey().toCharArray()[0], CraftingHelper.getIngredient(entry.getValue(), context));
             }
-            ingMap.put(' ', Ingredient.field_193370_a);
+            ingMap.put(' ', Ingredient.EMPTY);
 
-            JsonArray patternJ = JsonUtils.func_151214_t(json, "pattern");
+            JsonArray patternJ = JsonUtils.getJsonArray(json, "pattern");
 
             if (patternJ.size() == 0)
                 throw new JsonSyntaxException("Invalid pattern: empty pattern not allowed");
@@ -492,7 +492,7 @@ public class CraftingHelper {
             String[] pattern = new String[patternJ.size()];
             for (int x = 0; x < pattern.length; ++x)
             {
-                String line = JsonUtils.func_151206_a(patternJ.get(x), "pattern[" + x + "]");
+                String line = JsonUtils.getString(patternJ.get(x), "pattern[" + x + "]");
                 if (line.length() > 3)
                     throw new JsonSyntaxException("Invalid pattern: too many columns, 3 is maximum");
                 if (x > 0 && pattern[0].length() != line.length())
@@ -500,7 +500,7 @@ public class CraftingHelper {
                 pattern[x] = line;
             }
 
-            NonNullList<Ingredient> input = NonNullList.func_191197_a(pattern[0].length() * pattern.length, Ingredient.field_193370_a);
+            NonNullList<Ingredient> input = NonNullList.withSize(pattern[0].length() * pattern.length, Ingredient.EMPTY);
             Set<Character> keys = Sets.newHashSet(ingMap.keySet());
             keys.remove(' ');
 
@@ -520,14 +520,14 @@ public class CraftingHelper {
             if (!keys.isEmpty())
                 throw new JsonSyntaxException("Key defines symbols that aren't used in pattern: " + keys);
 
-            ItemStack result = CraftingHelper.getItemStack(JsonUtils.func_152754_s(json, "result"), context);
+            ItemStack result = CraftingHelper.getItemStack(JsonUtils.getJsonObject(json, "result"), context);
             return new ShapedRecipes(group, pattern[0].length(), pattern.length, input, result);
         });
         registerR("minecraft:crafting_shapeless", (context, json) -> {
-            String group = JsonUtils.func_151219_a(json, "group", "");
+            String group = JsonUtils.getString(json, "group", "");
 
-            NonNullList<Ingredient> ings = NonNullList.func_191196_a();
-            for (JsonElement ele : JsonUtils.func_151214_t(json, "ingredients"))
+            NonNullList<Ingredient> ings = NonNullList.create();
+            for (JsonElement ele : JsonUtils.getJsonArray(json, "ingredients"))
                 ings.add(CraftingHelper.getIngredient(ele, context));
 
             if (ings.isEmpty())
@@ -535,16 +535,16 @@ public class CraftingHelper {
             if (ings.size() > 9)
                 throw new JsonParseException("Too many ingredients for shapeless recipe");
 
-            ItemStack itemstack = CraftingHelper.getItemStack(JsonUtils.func_152754_s(json, "result"), context);
+            ItemStack itemstack = CraftingHelper.getItemStack(JsonUtils.getJsonObject(json, "result"), context);
             return new ShapelessRecipes(group, itemstack, ings);
         });
         registerR("forge:ore_shaped", ShapedOreRecipe::factory);
         registerR("forge:ore_shapeless", ShapelessOreRecipe::factory);
 
-        registerI("minecraft:item", (context, json) -> Ingredient.func_193369_a(CraftingHelper.getItemStackBasic(json, context)));
-        registerI("minecraft:empty", (context, json) -> Ingredient.field_193370_a);
+        registerI("minecraft:item", (context, json) -> Ingredient.fromStacks(CraftingHelper.getItemStackBasic(json, context)));
+        registerI("minecraft:empty", (context, json) -> Ingredient.EMPTY);
         registerI("minecraft:item_nbt", (context, json) -> new IngredientNBT(CraftingHelper.getItemStack(json, context)));
-        registerI("forge:ore_dict", (context, json) -> new OreIngredient(JsonUtils.func_151200_h(json, "ore")));
+        registerI("forge:ore_dict", (context, json) -> new OreIngredient(JsonUtils.getString(json, "ore")));
     }
 
     private static void registerC(String name, IConditionFactory fac) {
@@ -587,10 +587,10 @@ public class CraftingHelper {
     {
         if (json.has(loader.name))
         {
-            for (Entry<String, JsonElement> entry : JsonUtils.func_152754_s(json, loader.name).entrySet())
+            for (Entry<String, JsonElement> entry : JsonUtils.getJsonObject(json, loader.name).entrySet())
             {
                 ResourceLocation key = new ResourceLocation(context.getModId(), entry.getKey());
-                String clsName = JsonUtils.func_151206_a(entry.getValue(), loader.name + "[" + entry.getValue() + "]");
+                String clsName = JsonUtils.getString(entry.getValue(), loader.name + "[" + entry.getValue() + "]");
                 loader.consumer.accept(key, getClassInstance(clsName, loader.type));
             }
         }
@@ -666,7 +666,7 @@ public class CraftingHelper {
             {
                 try (BufferedReader reader = Files.newBufferedReader(fPath))
                 {
-                    JsonObject json = JsonUtils.func_193839_a(GSON, reader, JsonObject.class);
+                    JsonObject json = JsonUtils.fromJson(GSON, reader, JsonObject.class);
                     loadFactories(json, ctx, loaders);
                 }
             }
@@ -693,7 +693,7 @@ public class CraftingHelper {
                 {
                     try(BufferedReader reader = Files.newBufferedReader(fPath))
                     {
-                        JsonObject[] json = JsonUtils.func_193839_a(GSON, reader, JsonObject[].class);
+                        JsonObject[] json = JsonUtils.fromJson(GSON, reader, JsonObject[].class);
                         ctx.loadConstants(json);
                     }
                     catch (JsonParseException | IOException e)
@@ -717,7 +717,7 @@ public class CraftingHelper {
 
                 try(BufferedReader reader = Files.newBufferedReader(file))
                 {
-                    JsonObject json = JsonUtils.func_193839_a(GSON, reader, JsonObject.class);
+                    JsonObject json = JsonUtils.fromJson(GSON, reader, JsonObject.class);
                     if (!processConditions(json, "conditions", ctx))
                         return true;
                     IRecipe recipe = CraftingHelper.getRecipe(json, ctx);
@@ -870,7 +870,7 @@ public class CraftingHelper {
     {
         try(BufferedReader reader = new BufferedReader(new FileReader(file)))
         {
-            JsonObject[] json = JsonUtils.func_193839_a(GSON, reader, JsonObject[].class);
+            JsonObject[] json = JsonUtils.fromJson(GSON, reader, JsonObject[].class);
             ctx.loadConstants(json);
             return ctx;
         }
@@ -887,12 +887,12 @@ public class CraftingHelper {
         {
             try(FileSystem fs = FileSystems.newFileSystem(mod.getSource().toPath(), (ClassLoader)null))
             {
-                fPath = fs.getPath("assets", path.func_110624_b(), path.func_110623_a());
+                fPath = fs.getPath("assets", path.getResourceDomain(), path.getResourcePath());
             }
         }
         else if (mod.getSource().isDirectory())
         {
-            fPath = mod.getSource().toPath().resolve(Paths.get("assets", path.func_110624_b(), path.func_110623_a()));
+            fPath = mod.getSource().toPath().resolve(Paths.get("assets", path.getResourceDomain(), path.getResourcePath()));
         }
 
         if (fPath != null && Files.exists(fPath))

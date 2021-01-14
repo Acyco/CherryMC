@@ -62,6 +62,6 @@ public class MinecartInteractEvent extends MinecartEvent
 
     public EntityPlayer getPlayer() { return player; }
     @Nonnull
-    public ItemStack getItem() { return player.func_184586_b(hand); }
+    public ItemStack getItem() { return player.getHeldItem(hand); }
     public EnumHand getHand() { return hand; }
 }

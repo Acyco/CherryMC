@@ -28,7 +28,7 @@ public class Properties
     /**
      * Property indicating if the model should be rendered in the static renderer or in the TESR. AnimationTESR sets it to false.
      */
-    public static final PropertyBool StaticProperty = PropertyBool.func_177716_a("static");
+    public static final PropertyBool StaticProperty = PropertyBool.create("static");
 
     /**
      * Property holding the IModelState used for animating the model in the TESR.
@@ -62,25 +62,25 @@ public class Properties
         @Override
         public String getName()
         {
-            return parent.func_177701_a();
+            return parent.getName();
         }
 
         @Override
         public boolean isValid(V value)
         {
-            return parent.func_177700_c().contains(value);
+            return parent.getAllowedValues().contains(value);
         }
 
         @Override
         public Class<V> getType()
         {
-            return parent.func_177699_b();
+            return parent.getValueClass();
         }
 
         @Override
         public String valueToString(V value)
         {
-            return parent.func_177702_a(value);
+            return parent.getName(value);
         }
     }
 }

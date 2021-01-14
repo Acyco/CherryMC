@@ -34,17 +34,17 @@ public class GuiWrongMinecraft extends GuiErrorBase
     }
 
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        this.func_146276_q_();
+        this.drawDefaultBackground();
         int offset = 75;
-        this.func_73732_a(this.field_146289_q, I18n.func_135052_a("fml.messages.mod.wrongminecraft", Loader.instance().getMinecraftModContainer().getVersion()), this.field_146294_l / 2, offset, 0xFFFFFF);
+        this.drawCenteredString(this.fontRenderer, I18n.format("fml.messages.mod.wrongminecraft", Loader.instance().getMinecraftModContainer().getVersion()), this.width / 2, offset, 0xFFFFFF);
         offset+=15;
-        this.func_73732_a(this.field_146289_q, I18n.func_135052_a("fml.messages.mod.wrongminecraft.requirement", TextFormatting.BOLD + wrongMC.mod.getName() + TextFormatting.RESET, wrongMC.mod.getModId(), wrongMC.mod.acceptableMinecraftVersionRange().toStringFriendly()), this.field_146294_l / 2, offset, 0xEEEEEE);
+        this.drawCenteredString(this.fontRenderer, I18n.format("fml.messages.mod.wrongminecraft.requirement", TextFormatting.BOLD + wrongMC.mod.getName() + TextFormatting.RESET, wrongMC.mod.getModId(), wrongMC.mod.acceptableMinecraftVersionRange().toStringFriendly()), this.width / 2, offset, 0xEEEEEE);
         offset+=15;
-        this.func_73732_a(this.field_146289_q, I18n.func_135052_a("fml.messages.mod.wrongminecraft.fix", wrongMC.mod.getName()),this.field_146294_l/2, offset, 0xFFFFFF);
+        this.drawCenteredString(this.fontRenderer, I18n.format("fml.messages.mod.wrongminecraft.fix", wrongMC.mod.getName()),this.width/2, offset, 0xFFFFFF);
         offset+=20;
-        this.func_73732_a(this.field_146289_q, I18n.func_135052_a("fml.messages.mod.missing.dependencies.see.log", GuiErrorBase.logFile.getName()), this.field_146294_l / 2, offset, 0xFFFFFF);
-        super.func_73863_a(mouseX, mouseY, partialTicks);
+        this.drawCenteredString(this.fontRenderer, I18n.format("fml.messages.mod.missing.dependencies.see.log", GuiErrorBase.logFile.getName()), this.width / 2, offset, 0xFFFFFF);
+        super.drawScreen(mouseX, mouseY, partialTicks);
     }
 }

@@ -66,7 +66,7 @@ public class JsonContext
                 continue;
             if (!json.has("ingredient"))
                 throw new JsonSyntaxException("Constant entry must contain 'ingredient' value");
-            constants.put(JsonUtils.func_151200_h(json, "name"), CraftingHelper.getIngredient(json.get("ingredient"), this));
+            constants.put(JsonUtils.getString(json, "name"), CraftingHelper.getIngredient(json.get("ingredient"), this));
         }
 
     }

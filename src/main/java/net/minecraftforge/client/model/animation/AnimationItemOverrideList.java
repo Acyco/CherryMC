@@ -71,11 +71,11 @@ public final class AnimationItemOverrideList extends ItemOverrideList
             // TODO: caching?
             if(world == null && entity != null)
             {
-                world = entity.field_70170_p;
+                world = entity.world;
             }
             if(world == null)
             {
-                world = Minecraft.func_71410_x().field_71441_e;
+                world = Minecraft.getMinecraft().world;
             }
             IModelState state = asm.apply(Animation.getWorldTime(world, Animation.getPartialTickTime())).getLeft();
             return model.bake(new ModelStateComposition(state, this.state), format, bakedTextureGetter);

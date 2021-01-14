@@ -24,8 +24,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkPrimer;
 import net.minecraft.world.gen.IChunkGenerator;
 
-import net.minecraftforge.fml.common.eventhandler.Event.HasResult;
-
 public class ChunkGeneratorEvent extends Event
 {
     private final IChunkGenerator gen;

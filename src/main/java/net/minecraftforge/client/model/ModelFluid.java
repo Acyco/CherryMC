@@ -103,15 +103,15 @@ public final class ModelFluid implements IModel
         INSTANCE;
 
         @Override
-        public void func_110549_a(IResourceManager resourceManager) {}
+        public void onResourceManagerReload(IResourceManager resourceManager) {}
 
         @Override
         public boolean accepts(ResourceLocation modelLocation)
         {
-            return modelLocation.func_110624_b().equals(ForgeVersion.MOD_ID) && (
-                modelLocation.func_110623_a().equals("fluid") ||
-                modelLocation.func_110623_a().equals("models/block/fluid") ||
-                modelLocation.func_110623_a().equals("models/item/fluid"));
+            return modelLocation.getResourceDomain().equals(ForgeVersion.MOD_ID) && (
+                modelLocation.getResourcePath().equals("fluid") ||
+                modelLocation.getResourcePath().equals("models/block/fluid") ||
+                modelLocation.getResourcePath().equals("models/item/fluid"));
         }
 
         @Override
@@ -193,7 +193,7 @@ public final class ModelFluid implements IModel
                 if (flow == null) flow = -1000f;
             }
             int flowRound = (int) Math.round(Math.toDegrees(flow));
-            flowRound = MathHelper.func_76125_a(flowRound, -1000, 1000);
+            flowRound = MathHelper.clamp(flowRound, -1000, 1000);
             return flowRound;
         }
 
@@ -220,7 +220,7 @@ public final class ModelFluid implements IModel
         }
 
         @Override
-        public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
         {
             if (side != null && state instanceof IExtendedBlockState)
             {
@@ -246,10 +246,10 @@ public final class ModelFluid implements IModel
                 key <<= 1;
                 key |= 1;
 
-                return modelCache.getUnchecked(key).func_188616_a(state, side, rand);
+                return modelCache.getUnchecked(key).getQuads(state, side, rand);
             }
 
-            return super.func_188616_a(state, side, rand);
+            return super.getQuads(state, side, rand);
         }
     }
 
@@ -308,8 +308,8 @@ public final class ModelFluid implements IModel
                 TextureAtlasSprite topSprite = isFlowing ? flowing : still;
                 float scale = isFlowing ? 4f : 8f;
 
-                float c = MathHelper.func_76134_b(flow) * scale;
-                float s = MathHelper.func_76126_a(flow) * scale;
+                float c = MathHelper.cos(flow) * scale;
+                float s = MathHelper.sin(flow) * scale;
 
                 // top
                 EnumFacing top = gas ? EnumFacing.DOWN : EnumFacing.UP;
@@ -333,7 +333,7 @@ public final class ModelFluid implements IModel
                 }
 
                 // bottom
-                EnumFacing bottom = top.func_176734_d();
+                EnumFacing bottom = top.getOpposite();
                 faceQuads.put(bottom, ImmutableList.of(
                         buildQuad(bottom, still, gas, false,
                                 i -> z[i],
@@ -347,8 +347,8 @@ public final class ModelFluid implements IModel
                 // sides
                 for (int i = 0; i < 4; i++)
                 {
-                    EnumFacing side = EnumFacing.func_176731_b((5 - i) % 4); // [W, S, E, N]
-                    boolean useOverlay = overlay.isPresent() && sideOverlays[side.func_176736_b()];
+                    EnumFacing side = EnumFacing.getHorizontal((5 - i) % 4); // [W, S, E, N]
+                    boolean useOverlay = overlay.isPresent() && sideOverlays[side.getHorizontalIndex()];
                     int si = i; // local var for lambda capture
 
                     VertexParameter sideX = j -> x[(si + x[j]) % 4];
@@ -405,8 +405,8 @@ public final class ModelFluid implements IModel
                 putVertex(
                     consumer, side, offset,
                     x.get(vertex), y.get(vertex), z.get(vertex),
-                    texture.func_94214_a(u.get(vertex)),
-                    texture.func_94207_b(v.get(vertex))
+                    texture.getInterpolatedU(u.get(vertex)),
+                    texture.getInterpolatedV(v.get(vertex))
                 );
             }
 
@@ -415,14 +415,14 @@ public final class ModelFluid implements IModel
 
         private void putVertex(IVertexConsumer consumer, EnumFacing side, boolean offset, float x, float y, float z, float u, float v)
         {
-            for(int e = 0; e < format.func_177345_h(); e++)
+            for(int e = 0; e < format.getElementCount(); e++)
             {
-                switch(format.func_177348_c(e).func_177375_c())
+                switch(format.getElement(e).getUsage())
                 {
                 case POSITION:
-                    float dx = offset ? side.func_176730_m().func_177958_n() * eps : 0f;
-                    float dy = offset ? side.func_176730_m().func_177956_o() * eps : 0f;
-                    float dz = offset ? side.func_176730_m().func_177952_p() * eps : 0f;
+                    float dx = offset ? side.getDirectionVec().getX() * eps : 0f;
+                    float dy = offset ? side.getDirectionVec().getY() * eps : 0f;
+                    float dz = offset ? side.getDirectionVec().getZ() * eps : 0f;
                     consumer.put(e, x - dx, y - dy, z - dz, 1f);
                     break;
                 case COLOR:
@@ -433,13 +433,13 @@ public final class ModelFluid implements IModel
                     consumer.put(e, r, g, b, a);
                     break;
                 case NORMAL:
-                    float offX = (float) side.func_82601_c();
-                    float offY = (float) side.func_96559_d();
-                    float offZ = (float) side.func_82599_e();
+                    float offX = (float) side.getFrontOffsetX();
+                    float offY = (float) side.getFrontOffsetY();
+                    float offZ = (float) side.getFrontOffsetZ();
                     consumer.put(e, offX, offY, offZ, 0f);
                     break;
                 case UV:
-                    if(format.func_177348_c(e).func_177369_e() == 0)
+                    if(format.getElement(e).getIndex() == 0)
                     {
                         consumer.put(e, u, v, 0f, 1f);
                         break;
@@ -453,39 +453,39 @@ public final class ModelFluid implements IModel
         }
 
         @Override
-        public boolean func_177555_b()
+        public boolean isAmbientOcclusion()
         {
             return true;
         }
 
         @Override
-        public boolean func_177556_c()
+        public boolean isGui3d()
         {
             return false;
         }
 
         @Override
-        public boolean func_188618_c()
+        public boolean isBuiltInRenderer()
         {
             return false;
         }
 
         @Override
-        public TextureAtlasSprite func_177554_e()
+        public TextureAtlasSprite getParticleTexture()
         {
             return still;
         }
 
         @Override
-        public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
         {
             return side == null ? ImmutableList.of() : faceQuads.get(side);
         }
 
         @Override
-        public ItemOverrideList func_188617_f()
+        public ItemOverrideList getOverrides()
         {
-            return ItemOverrideList.field_188022_a;
+            return ItemOverrideList.NONE;
         }
 
         @Override

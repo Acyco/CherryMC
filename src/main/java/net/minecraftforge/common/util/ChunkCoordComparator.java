@@ -30,8 +30,8 @@ public class ChunkCoordComparator implements java.util.Comparator<ChunkPos>
 
     public ChunkCoordComparator(EntityPlayerMP entityplayer)
     {
-        x = (int) entityplayer.field_70165_t >> 4;
-        z = (int) entityplayer.field_70161_v >> 4;
+        x = (int) entityplayer.posX >> 4;
+        z = (int) entityplayer.posZ >> 4;
     }
 
     @Override
@@ -43,10 +43,10 @@ public class ChunkCoordComparator implements java.util.Comparator<ChunkPos>
         }
 
         // Subtract current position to set center point
-        int ax = a.field_77276_a - this.x;
-        int az = a.field_77275_b - this.z;
-        int bx = b.field_77276_a - this.x;
-        int bz = b.field_77275_b - this.z;
+        int ax = a.x - this.x;
+        int az = a.z - this.z;
+        int bx = b.x - this.x;
+        int bz = b.z - this.z;
         int result = ((ax - bx) * (ax + bx)) + ((az - bz) * (az + bz));
 
         if (result != 0)

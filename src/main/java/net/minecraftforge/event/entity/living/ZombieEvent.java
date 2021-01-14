@@ -30,8 +30,6 @@ import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
-import net.minecraftforge.fml.common.eventhandler.Event.HasResult;
-
 /**
  * ZombieEvent is fired whenever a zombie is spawned for aid.
  * If a method utilizes this {@link Event} as its parameter, the method will 

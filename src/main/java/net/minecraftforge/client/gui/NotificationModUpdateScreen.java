@@ -49,7 +49,7 @@ public class NotificationModUpdateScreen extends GuiScreen
     }
 
     @Override
-    public void func_73866_w_()
+    public void initGui()
     {
         if (!hasCheckedForUpdates)
         {
@@ -71,31 +71,31 @@ public class NotificationModUpdateScreen extends GuiScreen
     }
 
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         if (showNotification == null || !showNotification.shouldDraw() || ForgeModContainer.disableVersionCheck)
         {
             return;
         }
 
-        Minecraft.func_71410_x().func_110434_K().func_110577_a(VERSION_CHECK_ICONS);
-        GlStateManager.func_179131_c(1, 1, 1, 1);
-        GlStateManager.func_179094_E();
+        Minecraft.getMinecraft().getTextureManager().bindTexture(VERSION_CHECK_ICONS);
+        GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.pushMatrix();
 
-        int x = modButton.field_146128_h;
-        int y = modButton.field_146129_i;
-        int w = modButton.field_146120_f;
-        int h = modButton.field_146121_g;
+        int x = modButton.x;
+        int y = modButton.y;
+        int w = modButton.width;
+        int h = modButton.height;
 
-        func_146110_a(x + w - (h / 2 + 4), y + (h / 2 - 4), showNotification.getSheetOffset() * 8, (showNotification.isAnimated() && ((System.currentTimeMillis() / 800 & 1) == 1)) ? 8 : 0, 8, 8, 64, 16);
-        GlStateManager.func_179121_F();
+        drawModalRectWithCustomSizedTexture(x + w - (h / 2 + 4), y + (h / 2 - 4), showNotification.getSheetOffset() * 8, (showNotification.isAnimated() && ((System.currentTimeMillis() / 800 & 1) == 1)) ? 8 : 0, 8, 8, 64, 16);
+        GlStateManager.popMatrix();
     }
 
     public static NotificationModUpdateScreen init(GuiMainMenu guiMainMenu, GuiButton modButton)
     {
         NotificationModUpdateScreen notificationModUpdateScreen = new NotificationModUpdateScreen(modButton);
-        notificationModUpdateScreen.func_183500_a(guiMainMenu.field_146294_l, guiMainMenu.field_146295_m);
-        notificationModUpdateScreen.func_73866_w_();
+        notificationModUpdateScreen.setGuiSize(guiMainMenu.width, guiMainMenu.height);
+        notificationModUpdateScreen.initGui();
         return notificationModUpdateScreen;
     }
 

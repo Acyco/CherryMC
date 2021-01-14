@@ -73,7 +73,7 @@ public enum DefaultPermissionHandler implements IPermissionHandler
         }
 
         MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
-        return server != null && server.func_184103_al().func_152596_g(profile);
+        return server != null && server.getPlayerList().canSendCommands(profile);
     }
 
     @Override

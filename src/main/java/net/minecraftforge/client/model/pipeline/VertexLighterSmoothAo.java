@@ -147,8 +147,8 @@ public class VertexLighterSmoothAo extends VertexLighterFlat
         bl /= s;
         sl /= s;
 
-        lightmap[0] = MathHelper.func_76131_a(bl, 0f, 15f * 0x20 / 0xFFFF);
-        lightmap[1] = MathHelper.func_76131_a(sl, 0f, 15f * 0x20 / 0xFFFF);
+        lightmap[0] = MathHelper.clamp(bl, 0f, 15f * 0x20 / 0xFFFF);
+        lightmap[1] = MathHelper.clamp(sl, 0f, 15f * 0x20 / 0xFFFF);
     }
 
     protected float getAo(float x, float y, float z)
@@ -172,7 +172,7 @@ public class VertexLighterSmoothAo extends VertexLighterFlat
         a += ao[sx - 0][sy - 0][sz - 1] * (0 + x) * (0 + y) * (1 - z);
         a += ao[sx - 0][sy - 0][sz - 0] * (0 + x) * (0 + y) * (0 + z);
 
-        a = MathHelper.func_76131_a(a, 0, 1);
+        a = MathHelper.clamp(a, 0, 1);
         return a;
     }
 

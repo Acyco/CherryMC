@@ -59,13 +59,13 @@ public class FMLProxyPacket implements Packet<INetHandler> {
 
     public FMLProxyPacket(SPacketCustomPayload original)
     {
-        this(original.func_180735_b(), original.func_149169_c());
+        this(original.getBufferData(), original.getChannelName());
         this.target = Side.CLIENT;
     }
 
     public FMLProxyPacket(CPacketCustomPayload original)
     {
-        this(original.func_180760_b(), original.func_149559_c());
+        this(original.getBufferData(), original.getChannelName());
         this.target = Side.SERVER;
     }
 
@@ -75,19 +75,19 @@ public class FMLProxyPacket implements Packet<INetHandler> {
         this.payload = payload;
     }
     @Override
-    public void func_148837_a(PacketBuffer packetbuffer) throws IOException
+    public void readPacketData(PacketBuffer packetbuffer) throws IOException
     {
         // NOOP - we are not built this way
     }
 
     @Override
-    public void func_148840_b(PacketBuffer packetbuffer) throws IOException
+    public void writePacketData(PacketBuffer packetbuffer) throws IOException
     {
         // NOOP - we are not built this way
     }
 
     @Override
-    public void func_148833_a(INetHandler inethandler)
+    public void processPacket(INetHandler inethandler)
     {
         this.netHandler = inethandler;
         EmbeddedChannel internalChannel = NetworkRegistry.INSTANCE.getChannel(this.channel, this.target);
@@ -162,7 +162,7 @@ public class FMLProxyPacket implements Packet<INetHandler> {
                 throw new IllegalArgumentException("Payload may not be larger than " + MAX_LENGTH + " bytes");
             }
             PacketBuffer preamble = new PacketBuffer(Unpooled.buffer());
-            preamble.func_180714_a(channel);
+            preamble.writeString(channel);
             preamble.writeByte(parts);
             preamble.writeInt(data.length);
             ret.add(new SPacketCustomPayload("FML|MP", preamble));

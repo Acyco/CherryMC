@@ -140,7 +140,7 @@ public class FMLOutboundHandler extends ChannelOutboundHandlerAdapter {
             public List<NetworkDispatcher> selectNetworks(Object args, ChannelHandlerContext context, FMLProxyPacket packet)
             {
                 EntityPlayerMP player = (EntityPlayerMP) args;
-                NetworkDispatcher dispatcher = (player == null || player instanceof FakePlayer) ? null : player.field_71135_a.field_147371_a.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
+                NetworkDispatcher dispatcher = (player == null || player instanceof FakePlayer) ? null : player.connection.netManager.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
                 return dispatcher == null ? ImmutableList.<NetworkDispatcher>of() : ImmutableList.of(dispatcher);
             }
         },
@@ -159,9 +159,9 @@ public class FMLOutboundHandler extends ChannelOutboundHandlerAdapter {
             public List<NetworkDispatcher> selectNetworks(Object args, ChannelHandlerContext context, FMLProxyPacket packet)
             {
                 ImmutableList.Builder<NetworkDispatcher> builder = ImmutableList.builder();
-                for (EntityPlayerMP player : FMLCommonHandler.instance().getMinecraftServerInstance().func_184103_al().func_181057_v())
+                for (EntityPlayerMP player : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayers())
                 {
-                    NetworkDispatcher dispatcher = player.field_71135_a.field_147371_a.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
+                    NetworkDispatcher dispatcher = player.connection.netManager.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
                     if (dispatcher != null) builder.add(dispatcher);
                 }
                 return builder.build();
@@ -187,11 +187,11 @@ public class FMLOutboundHandler extends ChannelOutboundHandlerAdapter {
             {
                 int dimension = (Integer)args;
                 ImmutableList.Builder<NetworkDispatcher> builder = ImmutableList.builder();
-                for (EntityPlayerMP player : FMLCommonHandler.instance().getMinecraftServerInstance().func_184103_al().func_181057_v())
+                for (EntityPlayerMP player : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayers())
                 {
-                    if (dimension == player.field_71093_bK)
+                    if (dimension == player.dimension)
                     {
-                        NetworkDispatcher dispatcher = player.field_71135_a.field_147371_a.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
+                        NetworkDispatcher dispatcher = player.connection.netManager.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
                         // Null dispatchers may exist for fake players - skip them
                         if (dispatcher != null) builder.add(dispatcher);
                     }
@@ -221,17 +221,17 @@ public class FMLOutboundHandler extends ChannelOutboundHandlerAdapter {
             {
                 TargetPoint tp = (TargetPoint)args;
                 ImmutableList.Builder<NetworkDispatcher> builder = ImmutableList.builder();
-                for (EntityPlayerMP player : FMLCommonHandler.instance().getMinecraftServerInstance().func_184103_al().func_181057_v())
+                for (EntityPlayerMP player : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayers())
                 {
-                    if (player.field_71093_bK == tp.dimension)
+                    if (player.dimension == tp.dimension)
                     {
-                        double d4 = tp.x - player.field_70165_t;
-                        double d5 = tp.y - player.field_70163_u;
-                        double d6 = tp.z - player.field_70161_v;
+                        double d4 = tp.x - player.posX;
+                        double d5 = tp.y - player.posY;
+                        double d6 = tp.z - player.posZ;
 
                         if (d4 * d4 + d5 * d5 + d6 * d6 < tp.range * tp.range)
                         {
-                            NetworkDispatcher dispatcher = player.field_71135_a.field_147371_a.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
+                            NetworkDispatcher dispatcher = player.connection.netManager.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
                             if (dispatcher != null) builder.add(dispatcher);
                         }
                     }
@@ -265,7 +265,7 @@ public class FMLOutboundHandler extends ChannelOutboundHandlerAdapter {
                     return ImmutableList.of();
                 }
 
-                PlayerChunkMapEntry entry = world.func_184164_w().func_187301_b(MathHelper.func_76128_c(tp.x) >> 4, MathHelper.func_76128_c(tp.z) >> 4);
+                PlayerChunkMapEntry entry = world.getPlayerChunkMap().getEntry(MathHelper.floor(tp.x) >> 4, MathHelper.floor(tp.z) >> 4);
                 if (entry == null)
                 {
                     return ImmutableList.of();
@@ -274,7 +274,7 @@ public class FMLOutboundHandler extends ChannelOutboundHandlerAdapter {
                 ImmutableList.Builder<NetworkDispatcher> builder = ImmutableList.builder();
                 for (EntityPlayerMP player : entry.getWatchingPlayers())
                 {
-                    NetworkDispatcher dispatcher = player.field_71135_a.field_147371_a.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
+                    NetworkDispatcher dispatcher = player.connection.netManager.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
                     if (dispatcher != null) builder.add(dispatcher);
                 }
                 return builder.build();
@@ -301,12 +301,12 @@ public class FMLOutboundHandler extends ChannelOutboundHandlerAdapter {
             {
                 Entity e = (Entity)args;
                 Set<? extends EntityPlayer> players = FMLCommonHandler.instance().getMinecraftServerInstance()
-                        .func_71218_a(e.field_71093_bK).func_73039_n().getTrackingPlayers(e);
+                        .getWorld(e.dimension).getEntityTracker().getTrackingPlayers(e);
 
                 ImmutableList.Builder<NetworkDispatcher> builder = ImmutableList.builder();
                 for (EntityPlayer player : players)
                 {
-                    NetworkDispatcher dispatcher = ((EntityPlayerMP) player).field_71135_a.field_147371_a.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
+                    NetworkDispatcher dispatcher = ((EntityPlayerMP) player).connection.netManager.channel().attr(NetworkDispatcher.FML_DISPATCHER).get();
                     if (dispatcher != null) builder.add(dispatcher);
                 }
                 return builder.build();

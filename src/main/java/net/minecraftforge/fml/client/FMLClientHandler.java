@@ -219,7 +219,7 @@ public class FMLClientHandler implements IFMLSidedHandler
         this.resourcePackList = resourcePackList;
         this.metaSerializer = metaSerializer;
         this.resourcePackMap = Maps.newHashMap();
-        if (minecraft.func_71355_q())
+        if (minecraft.isDemo())
         {
             FMLLog.log.fatal("DEMO MODE DETECTED, FML will not work. Finishing now.");
             haltGame("FML will not run in demo mode", new RuntimeException());
@@ -244,7 +244,7 @@ public class FMLClientHandler implements IFMLSidedHandler
         }
         finally
         {
-            client.func_110436_a();
+            client.refreshResources();
         }
 
         try
@@ -309,7 +309,7 @@ public class FMLClientHandler implements IFMLSidedHandler
     public void haltGame(String message, Throwable t)
     {
         SplashProgress.finish();
-        client.func_71377_b(new CrashReport(message, t));
+        client.displayCrashReport(new CrashReport(message, t));
         Throwables.throwIfUnchecked(t);
         throw new RuntimeException(t);
     }
@@ -357,10 +357,10 @@ public class FMLClientHandler implements IFMLSidedHandler
         // TODO remove in 1.13
         if (Boolean.parseBoolean(System.getProperty("fml.reloadResourcesOnStart", "false")))
         {
-            client.func_110436_a();
+            client.refreshResources();
         }
 
-        RenderingRegistry.loadEntityRenderers(Minecraft.func_71410_x().func_175598_ae().field_78729_o);
+        RenderingRegistry.loadEntityRenderers(Minecraft.getMinecraft().getRenderManager().entityRenderMap);
         guiFactories = HashBiMap.create();
         for (ModContainer mc : Loader.instance().getActiveModList())
         {
@@ -386,7 +386,7 @@ public class FMLClientHandler implements IFMLSidedHandler
             }
         }
         loading = false;
-        client.field_71474_y.func_74300_a(); //Reload options to load any mod added keybindings.
+        client.gameSettings.loadOptions(); //Reload options to load any mod added keybindings.
         if (!hasError())
             Loader.instance().loadingComplete();
         SplashProgress.finish();
@@ -423,8 +423,8 @@ public class FMLClientHandler implements IFMLSidedHandler
     public void onInitializationComplete()
     {
         // re-sync TEXTURE_2D, splash screen disables it with a direct GL call
-        GlStateManager.func_179090_x();
-        GlStateManager.func_179098_w();
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableTexture2D();
         if (errorToDisplay != null)
         {
             GuiScreen errorScreen = errorToDisplay.createGui();
@@ -457,8 +457,8 @@ public class FMLClientHandler implements IFMLSidedHandler
      */
     public void displayGuiScreen(EntityPlayer player, GuiScreen gui)
     {
-        if (client.field_71439_g==player && gui != null) {
-            client.func_147108_a(gui);
+        if (client.player==player && gui != null) {
+            client.displayGuiScreen(gui);
         }
     }
 
@@ -498,7 +498,7 @@ public class FMLClientHandler implements IFMLSidedHandler
     public void showGuiScreen(@Nullable Object clientGuiElement)
     {
         GuiScreen gui = (GuiScreen) clientGuiElement;
-        client.func_147108_a(gui);
+        client.displayGuiScreen(gui);
     }
 
     @Override
@@ -506,39 +506,39 @@ public class FMLClientHandler implements IFMLSidedHandler
     {
         if (query.getResult() == null)
         {
-            client.func_147108_a(new GuiNotification(query));
+            client.displayGuiScreen(new GuiNotification(query));
         }
         else
         {
-            client.func_147108_a(new GuiConfirmation(query));
+            client.displayGuiScreen(new GuiConfirmation(query));
         }
 
         if (query.isSynchronous())
         {
-            while (client.field_71462_r instanceof GuiNotification)
+            while (client.currentScreen instanceof GuiNotification)
             {
                 if (Thread.interrupted()) throw new InterruptedException();
 
-                client.field_71461_s.func_73719_c("");
+                client.loadingScreen.displayLoadingString("");
 
                 Thread.sleep(50);
             }
 
-            client.field_71461_s.func_73719_c(""); // make sure the blank screen is being drawn at the end
+            client.loadingScreen.displayLoadingString(""); // make sure the blank screen is being drawn at the end
         }
     }
 
     public boolean handleLoadingScreen(ScaledResolution scaledResolution) throws IOException
     {
-        if (client.field_71462_r instanceof GuiNotification)
+        if (client.currentScreen instanceof GuiNotification)
         {
-            int width = scaledResolution.func_78326_a();
-            int height = scaledResolution.func_78328_b();
-            int mouseX = Mouse.getX() * width / client.field_71443_c;
-            int mouseZ = height - Mouse.getY() * height / client.field_71440_d - 1;
+            int width = scaledResolution.getScaledWidth();
+            int height = scaledResolution.getScaledHeight();
+            int mouseX = Mouse.getX() * width / client.displayWidth;
+            int mouseZ = height - Mouse.getY() * height / client.displayHeight - 1;
 
-            client.field_71462_r.func_73863_a(mouseX, mouseZ, 0);
-            client.field_71462_r.func_146269_k();
+            client.currentScreen.drawScreen(mouseX, mouseZ, 0);
+            client.currentScreen.handleInput();
 
             return true;
         }
@@ -550,12 +550,12 @@ public class FMLClientHandler implements IFMLSidedHandler
 
     public WorldClient getWorldClient()
     {
-        return client.field_71441_e;
+        return client.world;
     }
 
     public EntityPlayerSP getClientPlayerEntity()
     {
-        return client.field_71439_g;
+        return client.player;
     }
 
     @Override
@@ -574,13 +574,13 @@ public class FMLClientHandler implements IFMLSidedHandler
     @Override
     public File getSavesDirectory()
     {
-        return ((SaveFormatOld) client.func_71359_d()).field_75808_a;
+        return ((SaveFormatOld) client.getSaveLoader()).savesDirectory;
     }
 
     @Override
     public MinecraftServer getServer()
     {
-        return client.func_71401_C();
+        return client.getIntegratedServer();
     }
 
     /**
@@ -620,7 +620,7 @@ public class FMLClientHandler implements IFMLSidedHandler
      */
     public boolean isGUIOpen(Class<? extends GuiScreen> gui)
     {
-        return client.field_71462_r != null && client.field_71462_r.getClass().equals(gui);
+        return client.currentScreen != null && client.currentScreen.getClass().equals(gui);
     }
 
 
@@ -634,9 +634,9 @@ public class FMLClientHandler implements IFMLSidedHandler
             {
                 IResourcePack pack = (IResourcePack) resourcePackType.getConstructor(ModContainer.class).newInstance(container);
 
-                PackMetadataSection meta = (PackMetadataSection)pack.func_135058_a(this.metaSerializer, "pack");
+                PackMetadataSection meta = (PackMetadataSection)pack.getPackMetadata(this.metaSerializer, "pack");
 
-                if (meta != null && meta.func_110462_b() == 2)
+                if (meta != null && meta.getPackFormat() == 2)
                 {
                     pack =  new LegacyV2Adapter(pack);
                 }
@@ -664,7 +664,7 @@ public class FMLClientHandler implements IFMLSidedHandler
     @Override
     public String getCurrentLanguage()
     {
-        return client.func_135016_M().func_135041_c().func_135034_a();
+        return client.getLanguageManager().getCurrentLanguage().getLanguageCode();
     }
 
     @Override
@@ -681,14 +681,14 @@ public class FMLClientHandler implements IFMLSidedHandler
     @Override
     public NetworkManager getClientToServerNetworkManager()
     {
-        return this.client.func_147114_u()!=null ? this.client.func_147114_u().func_147298_b() : null;
+        return this.client.getConnection()!=null ? this.client.getConnection().getNetworkManager() : null;
     }
 
     public void handleClientWorldClosing(WorldClient world)
     {
         NetworkManager client = getClientToServerNetworkManager();
         // ONLY revert a non-local connection
-        if (client != null && !client.func_150731_c())
+        if (client != null && !client.isLocalChannel())
         {
             GameData.revertToFrozen();
         }
@@ -700,38 +700,38 @@ public class FMLClientHandler implements IFMLSidedHandler
 
     public File getSavesDir()
     {
-        return new File(client.field_71412_D, "saves");
+        return new File(client.mcDataDir, "saves");
     }
     public void tryLoadExistingWorld(GuiWorldSelection selectWorldGUI, WorldSummary comparator)
     {
-        File dir = new File(getSavesDir(), comparator.func_75786_a());
+        File dir = new File(getSavesDir(), comparator.getFileName());
         NBTTagCompound leveldat;
         try
         {
-            leveldat = CompressedStreamTools.func_74796_a(new FileInputStream(new File(dir, "level.dat")));
+            leveldat = CompressedStreamTools.readCompressed(new FileInputStream(new File(dir, "level.dat")));
         }
         catch (Exception e)
         {
             try
             {
-                leveldat = CompressedStreamTools.func_74796_a(new FileInputStream(new File(dir, "level.dat_old")));
+                leveldat = CompressedStreamTools.readCompressed(new FileInputStream(new File(dir, "level.dat_old")));
             }
             catch (Exception e1)
             {
-                FMLLog.log.warn("There appears to be a problem loading the save {}, both level files are unreadable.", comparator.func_75786_a());
+                FMLLog.log.warn("There appears to be a problem loading the save {}, both level files are unreadable.", comparator.getFileName());
                 return;
             }
         }
-        NBTTagCompound fmlData = leveldat.func_74775_l("FML");
-        if (fmlData.func_74764_b("ModItemData"))
+        NBTTagCompound fmlData = leveldat.getCompoundTag("FML");
+        if (fmlData.hasKey("ModItemData"))
         {
-            showGuiScreen(new GuiOldSaveLoadConfirm(comparator.func_75786_a(), comparator.func_75788_b(), selectWorldGUI));
+            showGuiScreen(new GuiOldSaveLoadConfirm(comparator.getFileName(), comparator.getDisplayName(), selectWorldGUI));
         }
         else
         {
             try
             {
-                client.func_71371_a(comparator.func_75786_a(), comparator.func_75788_b(), null);
+                client.launchIntegratedServer(comparator.getFileName(), comparator.getDisplayName(), null);
             }
             catch (StartupQuery.AbortedException e)
             {
@@ -786,7 +786,7 @@ public class FMLClientHandler implements IFMLSidedHandler
         }
         else
         {
-            String serverDescription = data.field_78843_d;
+            String serverDescription = data.serverMOTD;
             boolean moddedClientAllowed = true;
             if (!Strings.isNullOrEmpty(serverDescription))
             {
@@ -840,11 +840,11 @@ public class FMLClientHandler implements IFMLSidedHandler
         {
             return null;
         }
-        this.client.func_110434_K().func_110577_a(iconSheet);
-        Gui.func_146110_a(x + width - 18, y + 10, 0, (float)idx, 16, 16, 256.0f, 256.0f);
+        this.client.getTextureManager().bindTexture(iconSheet);
+        Gui.drawModalRectWithCustomSizedTexture(x + width - 18, y + 10, 0, (float)idx, 16, 16, 256.0f, 256.0f);
         if (blocked)
         {
-            Gui.func_146110_a(x + width - 18, y + 10, 0, 80, 16, 16, 256.0f, 256.0f);
+            Gui.drawModalRectWithCustomSizedTexture(x + width - 18, y + 10, 0, 80, 16, 16, 256.0f, 256.0f);
         }
 
         return relativeMouseX > width - 15 && relativeMouseX < width && relativeMouseY > 10 && relativeMouseY < 26 ? tooltip : null;
@@ -862,7 +862,7 @@ public class FMLClientHandler implements IFMLSidedHandler
         ServerData serverData = new ServerData("Command Line", host+":"+port,false);
         try
         {
-            osp.func_147224_a(serverData);
+            osp.ping(serverData);
             startupConnectionData.await(30, TimeUnit.SECONDS);
         }
         catch (Exception e)
@@ -936,18 +936,18 @@ public class FMLClientHandler implements IFMLSidedHandler
 
     public void trackMissingTexture(ResourceLocation resourceLocation)
     {
-        badTextureDomains.add(resourceLocation.func_110624_b());
-        missingTextures.put(resourceLocation.func_110624_b(),resourceLocation);
+        badTextureDomains.add(resourceLocation.getResourceDomain());
+        missingTextures.put(resourceLocation.getResourceDomain(),resourceLocation);
     }
 
     public void trackBrokenTexture(ResourceLocation resourceLocation, String error)
     {
-        badTextureDomains.add(resourceLocation.func_110624_b());
-        Set<ResourceLocation> badType = brokenTextures.get(resourceLocation.func_110624_b(), error);
+        badTextureDomains.add(resourceLocation.getResourceDomain());
+        Set<ResourceLocation> badType = brokenTextures.get(resourceLocation.getResourceDomain(), error);
         if (badType == null)
         {
             badType = Sets.newHashSet();
-            brokenTextures.put(resourceLocation.func_110624_b(), MoreObjects.firstNonNull(error, "Unknown error"), badType);
+            brokenTextures.put(resourceLocation.getResourceDomain(), MoreObjects.firstNonNull(error, "Unknown error"), badType);
         }
         badType.add(resourceLocation);
     }
@@ -961,7 +961,7 @@ public class FMLClientHandler implements IFMLSidedHandler
         Logger logger = LogManager.getLogger("FML.TEXTURE_ERRORS");
         logger.error(Strings.repeat("+=", 25));
         logger.error("The following texture errors were found.");
-        Map<String,FallbackResourceManager> resManagers = ObfuscationReflectionHelper.getPrivateValue(SimpleReloadableResourceManager.class, (SimpleReloadableResourceManager)Minecraft.func_71410_x().func_110442_L(), "field_110548"+"_a");
+        Map<String,FallbackResourceManager> resManagers = ObfuscationReflectionHelper.getPrivateValue(SimpleReloadableResourceManager.class, (SimpleReloadableResourceManager)Minecraft.getMinecraft().getResourceManager(), "field_110548"+"_a");
         for (String resourceDomain : badTextureDomains)
         {
             Set<ResourceLocation> missing = missingTextures.get(resourceDomain);
@@ -993,7 +993,7 @@ public class FMLClientHandler implements IFMLSidedHandler
                     }
                     else
                     {
-                        logger.error("      unknown resourcepack type {} : {}", resPack.getClass().getName(), resPack.func_130077_b());
+                        logger.error("      unknown resourcepack type {} : {}", resPack.getClass().getName(), resPack.getPackName());
                     }
                 }
             }
@@ -1001,7 +1001,7 @@ public class FMLClientHandler implements IFMLSidedHandler
             if (missingTextures.containsKey(resourceDomain)) {
                 logger.error("    The missing resources for domain {} are:", resourceDomain);
                 for (ResourceLocation rl : missing) {
-                    logger.error("      {}", rl.func_110623_a());
+                    logger.error("      {}", rl.getResourcePath());
                 }
                 logger.error(Strings.repeat("-", 25));
             }
@@ -1019,7 +1019,7 @@ public class FMLClientHandler implements IFMLSidedHandler
                     logger.error("    Problem: {}", error);
                     for (ResourceLocation rl : resourceErrs.get(error))
                     {
-                        logger.error("      {}",rl.func_110623_a());
+                        logger.error("      {}",rl.getResourcePath());
                     }
                 }
             }
@@ -1047,13 +1047,13 @@ public class FMLClientHandler implements IFMLSidedHandler
     public String stripSpecialChars(String message)
     {
         // We can't handle many unicode points in the splash renderer
-        return DISALLOWED_CHAR_MATCHER.removeFrom(StringUtils.func_76338_a(message));
+        return DISALLOWED_CHAR_MATCHER.removeFrom(StringUtils.stripControlCodes(message));
     }
 
     @Override
     public void reloadRenderers()
     {
-        this.client.field_71438_f.func_72712_a();
+        this.client.renderGlobal.loadRenderers();
     }
 
     @Override
@@ -1065,7 +1065,7 @@ public class FMLClientHandler implements IFMLSidedHandler
     @Override
     public CompoundDataFixer getDataFixer()
     {
-        return (CompoundDataFixer)this.client.func_184126_aj();
+        return (CompoundDataFixer)this.client.getDataFixer();
     }
 
     @Override
@@ -1083,14 +1083,14 @@ public class FMLClientHandler implements IFMLSidedHandler
     @Override
     public void reloadSearchTrees()
     {
-        this.client.func_193986_ar();
-        this.client.getSearchTreeManager().func_110549_a(this.client.func_110442_L());
+        this.client.populateSearchTreeManager();
+        this.client.getSearchTreeManager().onResourceManagerReload(this.client.getResourceManager());
     }
 
     @Override
     public void reloadCreativeSettings()
     {
-        this.client.field_191950_u.func_192562_a();
+        this.client.creativeSettings.read();
     }
 
     private CloudRenderer getCloudRenderer()
@@ -1107,10 +1107,10 @@ public class FMLClientHandler implements IFMLSidedHandler
 
     public boolean renderClouds(int cloudTicks, float partialTicks)
     {
-        IRenderHandler renderer = this.client.field_71441_e.field_73011_w.getCloudRenderer();
+        IRenderHandler renderer = this.client.world.provider.getCloudRenderer();
         if (renderer != null)
         {
-            renderer.render(partialTicks, this.client.field_71441_e, this.client);
+            renderer.render(partialTicks, this.client.world, this.client);
             return true;
         }
         return getCloudRenderer().render(cloudTicks, partialTicks);
@@ -1125,7 +1125,7 @@ public class FMLClientHandler implements IFMLSidedHandler
     public void refreshResources(Predicate<IResourceType> resourcePredicate)
     {
         SelectiveReloadStateHandler.INSTANCE.beginReload(resourcePredicate);
-        this.client.func_110436_a();
+        this.client.refreshResources();
         SelectiveReloadStateHandler.INSTANCE.endReload();
     }
 
@@ -1136,6 +1136,6 @@ public class FMLClientHandler implements IFMLSidedHandler
 
     public ListenableFuture<Object> scheduleResourcesRefresh(Predicate<IResourceType> resourcePredicate)
     {
-        return this.client.func_152344_a(() -> this.refreshResources(resourcePredicate));
+        return this.client.addScheduledTask(() -> this.refreshResources(resourcePredicate));
     }
 }

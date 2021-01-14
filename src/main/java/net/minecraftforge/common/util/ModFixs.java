@@ -52,7 +52,7 @@ public class ModFixs
     public void registerFix(IFixType type, IFixableData fixer)
     {
         List<IFixableData> list = getFixes(type);
-        int ver = fixer.func_188216_a();
+        int ver = fixer.getFixVersion();
 
         if (ver > this.version)
         {
@@ -60,11 +60,11 @@ public class ModFixs
             return;
         }
 
-        if (!list.isEmpty() && list.get(list.size()-1).func_188216_a() > ver)
+        if (!list.isEmpty() && list.get(list.size()-1).getFixVersion() > ver)
         {
             for (int x = 0; x < list.size(); ++x)
             {
-                if (list.get(x).func_188216_a() > ver)
+                if (list.get(x).getFixVersion() > ver)
                 {
                     list.add(x, fixer);
                     break;

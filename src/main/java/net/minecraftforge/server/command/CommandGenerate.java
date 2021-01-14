@@ -34,31 +34,31 @@ import net.minecraftforge.common.WorldWorkerManager;
 class CommandGenerate extends CommandBase
 {
     @Override
-    public String func_71517_b()
+    public String getName()
     {
         return "generate";
     }
 
     @Override
-    public List<String> func_71514_a()
+    public List<String> getAliases()
     {
         return Collections.singletonList("gen");
     }
 
     @Override
-    public String func_71518_a(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
         return "commands.forge.gen.usage";
     }
 
     @Override
-    public int func_82362_a()
+    public int getRequiredPermissionLevel()
     {
         return 4;
     }
 
     @Override
-    public void func_184881_a(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         // x y z chunkCount [dim] [interval]
         if (args.length < 4)
@@ -66,23 +66,23 @@ class CommandGenerate extends CommandBase
             throw new WrongUsageException("commands.forge.gen.usage");
         }
 
-        BlockPos blockpos = func_175757_a(sender, args, 0, false);
-        int count = func_180528_a(args[3], 10);
-        int dim = args.length >= 5 ? func_175755_a(args[4]) : sender.func_130014_f_().field_73011_w.getDimension();
-        int interval = args.length >= 6 ? func_175755_a(args[5]) : -1;
-        BlockPos chunkpos = new BlockPos(blockpos.func_177958_n() >> 4, 0, blockpos.func_177952_p() >> 4);
+        BlockPos blockpos = parseBlockPos(sender, args, 0, false);
+        int count = parseInt(args[3], 10);
+        int dim = args.length >= 5 ? parseInt(args[4]) : sender.getEntityWorld().provider.getDimension();
+        int interval = args.length >= 6 ? parseInt(args[5]) : -1;
+        BlockPos chunkpos = new BlockPos(blockpos.getX() >> 4, 0, blockpos.getZ() >> 4);
 
         ChunkGenWorker worker = new ChunkGenWorker(sender, chunkpos, count, dim, interval);
-        sender.func_145747_a(worker.getStartMessage(sender));
+        sender.sendMessage(worker.getStartMessage(sender));
         WorldWorkerManager.addWorker(worker);
     }
 
     @Override
-    public List<String> func_184883_a(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
     {
         if (args.length < 4)
         {
-            return func_175771_a(args, 0, targetPos);
+            return getTabCompletionCoordinate(args, 0, targetPos);
         }
         // Chunk Count? No completion
         // Dimension, Add support for names? Get list of ids? Meh

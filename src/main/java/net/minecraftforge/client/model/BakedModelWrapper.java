@@ -42,15 +42,15 @@ public abstract class BakedModelWrapper<T extends IBakedModel> implements IBaked
     }
 
     @Override
-    public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+    public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
     {
-        return originalModel.func_188616_a(state, side, rand);
+        return originalModel.getQuads(state, side, rand);
     }
 
     @Override
-    public boolean func_177555_b()
+    public boolean isAmbientOcclusion()
     {
-        return originalModel.func_177555_b();
+        return originalModel.isAmbientOcclusion();
     }
 
     @Override
@@ -60,33 +60,33 @@ public abstract class BakedModelWrapper<T extends IBakedModel> implements IBaked
     }
 
     @Override
-    public boolean func_177556_c()
+    public boolean isGui3d()
     {
-        return originalModel.func_177556_c();
+        return originalModel.isGui3d();
     }
 
     @Override
-    public boolean func_188618_c()
+    public boolean isBuiltInRenderer()
     {
-        return originalModel.func_188618_c();
+        return originalModel.isBuiltInRenderer();
     }
 
     @Override
-    public TextureAtlasSprite func_177554_e()
+    public TextureAtlasSprite getParticleTexture()
     {
-        return originalModel.func_177554_e();
+        return originalModel.getParticleTexture();
     }
 
     @Override
-    public ItemCameraTransforms func_177552_f()
+    public ItemCameraTransforms getItemCameraTransforms()
     {
-        return originalModel.func_177552_f();
+        return originalModel.getItemCameraTransforms();
     }
 
     @Override
-    public ItemOverrideList func_188617_f()
+    public ItemOverrideList getOverrides()
     {
-        return originalModel.func_188617_f();
+        return originalModel.getOverrides();
     }
 
     @Override

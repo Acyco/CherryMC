@@ -43,39 +43,39 @@ public class CommandTreeHelp extends CommandTreeBase
     }
 
     @Override
-    public int func_82362_a()
+    public int getRequiredPermissionLevel()
     {
         return 0;
     }
 
     @Override
-    public String func_71517_b()
+    public String getName()
     {
         return "help";
     }
 
     @Override
-    public String func_71518_a(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
         return "commands.forge.usage.help";
     }
 
     @Override
-    public void func_184881_a(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         if (args.length == 0)
         {
-            sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, parent.func_71518_a(sender)));
+            sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, parent.getUsage(sender)));
             for (ICommand subCommand : getSubCommands())
             {
-                if (subCommand instanceof HelpSubCommand && subCommand.func_184882_a(server, sender))
+                if (subCommand instanceof HelpSubCommand && subCommand.checkPermission(server, sender))
                 {
-                    subCommand.func_184881_a(server, sender, args);
+                    subCommand.execute(server, sender, args);
                 }
             }
             return;
         }
-        super.func_184881_a(server, sender, args);
+        super.execute(server, sender, args);
     }
 
     public static class HelpSubCommand extends CommandBase
@@ -90,33 +90,33 @@ public class CommandTreeHelp extends CommandTreeBase
         }
 
         @Override
-        public int func_82362_a()
+        public int getRequiredPermissionLevel()
         {
             return 0;
         }
 
         @Override
-        public String func_71517_b()
+        public String getName()
         {
-            return command.func_71517_b();
+            return command.getName();
         }
 
         @Override
-        public String func_71518_a(ICommandSender sender)
+        public String getUsage(ICommandSender sender)
         {
-            return command.func_71518_a(sender);
+            return command.getUsage(sender);
         }
 
         @Override
-        public boolean func_184882_a(MinecraftServer server, ICommandSender sender)
+        public boolean checkPermission(MinecraftServer server, ICommandSender sender)
         {
-            return command.func_184882_a(server, sender);
+            return command.checkPermission(server, sender);
         }
 
         @Override
-        public void func_184881_a(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+        public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
         {
-            sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, command.func_71518_a(sender)));
+            sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, command.getUsage(sender)));
         }
     }
 }

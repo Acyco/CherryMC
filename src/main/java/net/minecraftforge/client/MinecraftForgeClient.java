@@ -63,7 +63,7 @@ public class MinecraftForgeClient
      */
     public static Locale getLocale()
     {
-        return Minecraft.func_71410_x().func_135016_M().func_135041_c().getJavaLocale();
+        return Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage().getJavaLocale();
     }
 
     private static BitSet stencilBits = new BitSet(8);
@@ -112,7 +112,7 @@ public class MinecraftForgeClient
             @Override
             public ChunkCache load(Pair<World, BlockPos> key)
             {
-                return new ChunkCache(key.getLeft(), key.getRight().func_177982_a(-1, -1, -1), key.getRight().func_177982_a(16, 16, 16), 1);
+                return new ChunkCache(key.getLeft(), key.getRight().add(-1, -1, -1), key.getRight().add(16, 16, 16), 1);
             }
         });
 
@@ -123,9 +123,9 @@ public class MinecraftForgeClient
 
     public static ChunkCache getRegionRenderCache(World world, BlockPos pos)
     {
-        int x = pos.func_177958_n() & ~0xF;
-        int y = pos.func_177956_o() & ~0xF;
-        int z = pos.func_177952_p() & ~0xF;
+        int x = pos.getX() & ~0xF;
+        int y = pos.getY() & ~0xF;
+        int z = pos.getZ() & ~0xF;
         return regionCache.getUnchecked(Pair.of(world, new BlockPos(x, y, z)));
     }
 
@@ -148,9 +148,9 @@ public class MinecraftForgeClient
         if (supplier != null)
             return supplier.get();
 
-        try (IResource iresource1 = resourceManager.func_110536_a(resourceLocation))
+        try (IResource iresource1 = resourceManager.getResource(resourceLocation))
         {
-            return TextureUtil.func_177053_a(iresource1.func_110527_b());
+            return TextureUtil.readBufferedImage(iresource1.getInputStream());
         }
     }
 }

@@ -44,7 +44,7 @@ class ChunkIOThreadPoolExecutor extends ThreadPoolExecutor {
                 FMLLog.log.error("Unhandled exception loading chunk:", t);
                 QueuedChunk queuedChunk = ((ChunkIOProvider) r).getChunkInfo();
                 FMLLog.log.error(queuedChunk);
-                FMLLog.log.error(CrashReportCategory.func_184876_a(queuedChunk.x << 4, 64, queuedChunk.z << 4));
+                FMLLog.log.error(CrashReportCategory.getCoordinateInfo(queuedChunk.x << 4, 64, queuedChunk.z << 4));
             }
             catch (Throwable t2)
             {

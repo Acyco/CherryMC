@@ -54,7 +54,7 @@ public final class TerminalHandler
         try
         {
             String line;
-            while (!server.func_71241_aa() && server.func_71278_l())
+            while (!server.isServerStopped() && server.isServerRunning())
             {
                 try
                 {
@@ -72,13 +72,13 @@ public final class TerminalHandler
                 line = line.trim();
                 if (!line.isEmpty())
                 {
-                    server.func_71331_a(line, server);
+                    server.addPendingCommand(line, server);
                 }
             }
         }
         catch (UserInterruptException e)
         {
-            server.func_71263_m();
+            server.initiateShutdown();
         }
         finally
         {

@@ -54,7 +54,7 @@ public class DungeonHooks
         {
             if (name.equals(mob.type))
             {
-                return mob.field_76292_a += rarity;
+                return mob.itemWeight += rarity;
             }
         }
 
@@ -75,7 +75,7 @@ public class DungeonHooks
             if (name.equals(mob.type))
             {
                 dungeonMobs.remove(mob);
-                return mob.field_76292_a;
+                return mob.itemWeight;
             }
         }
         return 0;
@@ -88,7 +88,7 @@ public class DungeonHooks
      */
     public static ResourceLocation getRandomDungeonMob(Random rand)
     {
-        DungeonMob mob = WeightedRandom.func_76271_a(rand, dungeonMobs);
+        DungeonMob mob = WeightedRandom.getRandomItem(rand, dungeonMobs);
         return mob.type;
     }
 

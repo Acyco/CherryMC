@@ -37,9 +37,9 @@ public class GuiMessageDialog extends GuiDisconnected
     }
 
     @Override
-    public void func_73866_w_()
+    public void initGui()
     {
-        super.func_73866_w_();
-        field_146292_n.get(0).field_146126_j = I18n.func_135052_a(buttonText);
+        super.initGui();
+        buttonList.get(0).displayString = I18n.format(buttonText);
     }
 }

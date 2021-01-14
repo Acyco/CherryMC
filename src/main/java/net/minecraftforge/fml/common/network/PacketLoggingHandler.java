@@ -46,7 +46,7 @@ public class PacketLoggingHandler
     {
         ChannelPipeline pipeline = manager.channel().pipeline();
         final EnumPacketDirection direction = manager.getDirection();
-        if (manager.func_150731_c())
+        if (manager.isLocalChannel())
         {
             pipeline.addBefore("packet_handler", "splitter", new SimpleChannelInboundHandler<Packet<?>>()
             {
@@ -55,7 +55,7 @@ public class PacketLoggingHandler
                 protected void channelRead0(ChannelHandlerContext ctx, Packet<?> msg) throws Exception
                 {
                     PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
-                    msg.func_148840_b(buf);
+                    msg.writePacketData(buf);
                     FMLLog.log.debug("{} {}:\n{}", prefix, msg.getClass().getSimpleName(), ByteBufUtils.getContentDump(buf));
                     ctx.fireChannelRead(msg);
                 }
@@ -69,7 +69,7 @@ public class PacketLoggingHandler
                     if (msg instanceof Packet<?>)
                     {
                         PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
-                        ((Packet<?>)msg).func_148840_b(buf);
+                        ((Packet<?>)msg).writePacketData(buf);
                         FMLLog.log.debug("{} {}:\n{}", prefix, msg.getClass().getSimpleName(), ByteBufUtils.getContentDump(buf));
                     }
                     ctx.write(msg, promise);

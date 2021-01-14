@@ -48,7 +48,7 @@ public abstract class AbstractBrewingRecipe<T> implements IBrewingRecipe
     @Nonnull
     public ItemStack getOutput(@Nonnull ItemStack input, @Nonnull ItemStack ingredient)
     {
-        return isInput(input) && isIngredient(ingredient) ? getOutput().func_77946_l() : ItemStack.field_190927_a;
+        return isInput(input) && isIngredient(ingredient) ? getOutput().copy() : ItemStack.EMPTY;
     }
 
     @Nonnull

@@ -78,11 +78,11 @@ public class HoverChecker
     {
         if (this.button != null)
         {
-            this.top = button.field_146129_i;
-            this.bottom = button.field_146129_i + button.field_146121_g;
-            this.left = button.field_146128_h;
-            this.right = button.field_146128_h + button.field_146120_f;
-            canHover = canHover && button.field_146125_m;
+            this.top = button.y;
+            this.bottom = button.y + button.height;
+            this.left = button.x;
+            this.right = button.x + button.width;
+            canHover = canHover && button.visible;
         }
         
         if (canHover && hoverStart == -1 && mouseY >= top && mouseY <= bottom && mouseX >= left && mouseX <= right)

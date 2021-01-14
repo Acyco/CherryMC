@@ -113,7 +113,7 @@ public class GameRegistry
         entitySelectorFactories.add(factory);
         for (String s : arguments)
         {
-            EntitySelector.func_190826_c(s);
+            EntitySelector.addArgument(s);
         }
     }
 
@@ -155,7 +155,7 @@ public class GameRegistry
         {
             computeSortedGeneratorList();
         }
-        long worldSeed = world.func_72905_C();
+        long worldSeed = world.getSeed();
         Random fmlRandom = new Random(worldSeed);
         long xSeed = fmlRandom.nextLong() >> 2 + 1L;
         long zSeed = fmlRandom.nextLong() >> 2 + 1L;
@@ -205,7 +205,7 @@ public class GameRegistry
 
     public static void addShapelessRecipe(ResourceLocation name, ResourceLocation group, @Nonnull ItemStack output, Ingredient... params)
     {
-        NonNullList<Ingredient> lst = NonNullList.func_191196_a();
+        NonNullList<Ingredient> lst = NonNullList.create();
         for (Ingredient i : params)
             lst.add(i);
         register(new ShapelessRecipes(group == null ? "" : group.toString(), output, lst).setRegistryName(name));
@@ -213,17 +213,17 @@ public class GameRegistry
 
     public static void addSmelting(Block input, @Nonnull ItemStack output, float xp)
     {
-        FurnaceRecipes.func_77602_a().func_151393_a(input, output, xp);
+        FurnaceRecipes.instance().addSmeltingRecipeForBlock(input, output, xp);
     }
 
     public static void addSmelting(Item input, @Nonnull ItemStack output, float xp)
     {
-        FurnaceRecipes.func_77602_a().func_151396_a(input, output, xp);
+        FurnaceRecipes.instance().addSmelting(input, output, xp);
     }
 
     public static void addSmelting(@Nonnull ItemStack input, @Nonnull ItemStack output, float xp)
     {
-        FurnaceRecipes.func_77602_a().func_151394_a(input, output, xp);
+        FurnaceRecipes.instance().addSmeltingRecipe(input, output, xp);
     }
 
     @Deprecated //TODO: Remove in 1.13, Use ResourceLocation version.
@@ -231,7 +231,7 @@ public class GameRegistry
     {
         // As return is ignored for compatibility, always check namespace
         GameData.checkPrefix(new ResourceLocation(key).toString(), true);
-        TileEntity.func_190560_a(key, tileEntityClass);
+        TileEntity.register(key, tileEntityClass);
     }
 
     public static void registerTileEntity(Class<? extends TileEntity> tileEntityClass, ResourceLocation key)
@@ -346,14 +346,14 @@ public class GameRegistry
         if (item == null)
         {
             FMLLog.log.trace("Unable to find item with name {}", itemName);
-            return ItemStack.field_190927_a;
+            return ItemStack.EMPTY;
         }
         ItemStack is = new ItemStack(item, stackSize, meta);
         if (!Strings.isNullOrEmpty(nbtString))
         {
             try
             {
-                is.func_77982_d(JsonToNBT.func_180713_a(nbtString));
+                is.setTagCompound(JsonToNBT.getTagFromJson(nbtString));
             }
             catch (NBTException e)
             {

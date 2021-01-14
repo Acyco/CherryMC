@@ -36,8 +36,6 @@ import net.minecraftforge.fml.common.versioning.ArtifactVersion;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import net.minecraftforge.fml.common.EnhancedRuntimeException.WrappedPrintStream;
-
 public class MissingModsException extends EnhancedRuntimeException implements IDisplayableError
 {
     private static final long serialVersionUID = 1L;

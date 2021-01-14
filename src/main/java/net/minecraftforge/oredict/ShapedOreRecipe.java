@@ -58,7 +58,7 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
     public static final int MAX_CRAFT_GRID_HEIGHT = 3;
 
     @Nonnull
-    protected ItemStack output = ItemStack.field_190927_a;
+    protected ItemStack output = ItemStack.EMPTY;
     protected NonNullList<Ingredient> input = null;
     protected int width = 0;
     protected int height = 0;
@@ -71,7 +71,7 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
     public ShapedOreRecipe(ResourceLocation group, @Nonnull ItemStack result, ShapedPrimer primer)
     {
         this.group = group;
-        output = result.func_77946_l();
+        output = result.copy();
         this.width = primer.width;
         this.height = primer.height;
         this.input = primer.input;
@@ -80,18 +80,18 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
 
     @Override
     @Nonnull
-    public ItemStack func_77572_b(@Nonnull InventoryCrafting var1){ return output.func_77946_l(); }
+    public ItemStack getCraftingResult(@Nonnull InventoryCrafting var1){ return output.copy(); }
 
     @Override
     @Nonnull
-    public ItemStack func_77571_b(){ return output; }
+    public ItemStack getRecipeOutput(){ return output; }
 
     @Override
-    public boolean func_77569_a(@Nonnull InventoryCrafting inv, @Nonnull World world)
+    public boolean matches(@Nonnull InventoryCrafting inv, @Nonnull World world)
     {
-        for (int x = 0; x <= inv.func_174922_i() - width; x++)
+        for (int x = 0; x <= inv.getWidth() - width; x++)
         {
-            for (int y = 0; y <= inv.func_174923_h() - height; ++y)
+            for (int y = 0; y <= inv.getHeight() - height; ++y)
             {
                 if (checkMatch(inv, x, y, false))
                 {
@@ -113,13 +113,13 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
      */
     protected boolean checkMatch(InventoryCrafting inv, int startX, int startY, boolean mirror)
     {
-        for (int x = 0; x < inv.func_174922_i(); x++)
+        for (int x = 0; x < inv.getWidth(); x++)
         {
-            for (int y = 0; y < inv.func_174923_h(); y++)
+            for (int y = 0; y < inv.getHeight(); y++)
             {
                 int subX = x - startX;
                 int subY = y - startY;
-                Ingredient target = Ingredient.field_193370_a;
+                Ingredient target = Ingredient.EMPTY;
 
                 if (subX >= 0 && subY >= 0 && subX < width && subY < height)
                 {
@@ -133,7 +133,7 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
                     }
                 }
 
-                if (!target.apply(inv.func_70463_b(x, y)))
+                if (!target.apply(inv.getStackInRowAndColumn(x, y)))
                 {
                     return false;
                 }
@@ -151,7 +151,7 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
 
     @Override
     @Nonnull
-    public NonNullList<Ingredient> func_192400_c()
+    public NonNullList<Ingredient> getIngredients()
     {
         return this.input;
     }
@@ -182,25 +182,25 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
 
     @Override
     @Nonnull
-    public String func_193358_e()
+    public String getGroup()
     {
         return this.group == null ? "" : this.group.toString();
     }
 
     @Override
-    public boolean func_194133_a(int p_194133_1_, int p_194133_2_)
+    public boolean canFit(int p_194133_1_, int p_194133_2_)
     {
         return p_194133_1_ >= this.width && p_194133_2_ >= this.height;
     }
 
     public static ShapedOreRecipe factory(JsonContext context, JsonObject json)
     {
-        String group = JsonUtils.func_151219_a(json, "group", "");
+        String group = JsonUtils.getString(json, "group", "");
         //if (!group.isEmpty() && group.indexOf(':') == -1)
         //    group = context.getModId() + ":" + group;
 
         Map<Character, Ingredient> ingMap = Maps.newHashMap();
-        for (Entry<String, JsonElement> entry : JsonUtils.func_152754_s(json, "key").entrySet())
+        for (Entry<String, JsonElement> entry : JsonUtils.getJsonObject(json, "key").entrySet())
         {
             if (entry.getKey().length() != 1)
                 throw new JsonSyntaxException("Invalid key entry: '" + entry.getKey() + "' is an invalid symbol (must be 1 character only).");
@@ -210,9 +210,9 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
             ingMap.put(entry.getKey().toCharArray()[0], CraftingHelper.getIngredient(entry.getValue(), context));
         }
 
-        ingMap.put(' ', Ingredient.field_193370_a);
+        ingMap.put(' ', Ingredient.EMPTY);
 
-        JsonArray patternJ = JsonUtils.func_151214_t(json, "pattern");
+        JsonArray patternJ = JsonUtils.getJsonArray(json, "pattern");
 
         if (patternJ.size() == 0)
             throw new JsonSyntaxException("Invalid pattern: empty pattern not allowed");
@@ -220,7 +220,7 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
         String[] pattern = new String[patternJ.size()];
         for (int x = 0; x < pattern.length; ++x)
         {
-            String line = JsonUtils.func_151206_a(patternJ.get(x), "pattern[" + x + "]");
+            String line = JsonUtils.getString(patternJ.get(x), "pattern[" + x + "]");
             if (x > 0 && pattern[0].length() != line.length())
                 throw new JsonSyntaxException("Invalid pattern: each row must  be the same width");
             pattern[x] = line;
@@ -229,8 +229,8 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
         ShapedPrimer primer = new ShapedPrimer();
         primer.width = pattern[0].length();
         primer.height = pattern.length;
-        primer.mirrored = JsonUtils.func_151209_a(json, "mirrored", true);
-        primer.input = NonNullList.func_191197_a(primer.width * primer.height, Ingredient.field_193370_a);
+        primer.mirrored = JsonUtils.getBoolean(json, "mirrored", true);
+        primer.input = NonNullList.withSize(primer.width * primer.height, Ingredient.EMPTY);
 
         Set<Character> keys = Sets.newHashSet(ingMap.keySet());
         keys.remove(' ');
@@ -251,7 +251,7 @@ public class ShapedOreRecipe extends IForgeRegistryEntry.Impl<IRecipe> implement
         if (!keys.isEmpty())
             throw new JsonSyntaxException("Key defines symbols that aren't used in pattern: " + keys);
 
-        ItemStack result = CraftingHelper.getItemStack(JsonUtils.func_152754_s(json, "result"), context);
+        ItemStack result = CraftingHelper.getItemStack(JsonUtils.getJsonObject(json, "result"), context);
         return new ShapedOreRecipe(group.isEmpty() ? null : new ResourceLocation(group), result, primer);
     }
 }

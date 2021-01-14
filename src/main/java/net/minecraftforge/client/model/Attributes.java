@@ -34,10 +34,10 @@ public class Attributes
     static
     {
         DEFAULT_BAKED_FORMAT = new VertexFormat();
-        DEFAULT_BAKED_FORMAT.func_181721_a(new VertexFormatElement(0, EnumType.FLOAT, EnumUsage.POSITION, 3));
-        DEFAULT_BAKED_FORMAT.func_181721_a(new VertexFormatElement(0, EnumType.UBYTE, EnumUsage.COLOR,    4));
-        DEFAULT_BAKED_FORMAT.func_181721_a(new VertexFormatElement(0, EnumType.FLOAT, EnumUsage.UV,       2));
-        DEFAULT_BAKED_FORMAT.func_181721_a(new VertexFormatElement(0, EnumType.BYTE,  EnumUsage.PADDING,  4));
+        DEFAULT_BAKED_FORMAT.addElement(new VertexFormatElement(0, EnumType.FLOAT, EnumUsage.POSITION, 3));
+        DEFAULT_BAKED_FORMAT.addElement(new VertexFormatElement(0, EnumType.UBYTE, EnumUsage.COLOR,    4));
+        DEFAULT_BAKED_FORMAT.addElement(new VertexFormatElement(0, EnumType.FLOAT, EnumUsage.UV,       2));
+        DEFAULT_BAKED_FORMAT.addElement(new VertexFormatElement(0, EnumType.BYTE,  EnumUsage.PADDING,  4));
     }
 
     /*
@@ -45,18 +45,18 @@ public class Attributes
      */
     public static boolean moreSpecific(VertexFormat first, VertexFormat second)
     {
-        int size = first.func_177338_f();
-        if(size != second.func_177338_f()) return false;
+        int size = first.getNextOffset();
+        if(size != second.getNextOffset()) return false;
 
         int padding = 0;
         int j = 0;
-        for(VertexFormatElement firstAttr : first.func_177343_g())
+        for(VertexFormatElement firstAttr : first.getElements())
         {
-            while(j < second.func_177345_h() && second.func_177348_c(j).func_177375_c() == EnumUsage.PADDING)
+            while(j < second.getElementCount() && second.getElement(j).getUsage() == EnumUsage.PADDING)
             {
-                padding += second.func_177348_c(j++).func_177368_f();
+                padding += second.getElement(j++).getSize();
             }
-            if(j >= second.func_177345_h() && padding == 0)
+            if(j >= second.getElementCount() && padding == 0)
             {
                 // if no padding is left, but there are still elements in first (we're processing one) - it doesn't fit
                 return false;
@@ -64,12 +64,12 @@ public class Attributes
             if(padding == 0)
             {
                 // no padding - attributes have to match
-                VertexFormatElement secondAttr = second.func_177348_c(j++);
+                VertexFormatElement secondAttr = second.getElement(j++);
                 if(
-                    firstAttr.func_177369_e() != secondAttr.func_177369_e() ||
-                    firstAttr.func_177370_d() != secondAttr.func_177370_d() ||
-                    firstAttr.func_177367_b() != secondAttr.func_177367_b() ||
-                    firstAttr.func_177375_c() != secondAttr.func_177375_c())
+                    firstAttr.getIndex() != secondAttr.getIndex() ||
+                    firstAttr.getElementCount() != secondAttr.getElementCount() ||
+                    firstAttr.getType() != secondAttr.getType() ||
+                    firstAttr.getUsage() != secondAttr.getUsage())
                 {
                     return false;
                 }
@@ -77,12 +77,12 @@ public class Attributes
             else
             {
                 // padding - attribute should fit in it
-                padding -= firstAttr.func_177368_f();
+                padding -= firstAttr.getSize();
                 if(padding < 0) return false;
             }
         }
 
-        if(padding != 0 || j != second.func_177345_h()) return false;
+        if(padding != 0 || j != second.getElementCount()) return false;
         return true;
     }
 }

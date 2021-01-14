@@ -41,7 +41,7 @@ public class ForgeInternalHandler
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onEntityJoinWorld(EntityJoinWorldEvent event)
     {
-        if (!event.getWorld().field_72995_K)
+        if (!event.getWorld().isRemote)
         {
             ForgeChunkManager.loadEntity(event.getEntity());
         }
@@ -49,16 +49,16 @@ public class ForgeInternalHandler
         Entity entity = event.getEntity();
         if (entity.getClass().equals(EntityItem.class))
         {
-            ItemStack stack = ((EntityItem)entity).func_92059_d();
-            Item item = stack.func_77973_b();
+            ItemStack stack = ((EntityItem)entity).getItem();
+            Item item = stack.getItem();
             if (item.hasCustomEntity(stack))
             {
                 Entity newEntity = item.createEntity(event.getWorld(), entity, stack);
                 if (newEntity != null)
                 {
-                    entity.func_70106_y();
+                    entity.setDead();
                     event.setCanceled(true);
-                    event.getWorld().func_72838_d(newEntity);
+                    event.getWorld().spawnEntity(newEntity);
                 }
             }
         }
@@ -100,7 +100,7 @@ public class ForgeInternalHandler
     @SubscribeEvent
     public void onChunkUnload(ChunkEvent.Unload event)
     {
-        if (!event.getWorld().field_72995_K)
+        if (!event.getWorld().isRemote)
             FarmlandWaterManager.removeTickets(event.getChunk());
     }
 }

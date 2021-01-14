@@ -43,7 +43,7 @@ public class ForgeClientHandler
     {
         if (FluidRegistry.isUniversalBucketEnabled())
         {
-            event.getItemColors().func_186730_a(new FluidContainerColorer(), ForgeModContainer.getInstance().universalBucket);
+            event.getItemColors().registerItemColorHandler(new FluidContainerColorer(), ForgeModContainer.getInstance().universalBucket);
         }
     }
 }

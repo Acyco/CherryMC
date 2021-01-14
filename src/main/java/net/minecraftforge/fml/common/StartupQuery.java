@@ -45,7 +45,7 @@ public class StartupQuery {
     public static void abort()
     {
         MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
-        if (server != null) server.func_71263_m();
+        if (server != null) server.initiateShutdown();
 
         aborted = true; // to abort loading and go back to the main menu
         throw new AbortedException(); // to halt the server

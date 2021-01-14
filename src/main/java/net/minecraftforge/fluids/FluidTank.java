@@ -58,7 +58,7 @@ public class FluidTank implements IFluidTank, IFluidHandler
 
     public FluidTank readFromNBT(NBTTagCompound nbt)
     {
-        if (!nbt.func_74764_b("Empty"))
+        if (!nbt.hasKey("Empty"))
         {
             FluidStack fluid = FluidStack.loadFluidStackFromNBT(nbt);
             setFluid(fluid);
@@ -78,7 +78,7 @@ public class FluidTank implements IFluidTank, IFluidHandler
         }
         else
         {
-            nbt.func_74778_a("Empty", "");
+            nbt.setString("Empty", "");
         }
         return nbt;
     }
@@ -183,7 +183,7 @@ public class FluidTank implements IFluidTank, IFluidHandler
 
             if (tile != null)
             {
-                FluidEvent.fireEvent(new FluidEvent.FluidFillingEvent(fluid, tile.func_145831_w(), tile.func_174877_v(), this, fluid.amount));
+                FluidEvent.fireEvent(new FluidEvent.FluidFillingEvent(fluid, tile.getWorld(), tile.getPos(), this, fluid.amount));
             }
             return fluid.amount;
         }
@@ -208,7 +208,7 @@ public class FluidTank implements IFluidTank, IFluidHandler
 
         if (tile != null)
         {
-            FluidEvent.fireEvent(new FluidEvent.FluidFillingEvent(fluid, tile.func_145831_w(), tile.func_174877_v(), this, filled));
+            FluidEvent.fireEvent(new FluidEvent.FluidFillingEvent(fluid, tile.getWorld(), tile.getPos(), this, filled));
         }
         return filled;
     }
@@ -278,7 +278,7 @@ public class FluidTank implements IFluidTank, IFluidHandler
 
             if (tile != null)
             {
-                FluidEvent.fireEvent(new FluidEvent.FluidDrainingEvent(fluid, tile.func_145831_w(), tile.func_174877_v(), this, drained));
+                FluidEvent.fireEvent(new FluidEvent.FluidDrainingEvent(fluid, tile.getWorld(), tile.getPos(), this, drained));
             }
         }
         return stack;

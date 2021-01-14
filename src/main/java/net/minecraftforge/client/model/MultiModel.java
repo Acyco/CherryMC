@@ -82,7 +82,7 @@ public final class MultiModel implements IModel
 
                 if(base != null)
                 {
-                    newBase = base.func_188617_f().handleItemState(base, stack, world, entity);
+                    newBase = base.getOverrides().handleItemState(base, stack, world, entity);
                     if(base != newBase)
                     {
                         dirty = true;
@@ -91,7 +91,7 @@ public final class MultiModel implements IModel
                 ImmutableMap.Builder<String, IBakedModel> builder = ImmutableMap.builder();
                 for(Entry<String, IBakedModel> entry : parts.entrySet())
                 {
-                     IBakedModel newPart = entry.getValue().func_188617_f().handleItemState(entry.getValue(), stack, world, entity);
+                     IBakedModel newPart = entry.getValue().getOverrides().handleItemState(entry.getValue(), stack, world, entity);
                      builder.put(entry.getKey(), newPart);
                      if(entry.getValue() != newPart)
                      {
@@ -147,9 +147,9 @@ public final class MultiModel implements IModel
         }
 
         @Override
-        public boolean func_177555_b()
+        public boolean isAmbientOcclusion()
         {
-            return internalBase.func_177555_b();
+            return internalBase.isAmbientOcclusion();
         }
 
         @Override
@@ -159,40 +159,40 @@ public final class MultiModel implements IModel
         }
 
         @Override
-        public boolean func_177556_c()
+        public boolean isGui3d()
         {
-            return internalBase.func_177556_c();
+            return internalBase.isGui3d();
         }
 
         @Override
-        public boolean func_188618_c()
+        public boolean isBuiltInRenderer()
         {
-            return internalBase.func_188618_c();
+            return internalBase.isBuiltInRenderer();
         }
 
         @Override
-        public TextureAtlasSprite func_177554_e()
+        public TextureAtlasSprite getParticleTexture()
         {
-            return internalBase.func_177554_e();
+            return internalBase.getParticleTexture();
         }
 
         @Override
-        public ItemCameraTransforms func_177552_f()
+        public ItemCameraTransforms getItemCameraTransforms()
         {
-            return internalBase.func_177552_f();
+            return internalBase.getItemCameraTransforms();
         }
 
         @Override
-        public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
         {
             ImmutableList.Builder<BakedQuad> quads = ImmutableList.builder();
             if (base != null)
             {
-                quads.addAll(base.func_188616_a(state, side, rand));
+                quads.addAll(base.getQuads(state, side, rand));
             }
             for (IBakedModel bakedPart : parts.values())
             {
-                quads.addAll(bakedPart.func_188616_a(state, side, rand));
+                quads.addAll(bakedPart.getQuads(state, side, rand));
             }
             return quads.build();
         }
@@ -206,7 +206,7 @@ public final class MultiModel implements IModel
         }
 
         @Override
-        public ItemOverrideList func_188617_f()
+        public ItemOverrideList getOverrides()
         {
             return overrides;
         }

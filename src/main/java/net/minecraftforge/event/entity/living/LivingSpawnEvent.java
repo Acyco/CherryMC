@@ -29,8 +29,6 @@ import net.minecraftforge.fml.common.eventhandler.Event;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.world.World;
 
-import net.minecraftforge.fml.common.eventhandler.Event.HasResult;
-
 /**
  * LivingSpawnEvent is fired for any events associated with Living Enttnies spawn status. <br>
  * If a method utilizes this {@link Event} as its parameter, the method will
@@ -202,7 +200,7 @@ public class LivingSpawnEvent extends LivingEvent
     {
         public AllowDespawn(EntityLiving entity)
         {
-            super(entity, entity.field_70170_p, (float)entity.field_70165_t, (float)entity.field_70163_u, (float)entity.field_70161_v);
+            super(entity, entity.world, (float)entity.posX, (float)entity.posY, (float)entity.posZ);
         }
 
     }

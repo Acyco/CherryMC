@@ -39,8 +39,8 @@ public class VanillaBrewingRecipe implements IBrewingRecipe {
     @Override
     public boolean isInput(@Nonnull ItemStack stack)
     {
-        Item item = stack.func_77973_b();
-        return item == Items.field_151068_bn || item == Items.field_185155_bH || item == Items.field_185156_bI || item == Items.field_151069_bo;
+        Item item = stack.getItem();
+        return item == Items.POTIONITEM || item == Items.SPLASH_POTION || item == Items.LINGERING_POTION || item == Items.GLASS_BOTTLE;
     }
 
     /**
@@ -49,7 +49,7 @@ public class VanillaBrewingRecipe implements IBrewingRecipe {
     @Override
     public boolean isIngredient(@Nonnull ItemStack stack)
     {
-        return PotionHelper.func_185205_a(stack);
+        return PotionHelper.isReagent(stack);
     }
 
     /**
@@ -61,16 +61,16 @@ public class VanillaBrewingRecipe implements IBrewingRecipe {
     @Nonnull
     public ItemStack getOutput(@Nonnull ItemStack input, @Nonnull ItemStack ingredient)
     {
-        if (!input.func_190926_b() && !ingredient.func_190926_b() && isIngredient(ingredient))
+        if (!input.isEmpty() && !ingredient.isEmpty() && isIngredient(ingredient))
         {
-            ItemStack result = PotionHelper.func_185212_d(ingredient, input);
+            ItemStack result = PotionHelper.doReaction(ingredient, input);
             if (result != input)
             {
                 return result;
             }
-            return ItemStack.field_190927_a;
+            return ItemStack.EMPTY;
         }
 
-        return ItemStack.field_190927_a;
+        return ItemStack.EMPTY;
     }
 }

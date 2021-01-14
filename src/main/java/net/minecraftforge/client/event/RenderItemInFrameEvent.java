@@ -41,7 +41,7 @@ public class RenderItemInFrameEvent extends Event
 
     public RenderItemInFrameEvent(EntityItemFrame itemFrame, RenderItemFrame renderItemFrame)
     {
-        item = itemFrame.func_82335_i();
+        item = itemFrame.getDisplayedItem();
         entityItemFrame = itemFrame;
         renderer = renderItemFrame;
     }

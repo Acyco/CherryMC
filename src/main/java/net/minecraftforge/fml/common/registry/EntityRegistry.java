@@ -255,17 +255,17 @@ public class EntityRegistry
     {
         for (Biome biome : biomes)
         {
-            List<SpawnListEntry> spawns = biome.func_76747_a(typeOfCreature);
+            List<SpawnListEntry> spawns = biome.getSpawnableList(typeOfCreature);
 
             boolean found = false;
             for (SpawnListEntry entry : spawns)
             {
                 //Adjusting an existing spawn entry
-                if (entry.field_76300_b == entityClass)
+                if (entry.entityClass == entityClass)
                 {
-                    entry.field_76292_a = weightedProb;
-                    entry.field_76301_c = min;
-                    entry.field_76299_d = max;
+                    entry.itemWeight = weightedProb;
+                    entry.minGroupCount = min;
+                    entry.maxGroupCount = max;
                     found = true;
                     break;
                 }
@@ -306,7 +306,7 @@ public class EntityRegistry
     {
         for (Biome biome : biomes)
         {
-            biome.func_76747_a(typeOfCreature).removeIf(entry -> entry.field_76300_b == entityClass);
+            biome.getSpawnableList(typeOfCreature).removeIf(entry -> entry.entityClass == entityClass);
         }
     }
 
@@ -366,7 +366,7 @@ public class EntityRegistry
         EntityRegistration er = lookupModSpawn(entity.getClass(), true);
         if (er != null)
         {
-            entityTracker.func_72785_a(entity, er.getTrackingRange(), er.getUpdateFrequency(), er.sendsVelocityUpdates());
+            entityTracker.track(entity, er.getTrackingRange(), er.getUpdateFrequency(), er.sendsVelocityUpdates());
             return true;
         }
         return false;

@@ -27,7 +27,7 @@ import net.minecraft.client.resources.IResourceManagerReloadListener;
 public interface ISelectiveResourceReloadListener extends IResourceManagerReloadListener
 {
     @Override
-    default void func_110549_a(IResourceManager resourceManager)
+    default void onResourceManagerReload(IResourceManager resourceManager)
     {
         // For compatibility, call the selective version from the non-selective function
         onResourceManagerReload(resourceManager, SelectiveReloadStateHandler.INSTANCE.get());

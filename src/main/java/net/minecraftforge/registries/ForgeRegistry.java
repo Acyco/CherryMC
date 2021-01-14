@@ -56,13 +56,6 @@ import net.minecraftforge.fml.common.InjectedModContainer;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 
-import net.minecraftforge.registries.IForgeRegistry.AddCallback;
-import net.minecraftforge.registries.IForgeRegistry.ClearCallback;
-import net.minecraftforge.registries.IForgeRegistry.CreateCallback;
-import net.minecraftforge.registries.IForgeRegistry.DummyFactory;
-import net.minecraftforge.registries.IForgeRegistry.MissingFactory;
-import net.minecraftforge.registries.IForgeRegistry.ValidateCallback;
-
 public class ForgeRegistry<V extends IForgeRegistryEntry<V>> implements IForgeRegistryInternal<V>, IForgeRegistryModifiable<V>
 {
     public static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("forge.debugRegistryEntries", "false"));
@@ -338,7 +331,7 @@ public class ForgeRegistry<V extends IForgeRegistryEntry<V>> implements IForgeRe
         this.names.put(key, value);
         this.ids.put(idToUse, value);
         this.availabilityMap.set(idToUse);
-        this.owners.put(new OverrideOwner(owner == null ? key.func_110624_b() : owner, key), value);
+        this.owners.put(new OverrideOwner(owner == null ? key.getResourceDomain() : owner, key), value);
 
         if (isDelegated)
         {
@@ -699,7 +692,7 @@ public class ForgeRegistry<V extends IForgeRegistryEntry<V>> implements IForgeRe
                     FMLLog.log.warn("Registry {}: Object did not get ID it asked for. Name: {} Expected: {} Got: {}", this.superType.getSimpleName(), entry.getKey(), newId, realId);
             }
 
-            int realId = add(newId, obj, primaryName == null ? itemName.func_110624_b() : primaryName);
+            int realId = add(newId, obj, primaryName == null ? itemName.getResourceDomain() : primaryName);
             if (realId != newId)
                 FMLLog.log.warn("Registry {}: Object did not get ID it asked for. Name: {} Expected: {} Got: {}", this.superType.getSimpleName(), entry.getKey(), newId, realId);
             ovs.remove(itemName);
@@ -809,38 +802,38 @@ public class ForgeRegistry<V extends IForgeRegistryEntry<V>> implements IForgeRe
             this.ids.entrySet().stream().sorted((o1, o2) -> o1.getKey().compareTo(o2.getKey())).forEach(e ->
             {
                 NBTTagCompound tag = new NBTTagCompound();
-                tag.func_74778_a("K", e.getKey().toString());
-                tag.func_74768_a("V", e.getValue());
-                ids.func_74742_a(tag);
+                tag.setString("K", e.getKey().toString());
+                tag.setInteger("V", e.getValue());
+                ids.appendTag(tag);
             });
-            data.func_74782_a("ids", ids);
+            data.setTag("ids", ids);
 
             NBTTagList aliases = new NBTTagList();
             this.aliases.entrySet().stream().sorted((o1, o2) -> o1.getKey().compareTo(o2.getKey())).forEach(e ->
             {
                 NBTTagCompound tag = new NBTTagCompound();
-                tag.func_74778_a("K", e.getKey().toString());
-                tag.func_74778_a("V", e.getKey().toString());
-                aliases.func_74742_a(tag);
+                tag.setString("K", e.getKey().toString());
+                tag.setString("V", e.getKey().toString());
+                aliases.appendTag(tag);
             });
-            data.func_74782_a("aliases", aliases);
+            data.setTag("aliases", aliases);
 
             NBTTagList overrides = new NBTTagList();
             this.overrides.entrySet().stream().sorted((o1, o2) -> o1.getKey().compareTo(o2.getKey())).forEach(e ->
             {
                 NBTTagCompound tag = new NBTTagCompound();
-                tag.func_74778_a("K", e.getKey().toString());
-                tag.func_74778_a("V", e.getValue());
-                overrides.func_74742_a(tag);
+                tag.setString("K", e.getKey().toString());
+                tag.setString("V", e.getValue());
+                overrides.appendTag(tag);
             });
-            data.func_74782_a("overrides", overrides);
+            data.setTag("overrides", overrides);
 
             int[] blocked = this.blocked.stream().mapToInt(x->x).sorted().toArray();
-            data.func_74783_a("blocked", blocked);
+            data.setIntArray("blocked", blocked);
 
             NBTTagList dummied = new NBTTagList();
-            this.dummied.stream().sorted().forEach(e -> dummied.func_74742_a(new NBTTagString(e.toString())));
-            data.func_74782_a("dummied", dummied);
+            this.dummied.stream().sorted().forEach(e -> dummied.appendTag(new NBTTagString(e.toString())));
+            data.setTag("dummied", dummied);
 
             return data;
         }
@@ -853,25 +846,25 @@ public class ForgeRegistry<V extends IForgeRegistryEntry<V>> implements IForgeRe
                 return ret;
             }
 
-            NBTTagList list = nbt.func_150295_c("ids", 10);
+            NBTTagList list = nbt.getTagList("ids", 10);
             list.forEach(e ->
             {
                 NBTTagCompound comp = (NBTTagCompound)e;
-                ret.ids.put(new ResourceLocation(comp.func_74779_i("K")), comp.func_74762_e("V"));
+                ret.ids.put(new ResourceLocation(comp.getString("K")), comp.getInteger("V"));
             });
 
-            list = nbt.func_150295_c("aliases", 10);
+            list = nbt.getTagList("aliases", 10);
             list.forEach(e ->
             {
                 NBTTagCompound comp = (NBTTagCompound)e;
-                String v = comp.func_74779_i("V");
+                String v = comp.getString("V");
                 if (v.indexOf(':') == -1) //Forge Bug: https://github.com/MinecraftForge/MinecraftForge/issues/4894 TODO: Remove in 1.13
                 {
-                    ret.overrides.put(new ResourceLocation(comp.func_74779_i("K")), v);
+                    ret.overrides.put(new ResourceLocation(comp.getString("K")), v);
                 }
                 else
                 {
-                    ResourceLocation aliask = new ResourceLocation(comp.func_74779_i("K"));
+                    ResourceLocation aliask = new ResourceLocation(comp.getString("K"));
                     ResourceLocation aliasv = new ResourceLocation(v);
                     if (aliasv.equals(aliask))
                     {
@@ -884,24 +877,24 @@ public class ForgeRegistry<V extends IForgeRegistryEntry<V>> implements IForgeRe
                 }
             });
 
-            list = nbt.func_150295_c("overrides", 10);
+            list = nbt.getTagList("overrides", 10);
             list.forEach(e ->
             {
                 NBTTagCompound comp = (NBTTagCompound)e;
-                ret.overrides.put(new ResourceLocation(comp.func_74779_i("K")), comp.func_74779_i("V"));
+                ret.overrides.put(new ResourceLocation(comp.getString("K")), comp.getString("V"));
             });
 
-            int[] blocked = nbt.func_74759_k("blocked");
+            int[] blocked = nbt.getIntArray("blocked");
             for (int i : blocked)
             {
                 ret.blocked.add(i);
             }
 
-            list = nbt.func_150295_c("dummied", 10); //10 - NBTTagCompound, Old format. New format is String list. For now we will just merge the old and new. TODO: Remove in 1.13
-            list.forEach(e -> ret.dummied.add(new ResourceLocation(((NBTTagCompound)e).func_74779_i("K"))));
+            list = nbt.getTagList("dummied", 10); //10 - NBTTagCompound, Old format. New format is String list. For now we will just merge the old and new. TODO: Remove in 1.13
+            list.forEach(e -> ret.dummied.add(new ResourceLocation(((NBTTagCompound)e).getString("K"))));
 
-            list = nbt.func_150295_c("dummied", 8); //8 - NBTTagString, New format, less redundant/verbose
-            list.forEach(e -> ret.dummied.add(new ResourceLocation(((NBTTagString)e).func_150285_a_())));
+            list = nbt.getTagList("dummied", 8); //8 - NBTTagString, New format, less redundant/verbose
+            list.forEach(e -> ret.dummied.add(new ResourceLocation(((NBTTagString)e).getString())));
 
             return ret;
         }
@@ -954,7 +947,7 @@ public class ForgeRegistry<V extends IForgeRegistryEntry<V>> implements IForgeRe
                     if (m == null)
                         defaulted.add(remap.key);
                     else
-                        this.add(remap.id, m, remap.key.func_110624_b());
+                        this.add(remap.id, m, remap.key.getResourceDomain());
                 }
                 else if (action == MissingMappings.Action.IGNORE)
                 {

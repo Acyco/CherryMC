@@ -128,7 +128,7 @@ public class DimensionManager
 
     public static void registerDimension(int id, DimensionType type)
     {
-        DimensionType.func_186069_a(type.func_186068_a()); //Check if type is invalid {will throw an error} No clue how it would be invalid tho...
+        DimensionType.getById(type.getId()); //Check if type is invalid {will throw an error} No clue how it would be invalid tho...
         if (dimensions.containsKey(id))
         {
             throw new IllegalArgumentException(String.format("Failed to register dimension for id %d, One is already registered", id));
@@ -168,7 +168,7 @@ public class DimensionManager
 
     public static WorldProvider getProvider(int dim)
     {
-        return getWorld(dim).field_73011_w;
+        return getWorld(dim).provider;
     }
 
     public static Integer[] getIDs(boolean check)
@@ -187,11 +187,11 @@ public class DimensionManager
                 int leakCount = leakedWorlds.count(System.identityHashCode(w));
                 if (leakCount == 5)
                 {
-                    FMLLog.log.debug("The world {} ({}) may have leaked: first encounter (5 occurrences).\n", Integer.toHexString(System.identityHashCode(w)), w.func_72912_H().func_76065_j());
+                    FMLLog.log.debug("The world {} ({}) may have leaked: first encounter (5 occurrences).\n", Integer.toHexString(System.identityHashCode(w)), w.getWorldInfo().getWorldName());
                 }
                 else if (leakCount % 5 == 0)
                 {
-                    FMLLog.log.debug("The world {} ({}) may have leaked: seen {} times.\n", Integer.toHexString(System.identityHashCode(w)), w.func_72912_H().func_76065_j(), leakCount);
+                    FMLLog.log.debug("The world {} ({}) may have leaked: seen {} times.\n", Integer.toHexString(System.identityHashCode(w)), w.getWorldInfo().getWorldName(), leakCount);
                 }
             }
         }
@@ -210,7 +210,7 @@ public class DimensionManager
             worlds.put(id, world);
             weakWorldMap.put(world, world);
             server.worldTickTimes.put(id, new long[100]);
-            FMLLog.log.info("Loading dimension {} ({}) ({})", id, world.func_72912_H().func_76065_j(), world.func_73046_m());
+            FMLLog.log.info("Loading dimension {} ({}) ({})", id, world.getWorldInfo().getWorldName(), world.getMinecraftServer());
         }
         else
         {
@@ -237,7 +237,7 @@ public class DimensionManager
             tmp.add(entry.getValue());
         }
 
-        server.field_71305_c = tmp.toArray(new WorldServer[0]);
+        server.worlds = tmp.toArray(new WorldServer[0]);
     }
 
     public static void initDimension(int dim)
@@ -256,19 +256,19 @@ public class DimensionManager
             FMLLog.log.error("Cannot Hotload Dim: {}", dim, e);
             return; // If a provider hasn't been registered then we can't hotload the dim
         }
-        MinecraftServer mcServer = overworld.func_73046_m();
-        ISaveHandler savehandler = overworld.func_72860_G();
+        MinecraftServer mcServer = overworld.getMinecraftServer();
+        ISaveHandler savehandler = overworld.getSaveHandler();
         //WorldSettings worldSettings = new WorldSettings(overworld.getWorldInfo());
 
-        WorldServer world = (dim == 0 ? overworld : (WorldServer)(new WorldServerMulti(mcServer, savehandler, dim, overworld, mcServer.field_71304_b).func_175643_b()));
-        world.func_72954_a(new ServerWorldEventHandler(mcServer, world));
+        WorldServer world = (dim == 0 ? overworld : (WorldServer)(new WorldServerMulti(mcServer, savehandler, dim, overworld, mcServer.profiler).init()));
+        world.addEventListener(new ServerWorldEventHandler(mcServer, world));
         MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(world));
-        if (!mcServer.func_71264_H())
+        if (!mcServer.isSinglePlayer())
         {
-            world.func_72912_H().func_76060_a(mcServer.func_71265_f());
+            world.getWorldInfo().setGameType(mcServer.getGameType());
         }
 
-        mcServer.func_147139_a(mcServer.func_147135_j());
+        mcServer.setDifficultyForAllWorlds(mcServer.getDifficulty());
     }
 
     public static WorldServer getWorld(int id)
@@ -310,7 +310,7 @@ public class DimensionManager
         {
             if (dimensions.containsKey(dim))
             {
-                WorldProvider ret = getProviderType(dim).func_186070_d();
+                WorldProvider ret = getProviderType(dim).createDimension();
                 ret.setDimension(dim);
                 return ret;
             }
@@ -341,9 +341,9 @@ public class DimensionManager
     private static boolean canUnloadWorld(WorldServer world)
     {
         return ForgeChunkManager.getPersistentChunksFor(world).isEmpty()
-                && world.field_73010_i.isEmpty()
-                && !world.field_73011_w.func_186058_p().shouldLoadSpawn()
-                && !keepLoaded.contains(world.field_73011_w.getDimension());
+                && world.playerEntities.isEmpty()
+                && !world.provider.getDimensionType().shouldLoadSpawn()
+                && !keepLoaded.contains(world.provider.getDimension());
     }
 
     /**
@@ -392,7 +392,7 @@ public class DimensionManager
             }
             try
             {
-                w.func_73044_a(true, null);
+                w.saveAllChunks(true, null);
             }
             catch (MinecraftException e)
             {
@@ -401,8 +401,8 @@ public class DimensionManager
             finally
             {
                 MinecraftForge.EVENT_BUS.post(new WorldEvent.Unload(w));
-                w.func_73041_k();
-                setWorld(id, null, w.func_73046_m());
+                w.flush();
+                setWorld(id, null, w.getMinecraftServer());
             }
         }
     }
@@ -435,7 +435,7 @@ public class DimensionManager
     public static NBTTagCompound saveDimensionDataMap()
     {
         NBTTagCompound dimMap = new NBTTagCompound();
-        dimMap.func_74783_a("UsedIDs", usedIds.toIntArray());
+        dimMap.setIntArray("UsedIDs", usedIds.toIntArray());
         return dimMap;
     }
 
@@ -458,13 +458,13 @@ public class DimensionManager
         }
         else
         {
-            for (int id : compoundTag.func_74759_k("UsedIDs"))
+            for (int id : compoundTag.getIntArray("UsedIDs"))
             {
                 usedIds.add(id);
             }
 
             // legacy data (load but don't save)
-            int[] intArray = compoundTag.func_74759_k("DimensionArray");
+            int[] intArray = compoundTag.getIntArray("DimensionArray");
             for (int i = 0; i < intArray.length; i++)
             {
                 int data = intArray[i];
@@ -486,7 +486,7 @@ public class DimensionManager
     {
         if (DimensionManager.getWorld(0) != null)
         {
-            return DimensionManager.getWorld(0).func_72860_G().func_75765_b();
+            return DimensionManager.getWorld(0).getSaveHandler().getWorldDirectory();
         }/*
         else if (MinecraftServer.getServer() != null)
         {

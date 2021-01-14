@@ -62,7 +62,7 @@ public class ForgeRegistries
     {
         GameData.init();
         VillagerRegistry.instance();
-        Bootstrap.func_151354_b();
+        Bootstrap.register();
     }
 
 }

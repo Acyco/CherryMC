@@ -67,7 +67,7 @@ public class OreDictionary
     private static List<NonNullList<ItemStack>> idToStack = Lists.newArrayList();
     private static List<NonNullList<ItemStack>> idToStackUn = Lists.newArrayList();
     private static Map<Integer, List<Integer>> stackToId = Maps.newHashMapWithExpectedSize((int)(128 * 0.75));
-    public static final NonNullList<ItemStack> EMPTY_LIST = NonNullList.func_191196_a();
+    public static final NonNullList<ItemStack> EMPTY_LIST = NonNullList.create();
 
     /**
      * Minecraft changed from -1 to Short.MAX_VALUE in 1.5 release for the "block wildcard". Use this in case it
@@ -84,222 +84,222 @@ public class OreDictionary
         if (!hasInit)
         {
             // tree- and wood-related things
-            registerOre("logWood",     new ItemStack(Blocks.field_150364_r, 1, WILDCARD_VALUE));
-            registerOre("logWood",     new ItemStack(Blocks.field_150363_s, 1, WILDCARD_VALUE));
-            registerOre("plankWood",   new ItemStack(Blocks.field_150344_f, 1, WILDCARD_VALUE));
-            registerOre("slabWood",    new ItemStack(Blocks.field_150376_bx, 1, WILDCARD_VALUE));
-            registerOre("stairWood",   Blocks.field_150476_ad);
-            registerOre("stairWood",   Blocks.field_150485_bF);
-            registerOre("stairWood",   Blocks.field_150487_bG);
-            registerOre("stairWood",   Blocks.field_150481_bH);
-            registerOre("stairWood",   Blocks.field_150400_ck);
-            registerOre("stairWood",   Blocks.field_150401_cl);
-            registerOre("fenceWood", Blocks.field_180407_aO);
-            registerOre("fenceWood", Blocks.field_180408_aP);
-            registerOre("fenceWood", Blocks.field_180404_aQ);
-            registerOre("fenceWood", Blocks.field_180403_aR);
-            registerOre("fenceWood", Blocks.field_180406_aS);
-            registerOre("fenceWood", Blocks.field_180405_aT);
-            registerOre("fenceGateWood", Blocks.field_180390_bo);
-            registerOre("fenceGateWood", Blocks.field_180391_bp);
-            registerOre("fenceGateWood", Blocks.field_180392_bq);
-            registerOre("fenceGateWood", Blocks.field_180386_br);
-            registerOre("fenceGateWood", Blocks.field_180385_bs);
-            registerOre("fenceGateWood", Blocks.field_180387_bt);
-            registerOre("doorWood", Items.field_179572_au);
-            registerOre("doorWood", Items.field_179568_as);
-            registerOre("doorWood", Items.field_179571_av);
-            registerOre("doorWood", Items.field_179570_aq);
-            registerOre("doorWood", Items.field_179567_at);
-            registerOre("doorWood", Items.field_179569_ar);
-            registerOre("stickWood",   Items.field_151055_y);
-            registerOre("treeSapling", new ItemStack(Blocks.field_150345_g, 1, WILDCARD_VALUE));
-            registerOre("treeLeaves",  new ItemStack(Blocks.field_150362_t, 1, WILDCARD_VALUE));
-            registerOre("treeLeaves",  new ItemStack(Blocks.field_150361_u, 1, WILDCARD_VALUE));
-            registerOre("vine",        Blocks.field_150395_bd);
+            registerOre("logWood",     new ItemStack(Blocks.LOG, 1, WILDCARD_VALUE));
+            registerOre("logWood",     new ItemStack(Blocks.LOG2, 1, WILDCARD_VALUE));
+            registerOre("plankWood",   new ItemStack(Blocks.PLANKS, 1, WILDCARD_VALUE));
+            registerOre("slabWood",    new ItemStack(Blocks.WOODEN_SLAB, 1, WILDCARD_VALUE));
+            registerOre("stairWood",   Blocks.OAK_STAIRS);
+            registerOre("stairWood",   Blocks.SPRUCE_STAIRS);
+            registerOre("stairWood",   Blocks.BIRCH_STAIRS);
+            registerOre("stairWood",   Blocks.JUNGLE_STAIRS);
+            registerOre("stairWood",   Blocks.ACACIA_STAIRS);
+            registerOre("stairWood",   Blocks.DARK_OAK_STAIRS);
+            registerOre("fenceWood", Blocks.OAK_FENCE);
+            registerOre("fenceWood", Blocks.SPRUCE_FENCE);
+            registerOre("fenceWood", Blocks.BIRCH_FENCE);
+            registerOre("fenceWood", Blocks.JUNGLE_FENCE);
+            registerOre("fenceWood", Blocks.DARK_OAK_FENCE);
+            registerOre("fenceWood", Blocks.ACACIA_FENCE);
+            registerOre("fenceGateWood", Blocks.OAK_FENCE_GATE);
+            registerOre("fenceGateWood", Blocks.SPRUCE_FENCE_GATE);
+            registerOre("fenceGateWood", Blocks.BIRCH_FENCE_GATE);
+            registerOre("fenceGateWood", Blocks.JUNGLE_FENCE_GATE);
+            registerOre("fenceGateWood", Blocks.DARK_OAK_FENCE_GATE);
+            registerOre("fenceGateWood", Blocks.ACACIA_FENCE_GATE);
+            registerOre("doorWood", Items.ACACIA_DOOR);
+            registerOre("doorWood", Items.BIRCH_DOOR);
+            registerOre("doorWood", Items.DARK_OAK_DOOR);
+            registerOre("doorWood", Items.OAK_DOOR);
+            registerOre("doorWood", Items.JUNGLE_DOOR);
+            registerOre("doorWood", Items.SPRUCE_DOOR);
+            registerOre("stickWood",   Items.STICK);
+            registerOre("treeSapling", new ItemStack(Blocks.SAPLING, 1, WILDCARD_VALUE));
+            registerOre("treeLeaves",  new ItemStack(Blocks.LEAVES, 1, WILDCARD_VALUE));
+            registerOre("treeLeaves",  new ItemStack(Blocks.LEAVES2, 1, WILDCARD_VALUE));
+            registerOre("vine",        Blocks.VINE);
 
             // Ores
-            registerOre("oreGold",     Blocks.field_150352_o);
-            registerOre("oreIron",     Blocks.field_150366_p);
-            registerOre("oreLapis",    Blocks.field_150369_x);
-            registerOre("oreDiamond",  Blocks.field_150482_ag);
-            registerOre("oreRedstone", Blocks.field_150450_ax);
-            registerOre("oreEmerald",  Blocks.field_150412_bA);
-            registerOre("oreQuartz",   Blocks.field_150449_bY);
-            registerOre("oreCoal",     Blocks.field_150365_q);
+            registerOre("oreGold",     Blocks.GOLD_ORE);
+            registerOre("oreIron",     Blocks.IRON_ORE);
+            registerOre("oreLapis",    Blocks.LAPIS_ORE);
+            registerOre("oreDiamond",  Blocks.DIAMOND_ORE);
+            registerOre("oreRedstone", Blocks.REDSTONE_ORE);
+            registerOre("oreEmerald",  Blocks.EMERALD_ORE);
+            registerOre("oreQuartz",   Blocks.QUARTZ_ORE);
+            registerOre("oreCoal",     Blocks.COAL_ORE);
 
             // ingots/nuggets
-            registerOre("ingotIron",     Items.field_151042_j);
-            registerOre("ingotGold",     Items.field_151043_k);
-            registerOre("ingotBrick",    Items.field_151118_aC);
-            registerOre("ingotBrickNether", Items.field_151130_bT);
-            registerOre("nuggetGold",  Items.field_151074_bl);
-            registerOre("nuggetIron",  Items.field_191525_da);
+            registerOre("ingotIron",     Items.IRON_INGOT);
+            registerOre("ingotGold",     Items.GOLD_INGOT);
+            registerOre("ingotBrick",    Items.BRICK);
+            registerOre("ingotBrickNether", Items.NETHERBRICK);
+            registerOre("nuggetGold",  Items.GOLD_NUGGET);
+            registerOre("nuggetIron",  Items.IRON_NUGGET);
 
             // gems and dusts
-            registerOre("gemDiamond",  Items.field_151045_i);
-            registerOre("gemEmerald",  Items.field_151166_bC);
-            registerOre("gemQuartz",   Items.field_151128_bU);
-            registerOre("gemPrismarine", Items.field_179562_cC);
-            registerOre("dustPrismarine", Items.field_179563_cD);
-            registerOre("dustRedstone",  Items.field_151137_ax);
-            registerOre("dustGlowstone", Items.field_151114_aO);
-            registerOre("gemLapis",    new ItemStack(Items.field_151100_aR, 1, 4));
+            registerOre("gemDiamond",  Items.DIAMOND);
+            registerOre("gemEmerald",  Items.EMERALD);
+            registerOre("gemQuartz",   Items.QUARTZ);
+            registerOre("gemPrismarine", Items.PRISMARINE_SHARD);
+            registerOre("dustPrismarine", Items.PRISMARINE_CRYSTALS);
+            registerOre("dustRedstone",  Items.REDSTONE);
+            registerOre("dustGlowstone", Items.GLOWSTONE_DUST);
+            registerOre("gemLapis",    new ItemStack(Items.DYE, 1, 4));
 
             // storage blocks
-            registerOre("blockGold",     Blocks.field_150340_R);
-            registerOre("blockIron",     Blocks.field_150339_S);
-            registerOre("blockLapis",    Blocks.field_150368_y);
-            registerOre("blockDiamond",  Blocks.field_150484_ah);
-            registerOre("blockRedstone", Blocks.field_150451_bX);
-            registerOre("blockEmerald",  Blocks.field_150475_bE);
-            registerOre("blockQuartz",   Blocks.field_150371_ca);
-            registerOre("blockCoal",     Blocks.field_150402_ci);
+            registerOre("blockGold",     Blocks.GOLD_BLOCK);
+            registerOre("blockIron",     Blocks.IRON_BLOCK);
+            registerOre("blockLapis",    Blocks.LAPIS_BLOCK);
+            registerOre("blockDiamond",  Blocks.DIAMOND_BLOCK);
+            registerOre("blockRedstone", Blocks.REDSTONE_BLOCK);
+            registerOre("blockEmerald",  Blocks.EMERALD_BLOCK);
+            registerOre("blockQuartz",   Blocks.QUARTZ_BLOCK);
+            registerOre("blockCoal",     Blocks.COAL_BLOCK);
 
             // crops
-            registerOre("cropWheat",   Items.field_151015_O);
-            registerOre("cropPotato",  Items.field_151174_bG);
-            registerOre("cropCarrot",  Items.field_151172_bF);
-            registerOre("cropNetherWart", Items.field_151075_bm);
-            registerOre("sugarcane",   Items.field_151120_aE);
-            registerOre("blockCactus", Blocks.field_150434_aF);
+            registerOre("cropWheat",   Items.WHEAT);
+            registerOre("cropPotato",  Items.POTATO);
+            registerOre("cropCarrot",  Items.CARROT);
+            registerOre("cropNetherWart", Items.NETHER_WART);
+            registerOre("sugarcane",   Items.REEDS);
+            registerOre("blockCactus", Blocks.CACTUS);
 
             // misc materials
-            registerOre("dye",         new ItemStack(Items.field_151100_aR, 1, WILDCARD_VALUE));
-            registerOre("paper",       new ItemStack(Items.field_151121_aF));
+            registerOre("dye",         new ItemStack(Items.DYE, 1, WILDCARD_VALUE));
+            registerOre("paper",       new ItemStack(Items.PAPER));
 
             // mob drops
-            registerOre("slimeball",   Items.field_151123_aH);
-            registerOre("enderpearl",  Items.field_151079_bi);
-            registerOre("bone",        Items.field_151103_aS);
-            registerOre("gunpowder",   Items.field_151016_H);
-            registerOre("string",      Items.field_151007_F);
-            registerOre("netherStar",  Items.field_151156_bN);
-            registerOre("leather",     Items.field_151116_aA);
-            registerOre("feather",     Items.field_151008_G);
-            registerOre("egg",         Items.field_151110_aK);
+            registerOre("slimeball",   Items.SLIME_BALL);
+            registerOre("enderpearl",  Items.ENDER_PEARL);
+            registerOre("bone",        Items.BONE);
+            registerOre("gunpowder",   Items.GUNPOWDER);
+            registerOre("string",      Items.STRING);
+            registerOre("netherStar",  Items.NETHER_STAR);
+            registerOre("leather",     Items.LEATHER);
+            registerOre("feather",     Items.FEATHER);
+            registerOre("egg",         Items.EGG);
 
             // records
-            registerOre("record",      Items.field_151096_cd);
-            registerOre("record",      Items.field_151093_ce);
-            registerOre("record",      Items.field_151094_cf);
-            registerOre("record",      Items.field_151091_cg);
-            registerOre("record",      Items.field_151092_ch);
-            registerOre("record",      Items.field_151089_ci);
-            registerOre("record",      Items.field_151090_cj);
-            registerOre("record",      Items.field_151087_ck);
-            registerOre("record",      Items.field_151088_cl);
-            registerOre("record",      Items.field_151085_cm);
-            registerOre("record",      Items.field_151086_cn);
-            registerOre("record",      Items.field_151084_co);
+            registerOre("record",      Items.RECORD_13);
+            registerOre("record",      Items.RECORD_CAT);
+            registerOre("record",      Items.RECORD_BLOCKS);
+            registerOre("record",      Items.RECORD_CHIRP);
+            registerOre("record",      Items.RECORD_FAR);
+            registerOre("record",      Items.RECORD_MALL);
+            registerOre("record",      Items.RECORD_MELLOHI);
+            registerOre("record",      Items.RECORD_STAL);
+            registerOre("record",      Items.RECORD_STRAD);
+            registerOre("record",      Items.RECORD_WARD);
+            registerOre("record",      Items.RECORD_11);
+            registerOre("record",      Items.RECORD_WAIT);
 
             // blocks
-            registerOre("dirt",        Blocks.field_150346_d);
-            registerOre("grass",       Blocks.field_150349_c);
-            registerOre("stone",       Blocks.field_150348_b);
-            registerOre("cobblestone", Blocks.field_150347_e);
-            registerOre("gravel",      Blocks.field_150351_n);
-            registerOre("sand",        new ItemStack(Blocks.field_150354_m, 1, WILDCARD_VALUE));
-            registerOre("sandstone",   new ItemStack(Blocks.field_150322_A, 1, WILDCARD_VALUE));
-            registerOre("sandstone",   new ItemStack(Blocks.field_180395_cM, 1, WILDCARD_VALUE));
-            registerOre("netherrack",  Blocks.field_150424_aL);
-            registerOre("obsidian",    Blocks.field_150343_Z);
-            registerOre("glowstone",   Blocks.field_150426_aN);
-            registerOre("endstone",    Blocks.field_150377_bs);
-            registerOre("torch",       Blocks.field_150478_aa);
-            registerOre("workbench",   Blocks.field_150462_ai);
-            registerOre("blockSlime",    Blocks.field_180399_cE);
-            registerOre("blockPrismarine", new ItemStack(Blocks.field_180397_cI, 1, BlockPrismarine.EnumType.ROUGH.func_176807_a()));
-            registerOre("blockPrismarineBrick", new ItemStack(Blocks.field_180397_cI, 1, BlockPrismarine.EnumType.BRICKS.func_176807_a()));
-            registerOre("blockPrismarineDark", new ItemStack(Blocks.field_180397_cI, 1, BlockPrismarine.EnumType.DARK.func_176807_a()));
-            registerOre("stoneGranite",          new ItemStack(Blocks.field_150348_b, 1, 1));
-            registerOre("stoneGranitePolished",  new ItemStack(Blocks.field_150348_b, 1, 2));
-            registerOre("stoneDiorite",          new ItemStack(Blocks.field_150348_b, 1, 3));
-            registerOre("stoneDioritePolished",  new ItemStack(Blocks.field_150348_b, 1, 4));
-            registerOre("stoneAndesite",         new ItemStack(Blocks.field_150348_b, 1, 5));
-            registerOre("stoneAndesitePolished", new ItemStack(Blocks.field_150348_b, 1, 6));
-            registerOre("blockGlassColorless", Blocks.field_150359_w);
-            registerOre("blockGlass",    Blocks.field_150359_w);
-            registerOre("blockGlass",    new ItemStack(Blocks.field_150399_cn, 1, WILDCARD_VALUE));
+            registerOre("dirt",        Blocks.DIRT);
+            registerOre("grass",       Blocks.GRASS);
+            registerOre("stone",       Blocks.STONE);
+            registerOre("cobblestone", Blocks.COBBLESTONE);
+            registerOre("gravel",      Blocks.GRAVEL);
+            registerOre("sand",        new ItemStack(Blocks.SAND, 1, WILDCARD_VALUE));
+            registerOre("sandstone",   new ItemStack(Blocks.SANDSTONE, 1, WILDCARD_VALUE));
+            registerOre("sandstone",   new ItemStack(Blocks.RED_SANDSTONE, 1, WILDCARD_VALUE));
+            registerOre("netherrack",  Blocks.NETHERRACK);
+            registerOre("obsidian",    Blocks.OBSIDIAN);
+            registerOre("glowstone",   Blocks.GLOWSTONE);
+            registerOre("endstone",    Blocks.END_STONE);
+            registerOre("torch",       Blocks.TORCH);
+            registerOre("workbench",   Blocks.CRAFTING_TABLE);
+            registerOre("blockSlime",    Blocks.SLIME_BLOCK);
+            registerOre("blockPrismarine", new ItemStack(Blocks.PRISMARINE, 1, BlockPrismarine.EnumType.ROUGH.getMetadata()));
+            registerOre("blockPrismarineBrick", new ItemStack(Blocks.PRISMARINE, 1, BlockPrismarine.EnumType.BRICKS.getMetadata()));
+            registerOre("blockPrismarineDark", new ItemStack(Blocks.PRISMARINE, 1, BlockPrismarine.EnumType.DARK.getMetadata()));
+            registerOre("stoneGranite",          new ItemStack(Blocks.STONE, 1, 1));
+            registerOre("stoneGranitePolished",  new ItemStack(Blocks.STONE, 1, 2));
+            registerOre("stoneDiorite",          new ItemStack(Blocks.STONE, 1, 3));
+            registerOre("stoneDioritePolished",  new ItemStack(Blocks.STONE, 1, 4));
+            registerOre("stoneAndesite",         new ItemStack(Blocks.STONE, 1, 5));
+            registerOre("stoneAndesitePolished", new ItemStack(Blocks.STONE, 1, 6));
+            registerOre("blockGlassColorless", Blocks.GLASS);
+            registerOre("blockGlass",    Blocks.GLASS);
+            registerOre("blockGlass",    new ItemStack(Blocks.STAINED_GLASS, 1, WILDCARD_VALUE));
             //blockGlass{Color} is added below with dyes
-            registerOre("paneGlassColorless", Blocks.field_150410_aZ);
-            registerOre("paneGlass",     Blocks.field_150410_aZ);
-            registerOre("paneGlass",     new ItemStack(Blocks.field_150397_co, 1, WILDCARD_VALUE));
+            registerOre("paneGlassColorless", Blocks.GLASS_PANE);
+            registerOre("paneGlass",     Blocks.GLASS_PANE);
+            registerOre("paneGlass",     new ItemStack(Blocks.STAINED_GLASS_PANE, 1, WILDCARD_VALUE));
             //paneGlass{Color} is added below with dyes
-            registerOre("wool",          new ItemStack(Blocks.field_150325_L, 1, WILDCARD_VALUE));
+            registerOre("wool",          new ItemStack(Blocks.WOOL, 1, WILDCARD_VALUE));
             //wool{Color} is added below with dyes
 
             // chests
-            registerOre("chest",        Blocks.field_150486_ae);
-            registerOre("chest",        Blocks.field_150477_bB);
-            registerOre("chest",        Blocks.field_150447_bR);
-            registerOre("chestWood",    Blocks.field_150486_ae);
-            registerOre("chestEnder",   Blocks.field_150477_bB);
-            registerOre("chestTrapped", Blocks.field_150447_bR);
+            registerOre("chest",        Blocks.CHEST);
+            registerOre("chest",        Blocks.ENDER_CHEST);
+            registerOre("chest",        Blocks.TRAPPED_CHEST);
+            registerOre("chestWood",    Blocks.CHEST);
+            registerOre("chestEnder",   Blocks.ENDER_CHEST);
+            registerOre("chestTrapped", Blocks.TRAPPED_CHEST);
         }
 
         // Build our list of items to replace with ore tags
         Map<ItemStack, String> replacements = new HashMap<ItemStack, String>();
 
         // wood-related things
-        replacements.put(new ItemStack(Items.field_151055_y), "stickWood");
-        replacements.put(new ItemStack(Blocks.field_150344_f, 1, 0), "plankWood");
-        replacements.put(new ItemStack(Blocks.field_150344_f, 1, 1), "plankWood");
-        replacements.put(new ItemStack(Blocks.field_150344_f, 1, 2), "plankWood");
-        replacements.put(new ItemStack(Blocks.field_150344_f, 1, 3), "plankWood");
-        replacements.put(new ItemStack(Blocks.field_150344_f, 1, 4), "plankWood");
-        replacements.put(new ItemStack(Blocks.field_150344_f, 1, 5), "plankWood");
-        replacements.put(new ItemStack(Blocks.field_150344_f, 1, WILDCARD_VALUE), "plankWood");
-        replacements.put(new ItemStack(Blocks.field_150376_bx, 1, WILDCARD_VALUE), "slabWood");
+        replacements.put(new ItemStack(Items.STICK), "stickWood");
+        replacements.put(new ItemStack(Blocks.PLANKS, 1, 0), "plankWood");
+        replacements.put(new ItemStack(Blocks.PLANKS, 1, 1), "plankWood");
+        replacements.put(new ItemStack(Blocks.PLANKS, 1, 2), "plankWood");
+        replacements.put(new ItemStack(Blocks.PLANKS, 1, 3), "plankWood");
+        replacements.put(new ItemStack(Blocks.PLANKS, 1, 4), "plankWood");
+        replacements.put(new ItemStack(Blocks.PLANKS, 1, 5), "plankWood");
+        replacements.put(new ItemStack(Blocks.PLANKS, 1, WILDCARD_VALUE), "plankWood");
+        replacements.put(new ItemStack(Blocks.WOODEN_SLAB, 1, WILDCARD_VALUE), "slabWood");
 
         // ingots/nuggets
-        replacements.put(new ItemStack(Items.field_151043_k), "ingotGold");
-        replacements.put(new ItemStack(Items.field_151042_j), "ingotIron");
+        replacements.put(new ItemStack(Items.GOLD_INGOT), "ingotGold");
+        replacements.put(new ItemStack(Items.IRON_INGOT), "ingotIron");
 
         // gems and dusts
-        replacements.put(new ItemStack(Items.field_151045_i), "gemDiamond");
-        replacements.put(new ItemStack(Items.field_151166_bC), "gemEmerald");
-        replacements.put(new ItemStack(Items.field_179562_cC), "gemPrismarine");
-        replacements.put(new ItemStack(Items.field_179563_cD), "dustPrismarine");
-        replacements.put(new ItemStack(Items.field_151137_ax), "dustRedstone");
-        replacements.put(new ItemStack(Items.field_151114_aO), "dustGlowstone");
+        replacements.put(new ItemStack(Items.DIAMOND), "gemDiamond");
+        replacements.put(new ItemStack(Items.EMERALD), "gemEmerald");
+        replacements.put(new ItemStack(Items.PRISMARINE_SHARD), "gemPrismarine");
+        replacements.put(new ItemStack(Items.PRISMARINE_CRYSTALS), "dustPrismarine");
+        replacements.put(new ItemStack(Items.REDSTONE), "dustRedstone");
+        replacements.put(new ItemStack(Items.GLOWSTONE_DUST), "dustGlowstone");
 
         // crops
-        replacements.put(new ItemStack(Items.field_151120_aE), "sugarcane");
-        replacements.put(new ItemStack(Blocks.field_150434_aF), "blockCactus");
+        replacements.put(new ItemStack(Items.REEDS), "sugarcane");
+        replacements.put(new ItemStack(Blocks.CACTUS), "blockCactus");
 
         // misc materials
-        replacements.put(new ItemStack(Items.field_151121_aF), "paper");
+        replacements.put(new ItemStack(Items.PAPER), "paper");
 
         // mob drops
-        replacements.put(new ItemStack(Items.field_151123_aH), "slimeball");
-        replacements.put(new ItemStack(Items.field_151007_F), "string");
-        replacements.put(new ItemStack(Items.field_151116_aA), "leather");
-        replacements.put(new ItemStack(Items.field_151079_bi), "enderpearl");
-        replacements.put(new ItemStack(Items.field_151016_H), "gunpowder");
-        replacements.put(new ItemStack(Items.field_151156_bN), "netherStar");
-        replacements.put(new ItemStack(Items.field_151008_G), "feather");
-        replacements.put(new ItemStack(Items.field_151103_aS), "bone");
-        replacements.put(new ItemStack(Items.field_151110_aK), "egg");
+        replacements.put(new ItemStack(Items.SLIME_BALL), "slimeball");
+        replacements.put(new ItemStack(Items.STRING), "string");
+        replacements.put(new ItemStack(Items.LEATHER), "leather");
+        replacements.put(new ItemStack(Items.ENDER_PEARL), "enderpearl");
+        replacements.put(new ItemStack(Items.GUNPOWDER), "gunpowder");
+        replacements.put(new ItemStack(Items.NETHER_STAR), "netherStar");
+        replacements.put(new ItemStack(Items.FEATHER), "feather");
+        replacements.put(new ItemStack(Items.BONE), "bone");
+        replacements.put(new ItemStack(Items.EGG), "egg");
 
         // blocks
-        replacements.put(new ItemStack(Blocks.field_150348_b), "stone");
-        replacements.put(new ItemStack(Blocks.field_150347_e), "cobblestone");
-        replacements.put(new ItemStack(Blocks.field_150347_e, 1, WILDCARD_VALUE), "cobblestone");
-        replacements.put(new ItemStack(Blocks.field_150426_aN), "glowstone");
-        replacements.put(new ItemStack(Blocks.field_150359_w), "blockGlassColorless");
-        replacements.put(new ItemStack(Blocks.field_180397_cI), "prismarine");
-        replacements.put(new ItemStack(Blocks.field_150348_b, 1, 1), "stoneGranite");
-        replacements.put(new ItemStack(Blocks.field_150348_b, 1, 2), "stoneGranitePolished");
-        replacements.put(new ItemStack(Blocks.field_150348_b, 1, 3), "stoneDiorite");
-        replacements.put(new ItemStack(Blocks.field_150348_b, 1, 4), "stoneDioritePolished");
-        replacements.put(new ItemStack(Blocks.field_150348_b, 1, 5), "stoneAndesite");
-        replacements.put(new ItemStack(Blocks.field_150348_b, 1, 6), "stoneAndesitePolished");
+        replacements.put(new ItemStack(Blocks.STONE), "stone");
+        replacements.put(new ItemStack(Blocks.COBBLESTONE), "cobblestone");
+        replacements.put(new ItemStack(Blocks.COBBLESTONE, 1, WILDCARD_VALUE), "cobblestone");
+        replacements.put(new ItemStack(Blocks.GLOWSTONE), "glowstone");
+        replacements.put(new ItemStack(Blocks.GLASS), "blockGlassColorless");
+        replacements.put(new ItemStack(Blocks.PRISMARINE), "prismarine");
+        replacements.put(new ItemStack(Blocks.STONE, 1, 1), "stoneGranite");
+        replacements.put(new ItemStack(Blocks.STONE, 1, 2), "stoneGranitePolished");
+        replacements.put(new ItemStack(Blocks.STONE, 1, 3), "stoneDiorite");
+        replacements.put(new ItemStack(Blocks.STONE, 1, 4), "stoneDioritePolished");
+        replacements.put(new ItemStack(Blocks.STONE, 1, 5), "stoneAndesite");
+        replacements.put(new ItemStack(Blocks.STONE, 1, 6), "stoneAndesitePolished");
 
         // chests
-        replacements.put(new ItemStack(Blocks.field_150486_ae), "chestWood");
-        replacements.put(new ItemStack(Blocks.field_150477_bB), "chestEnder");
-        replacements.put(new ItemStack(Blocks.field_150447_bR), "chestTrapped");
+        replacements.put(new ItemStack(Blocks.CHEST), "chestWood");
+        replacements.put(new ItemStack(Blocks.ENDER_CHEST), "chestEnder");
+        replacements.put(new ItemStack(Blocks.TRAPPED_CHEST), "chestTrapped");
 
         // Register dyes
         String[] dyes =
@@ -324,10 +324,10 @@ public class OreDictionary
 
         for(int i = 0; i < 16; i++)
         {
-            ItemStack dye = new ItemStack(Items.field_151100_aR, 1, i);
-            ItemStack wool = new ItemStack(Blocks.field_150325_L, 1, 15 - i);
-            ItemStack block = new ItemStack(Blocks.field_150399_cn, 1, 15 - i);
-            ItemStack pane = new ItemStack(Blocks.field_150397_co, 1, 15 - i);
+            ItemStack dye = new ItemStack(Items.DYE, 1, i);
+            ItemStack wool = new ItemStack(Blocks.WOOL, 1, 15 - i);
+            ItemStack block = new ItemStack(Blocks.STAINED_GLASS, 1, 15 - i);
+            ItemStack pane = new ItemStack(Blocks.STAINED_GLASS_PANE, 1, 15 - i);
             if (!hasInit)
             {
                 registerOre("dye" + dyes[i], dye);
@@ -347,67 +347,67 @@ public class OreDictionary
         // Ignore recipes for the following items
         ItemStack[] exclusions = new ItemStack[]
         {
-            new ItemStack(Blocks.field_150368_y),
-            new ItemStack(Items.field_151106_aX),
-            new ItemStack(Blocks.field_150417_aV),
-            new ItemStack(Blocks.field_150333_U, 1, WILDCARD_VALUE),
-            new ItemStack(Blocks.field_150446_ar),
-            new ItemStack(Blocks.field_150463_bK),
-            new ItemStack(Blocks.field_180407_aO),
-            new ItemStack(Blocks.field_180390_bo),
-            new ItemStack(Blocks.field_150476_ad),
-            new ItemStack(Blocks.field_180408_aP),
-            new ItemStack(Blocks.field_180391_bp),
-            new ItemStack(Blocks.field_150485_bF),
-            new ItemStack(Blocks.field_180392_bq),
-            new ItemStack(Blocks.field_180404_aQ),
-            new ItemStack(Blocks.field_150487_bG),
-            new ItemStack(Blocks.field_180403_aR),
-            new ItemStack(Blocks.field_180386_br),
-            new ItemStack(Blocks.field_150481_bH),
-            new ItemStack(Blocks.field_180405_aT),
-            new ItemStack(Blocks.field_180387_bt),
-            new ItemStack(Blocks.field_150400_ck),
-            new ItemStack(Blocks.field_180406_aS),
-            new ItemStack(Blocks.field_180385_bs),
-            new ItemStack(Blocks.field_150401_cl),
-            new ItemStack(Blocks.field_150376_bx, 1, WILDCARD_VALUE),
-            new ItemStack(Blocks.field_150410_aZ),
-            new ItemStack(Blocks.field_189880_di), // Bone Block, to prevent conversion of dyes into bone meal.
-            new ItemStack(Items.field_151124_az),
-            new ItemStack(Items.field_185150_aH),
-            new ItemStack(Items.field_185151_aI),
-            new ItemStack(Items.field_185152_aJ),
-            new ItemStack(Items.field_185153_aK),
-            new ItemStack(Items.field_185154_aL),
-            new ItemStack(Items.field_179570_aq),
-            new ItemStack(Items.field_179569_ar),
-            new ItemStack(Items.field_179568_as),
-            new ItemStack(Items.field_179567_at),
-            new ItemStack(Items.field_179572_au),
-            new ItemStack(Items.field_179571_av),
-            ItemStack.field_190927_a //So the above can have a comma and we don't have to keep editing extra lines.
+            new ItemStack(Blocks.LAPIS_BLOCK),
+            new ItemStack(Items.COOKIE),
+            new ItemStack(Blocks.STONEBRICK),
+            new ItemStack(Blocks.STONE_SLAB, 1, WILDCARD_VALUE),
+            new ItemStack(Blocks.STONE_STAIRS),
+            new ItemStack(Blocks.COBBLESTONE_WALL),
+            new ItemStack(Blocks.OAK_FENCE),
+            new ItemStack(Blocks.OAK_FENCE_GATE),
+            new ItemStack(Blocks.OAK_STAIRS),
+            new ItemStack(Blocks.SPRUCE_FENCE),
+            new ItemStack(Blocks.SPRUCE_FENCE_GATE),
+            new ItemStack(Blocks.SPRUCE_STAIRS),
+            new ItemStack(Blocks.BIRCH_FENCE_GATE),
+            new ItemStack(Blocks.BIRCH_FENCE),
+            new ItemStack(Blocks.BIRCH_STAIRS),
+            new ItemStack(Blocks.JUNGLE_FENCE),
+            new ItemStack(Blocks.JUNGLE_FENCE_GATE),
+            new ItemStack(Blocks.JUNGLE_STAIRS),
+            new ItemStack(Blocks.ACACIA_FENCE),
+            new ItemStack(Blocks.ACACIA_FENCE_GATE),
+            new ItemStack(Blocks.ACACIA_STAIRS),
+            new ItemStack(Blocks.DARK_OAK_FENCE),
+            new ItemStack(Blocks.DARK_OAK_FENCE_GATE),
+            new ItemStack(Blocks.DARK_OAK_STAIRS),
+            new ItemStack(Blocks.WOODEN_SLAB, 1, WILDCARD_VALUE),
+            new ItemStack(Blocks.GLASS_PANE),
+            new ItemStack(Blocks.BONE_BLOCK), // Bone Block, to prevent conversion of dyes into bone meal.
+            new ItemStack(Items.BOAT),
+            new ItemStack(Items.SPRUCE_BOAT),
+            new ItemStack(Items.BIRCH_BOAT),
+            new ItemStack(Items.JUNGLE_BOAT),
+            new ItemStack(Items.ACACIA_BOAT),
+            new ItemStack(Items.DARK_OAK_BOAT),
+            new ItemStack(Items.OAK_DOOR),
+            new ItemStack(Items.SPRUCE_DOOR),
+            new ItemStack(Items.BIRCH_DOOR),
+            new ItemStack(Items.JUNGLE_DOOR),
+            new ItemStack(Items.ACACIA_DOOR),
+            new ItemStack(Items.DARK_OAK_DOOR),
+            ItemStack.EMPTY //So the above can have a comma and we don't have to keep editing extra lines.
         };
 
         FMLLog.log.info("Starts to replace vanilla recipe ingredients with ore ingredients.");
         int replaced = 0;
         // Search vanilla recipes for recipes to replace
-        for(IRecipe obj : CraftingManager.field_193380_a)
+        for(IRecipe obj : CraftingManager.REGISTRY)
         {
             if(obj.getClass() == ShapedRecipes.class || obj.getClass() == ShapelessRecipes.class)
             {
-                ItemStack output = obj.func_77571_b();
-                if (!output.func_190926_b() && containsMatch(false, new ItemStack[]{ output }, exclusions))
+                ItemStack output = obj.getRecipeOutput();
+                if (!output.isEmpty() && containsMatch(false, new ItemStack[]{ output }, exclusions))
                 {
                     continue;
                 }
 
                 Set<Ingredient> replacedIngs = new HashSet<>();
-                NonNullList<Ingredient> lst = obj.func_192400_c();
+                NonNullList<Ingredient> lst = obj.getIngredients();
                 for (int x = 0; x < lst.size(); x++)
                 {
                     Ingredient ing = lst.get(x);
-                    ItemStack[] ingredients = ing.func_193365_a();
+                    ItemStack[] ingredients = ing.getMatchingStacks();
                     String oreName = null;
                     boolean skip = false;
 
@@ -448,8 +448,8 @@ public class OreDictionary
                         replaced++;
                         if(DEBUG && replacedIngs.add(ing))
                         {
-                            String recipeName = obj.getRegistryName().func_110623_a();
-                            FMLLog.log.debug("Replaced {} of the recipe \'{}\' with \"{}\".", ing.func_193365_a(), recipeName, oreName);
+                            String recipeName = obj.getRegistryName().getResourcePath();
+                            FMLLog.log.debug("Replaced {} of the recipe \'{}\' with \"{}\".", ing.getMatchingStacks(), recipeName, oreName);
                         }
                     }
                 }
@@ -474,7 +474,7 @@ public class OreDictionary
             idToName.add(name);
             val = idToName.size() - 1; //0 indexed
             nameToId.put(name, val);
-            NonNullList<ItemStack> back = NonNullList.func_191196_a();
+            NonNullList<ItemStack> back = NonNullList.create();
             idToStack.add(back);
             idToStackUn.add(back);
         }
@@ -501,14 +501,14 @@ public class OreDictionary
      */
     public static int[] getOreIDs(@Nonnull ItemStack stack)
     {
-        if (stack.func_190926_b()) throw new IllegalArgumentException("Stack can not be invalid!");
+        if (stack.isEmpty()) throw new IllegalArgumentException("Stack can not be invalid!");
 
         Set<Integer> set = new HashSet<Integer>();
 
         // HACK: use the registry name's ID. It is unique and it knows about substitutions. Fallback to a -1 value (what Item.getIDForItem would have returned) in the case where the registry is not aware of the item yet
         // IT should be noted that -1 will fail the gate further down, if an entry already exists with value -1 for this name. This is what is broken and being warned about.
         // APPARENTLY it's quite common to do this. OreDictionary should be considered alongside Recipes - you can't make them properly until you've registered with the game.
-        ResourceLocation registryName = stack.func_77973_b().delegate.name();
+        ResourceLocation registryName = stack.getItem().delegate.name();
         int id;
         if (registryName == null)
         {
@@ -517,11 +517,11 @@ public class OreDictionary
         }
         else
         {
-            id = Item.field_150901_e.func_148757_b(stack.func_77973_b().delegate.get());
+            id = Item.REGISTRY.getIDForObject(stack.getItem().delegate.get());
         }
         List<Integer> ids = stackToId.get(id);
         if (ids != null) set.addAll(ids);
-        ids = stackToId.get(id | ((stack.func_77952_i() + 1) << 16));
+        ids = stackToId.get(id | ((stack.getItemDamage() + 1) << 16));
         if (ids != null) set.addAll(ids);
 
         Integer[] tmp = set.toArray(new Integer[set.size()]);
@@ -638,11 +638,11 @@ public class OreDictionary
 
     public static boolean itemMatches(@Nonnull ItemStack target, @Nonnull ItemStack input, boolean strict)
     {
-        if (input.func_190926_b() && !target.func_190926_b() || !input.func_190926_b() && target.func_190926_b())
+        if (input.isEmpty() && !target.isEmpty() || !input.isEmpty() && target.isEmpty())
         {
             return false;
         }
-        return (target.func_77973_b() == input.func_77973_b() && ((target.func_77960_j() == WILDCARD_VALUE && !strict) || target.func_77960_j() == input.func_77960_j()));
+        return (target.getItem() == input.getItem() && ((target.getMetadata() == WILDCARD_VALUE && !strict) || target.getMetadata() == input.getMetadata()));
     }
 
     //Convenience functions that make for cleaner code mod side. They all drill down to registerOre(String, int, ItemStack)
@@ -660,7 +660,7 @@ public class OreDictionary
     private static void registerOreImpl(String name, @Nonnull ItemStack ore)
     {
         if ("Unknown".equals(name)) return; //prevent bad IDs.
-        if (ore.func_190926_b())
+        if (ore.isEmpty())
         {
             FMLLog.bigWarning("Invalid registration attempt for an Ore Dictionary item with name {} has occurred. The registration has been denied to prevent crashes. The mod responsible for the registration needs to correct this.", name);
             return; //prevent bad ItemStacks.
@@ -670,7 +670,7 @@ public class OreDictionary
         // HACK: use the registry name's ID. It is unique and it knows about substitutions. Fallback to a -1 value (what Item.getIDForItem would have returned) in the case where the registry is not aware of the item yet
         // IT should be noted that -1 will fail the gate further down, if an entry already exists with value -1 for this name. This is what is broken and being warned about.
         // APPARENTLY it's quite common to do this. OreDictionary should be considered alongside Recipes - you can't make them properly until you've registered with the game.
-        ResourceLocation registryName = ore.func_77973_b().delegate.name();
+        ResourceLocation registryName = ore.getItem().delegate.name();
         int hash;
         if (registryName == null)
         {
@@ -678,16 +678,16 @@ public class OreDictionary
             String modContainerName = modContainer == null ? null : modContainer.getName();
             FMLLog.bigWarning("A broken ore dictionary registration with name {} has occurred. It adds an item (type: {}) which is currently unknown to the game registry. This dictionary item can only support a single value when"
                     + " registered with ores like this, and NO I am not going to turn this spam off. Just register your ore dictionary entries after the GameRegistry.\n"
-                    + "TO USERS: YES this is a BUG in the mod " + modContainerName + " report it to them!", name, ore.func_77973_b().getClass());
+                    + "TO USERS: YES this is a BUG in the mod " + modContainerName + " report it to them!", name, ore.getItem().getClass());
             hash = -1;
         }
         else
         {
-            hash = Item.field_150901_e.func_148757_b(ore.func_77973_b().delegate.get());
+            hash = Item.REGISTRY.getIDForObject(ore.getItem().delegate.get());
         }
-        if (ore.func_77952_i() != WILDCARD_VALUE)
+        if (ore.getItemDamage() != WILDCARD_VALUE)
         {
-            hash |= ((ore.func_77952_i() + 1) << 16); // +1 so 0 is significant
+            hash |= ((ore.getItemDamage() + 1) << 16); // +1 so 0 is significant
         }
 
         //Add things to the baked version, and prevent duplicates
@@ -701,7 +701,7 @@ public class OreDictionary
         ids.add(oreID);
 
         //Add to the unbaked version
-        ore = ore.func_77946_l();
+        ore = ore.copy();
         idToStack.get(oreID).add(ore);
         MinecraftForge.EVENT_BUS.post(new OreRegisterEvent(name, ore));
     }
@@ -740,20 +740,20 @@ public class OreDictionary
             for (ItemStack ore : ores)
             {
                 // HACK: use the registry name's ID. It is unique and it knows about substitutions
-                ResourceLocation name = ore.func_77973_b().delegate.name();
+                ResourceLocation name = ore.getItem().delegate.name();
                 int hash;
                 if (name == null)
                 {
-                    FMLLog.log.debug("Defaulting unregistered ore dictionary entry for ore dictionary {}: type {} to -1", getOreName(id), ore.func_77973_b().getClass());
+                    FMLLog.log.debug("Defaulting unregistered ore dictionary entry for ore dictionary {}: type {} to -1", getOreName(id), ore.getItem().getClass());
                     hash = -1;
                 }
                 else
                 {
-                    hash = Item.field_150901_e.func_148757_b(ore.func_77973_b().delegate.get());
+                    hash = Item.REGISTRY.getIDForObject(ore.getItem().delegate.get());
                 }
-                if (ore.func_77952_i() != WILDCARD_VALUE)
+                if (ore.getItemDamage() != WILDCARD_VALUE)
                 {
-                    hash |= ((ore.func_77952_i() + 1) << 16); // +1 so meta 0 is significant
+                    hash |= ((ore.getItemDamage() + 1) << 16); // +1 so meta 0 is significant
                 }
                 List<Integer> ids = stackToId.computeIfAbsent(hash, k -> Lists.newArrayList());
                 ids.add(id);

@@ -100,7 +100,7 @@ public final class TRSRTransformation implements IModelState, ITransformation
     @SideOnly(Side.CLIENT)
     public TRSRTransformation(ItemTransformVec3f transform)
     {
-        this(toVecmath(transform.field_178365_c), quatFromXYZDegrees(toVecmath(transform.field_178364_b)), toVecmath(transform.field_178363_d), null);
+        this(toVecmath(transform.translation), quatFromXYZDegrees(toVecmath(transform.rotation)), toVecmath(transform.scale), null);
     }
 
     /** @deprecated use {@link #from(ModelRotation)} */
@@ -123,7 +123,7 @@ public final class TRSRTransformation implements IModelState, ITransformation
     @SideOnly(Side.CLIENT)
     public static TRSRTransformation from(ItemTransformVec3f transform)
     {
-        return transform.equals(ItemTransformVec3f.field_178366_a) ? identity : new TRSRTransformation(transform);
+        return transform.equals(ItemTransformVec3f.DEFAULT) ? identity : new TRSRTransformation(transform);
     }
 
     @SideOnly(Side.CLIENT)
@@ -619,10 +619,10 @@ public final class TRSRTransformation implements IModelState, ITransformation
 
     public static EnumFacing rotate(Matrix4f matrix, EnumFacing facing)
     {
-        Vec3i dir = facing.func_176730_m();
-        Vector4f vec = new Vector4f(dir.func_177958_n(), dir.func_177956_o(), dir.func_177952_p(), 0);
+        Vec3i dir = facing.getDirectionVec();
+        Vector4f vec = new Vector4f(dir.getX(), dir.getY(), dir.getZ(), 0);
         matrix.transform(vec);
-        return EnumFacing.func_176737_a(vec.x, vec.y, vec.z);
+        return EnumFacing.getFacingFromVector(vec.x, vec.y, vec.z);
     }
 
     public static boolean isInteger(Matrix4f matrix)

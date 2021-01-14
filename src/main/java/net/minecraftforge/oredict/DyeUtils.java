@@ -70,7 +70,7 @@ public class DyeUtils
      */
     public static OptionalInt metaFromStack(ItemStack stack)
     {
-        if (stack.func_190926_b()) return OptionalInt.empty();
+        if (stack.isEmpty()) return OptionalInt.empty();
         return Arrays.stream(OreDictionary.getOreIDs(stack))
                 .mapToObj(OreDictionary::getOreName)
                 .mapToInt(name -> ArrayUtils.indexOf(dyeOredicts, name))
@@ -119,6 +119,6 @@ public class DyeUtils
     public static Optional<EnumDyeColor> colorFromStack(ItemStack stack)
     {
         final OptionalInt meta = metaFromStack(stack);
-        return meta.isPresent() ? Optional.of(EnumDyeColor.func_176764_b(meta.getAsInt())) : Optional.empty();
+        return meta.isPresent() ? Optional.of(EnumDyeColor.byMetadata(meta.getAsInt())) : Optional.empty();
     }
 }

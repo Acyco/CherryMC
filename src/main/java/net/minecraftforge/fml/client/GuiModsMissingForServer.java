@@ -37,37 +37,37 @@ public class GuiModsMissingForServer extends GuiScreen
     }
 
     @Override
-    public void func_73866_w_()
+    public void initGui()
     {
-        this.field_146292_n.add(new GuiButton(1, this.field_146294_l / 2 - 75, this.field_146295_m - 38, I18n.func_135052_a("gui.done")));
+        this.buttonList.add(new GuiButton(1, this.width / 2 - 75, this.height - 38, I18n.format("gui.done")));
     }
 
     @Override
-    protected void func_146284_a(GuiButton p_73875_1_)
+    protected void actionPerformed(GuiButton p_73875_1_)
     {
-        if (p_73875_1_.field_146124_l && p_73875_1_.field_146127_k == 1)
+        if (p_73875_1_.enabled && p_73875_1_.id == 1)
         {
             FMLClientHandler.instance().showGuiScreen(null);
         }
     }
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        this.func_146276_q_();
+        this.drawDefaultBackground();
         List<MissingModsException.MissingModInfo> missingModsVersions = modsMissing.getMissingModInfos();
         int offset = Math.max(85 - missingModsVersions.size() * 10, 10);
-        this.func_73732_a(this.field_146289_q, "Forge Mod Loader could not connect to this server", this.field_146294_l / 2, offset, 0xFFFFFF);
+        this.drawCenteredString(this.fontRenderer, "Forge Mod Loader could not connect to this server", this.width / 2, offset, 0xFFFFFF);
         offset += 10;
-        this.func_73732_a(this.field_146289_q, "The mods and versions listed below could not be found", this.field_146294_l / 2, offset, 0xFFFFFF);
+        this.drawCenteredString(this.fontRenderer, "The mods and versions listed below could not be found", this.width / 2, offset, 0xFFFFFF);
         offset += 10;
-        this.func_73732_a(this.field_146289_q, "They are required to play on this server", this.field_146294_l / 2, offset, 0xFFFFFF);
+        this.drawCenteredString(this.fontRenderer, "They are required to play on this server", this.width / 2, offset, 0xFFFFFF);
         offset += 5;
         for (MissingModsException.MissingModInfo info : missingModsVersions)
         {
             ArtifactVersion v = info.getAcceptedVersion();
             offset += 10;
-            this.func_73732_a(this.field_146289_q, String.format("%s : %s", v.getLabel(), v.getRangeString()), this.field_146294_l / 2, offset, 0xEEEEEE);
+            this.drawCenteredString(this.fontRenderer, String.format("%s : %s", v.getLabel(), v.getRangeString()), this.width / 2, offset, 0xEEEEEE);
         }
-        super.func_73863_a(mouseX, mouseY, partialTicks);
+        super.drawScreen(mouseX, mouseY, partialTicks);
     }
 }

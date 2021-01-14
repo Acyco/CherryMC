@@ -284,7 +284,7 @@ public class DummyConfigElement implements IConfigElement
     @Override
     public String getComment()
     {
-        return I18n.func_135052_a(langKey + ".tooltip");
+        return I18n.format(langKey + ".tooltip");
     }
 
     @Override

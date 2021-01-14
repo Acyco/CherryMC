@@ -57,13 +57,13 @@ public abstract class SimpleModelFontRenderer extends FontRenderer {
         this.transform = new TRSRTransformation(matrix);
         this.format = format;
         transform.transformNormal(normal);
-        orientation = EnumFacing.func_176737_a(normal.x, normal.y, normal.z);
+        orientation = EnumFacing.getFacingFromVector(normal.x, normal.y, normal.z);
     }
 
     public void setSprite(TextureAtlasSprite sprite)
     {
         this.sprite = sprite;
-        super.func_110549_a(null);
+        super.onResourceManagerReload(null);
     }
 
     public void setFillBlanks(boolean fillBlanks)
@@ -72,13 +72,13 @@ public abstract class SimpleModelFontRenderer extends FontRenderer {
     }
 
     @Override
-    protected float func_78266_a(int pos, boolean italic)
+    protected float renderDefaultChar(int pos, boolean italic)
     {
         float x = (pos % 16) / 16f;
         float y = (pos / 16) / 16f;
         float sh = italic ? 1f : 0f;
-        float w = field_78286_d[pos] - 1.01f;
-        float h = field_78288_b - 1.01f;
+        float w = charWidth[pos] - 1.01f;
+        float h = FONT_HEIGHT - 1.01f;
         float wt = w  / 128f;
         float ht = h  / 128f;
 
@@ -86,10 +86,10 @@ public abstract class SimpleModelFontRenderer extends FontRenderer {
         quadBuilder.setTexture(sprite);
         quadBuilder.setQuadOrientation(orientation);
 
-        addVertex(quadBuilder, field_78295_j + sh,     field_78296_k,     x,      y);
-        addVertex(quadBuilder, field_78295_j - sh,     field_78296_k + h, x,      y + ht);
-        addVertex(quadBuilder, field_78295_j + w + sh, field_78296_k + h, x + wt, y + ht);
-        addVertex(quadBuilder, field_78295_j + w - sh, field_78296_k,     x + wt, y);
+        addVertex(quadBuilder, posX + sh,     posY,     x,      y);
+        addVertex(quadBuilder, posX - sh,     posY + h, x,      y + ht);
+        addVertex(quadBuilder, posX + w + sh, posY + h, x + wt, y + ht);
+        addVertex(quadBuilder, posX + w - sh, posY,     x + wt, y);
         builder.add(quadBuilder.build());
 
         if(fillBlanks)
@@ -100,32 +100,32 @@ public abstract class SimpleModelFontRenderer extends FontRenderer {
             quadBuilder.setTexture(sprite);
             quadBuilder.setQuadOrientation(orientation);
 
-            addVertex(quadBuilder, field_78295_j + w + sh,              field_78296_k,     cuv, cuv);
-            addVertex(quadBuilder, field_78295_j + w - sh,              field_78296_k + h, cuv, cuv);
-            addVertex(quadBuilder, field_78295_j + field_78286_d[pos] + sh, field_78296_k + h, cuv, cuv);
-            addVertex(quadBuilder, field_78295_j + field_78286_d[pos] - sh, field_78296_k,     cuv, cuv);
+            addVertex(quadBuilder, posX + w + sh,              posY,     cuv, cuv);
+            addVertex(quadBuilder, posX + w - sh,              posY + h, cuv, cuv);
+            addVertex(quadBuilder, posX + charWidth[pos] + sh, posY + h, cuv, cuv);
+            addVertex(quadBuilder, posX + charWidth[pos] - sh, posY,     cuv, cuv);
             builder.add(quadBuilder.build());
 
             quadBuilder = new UnpackedBakedQuad.Builder(format);
             quadBuilder.setTexture(sprite);
             quadBuilder.setQuadOrientation(orientation);
 
-            addVertex(quadBuilder, field_78295_j + sh,                  field_78296_k + h,           cuv, cuv);
-            addVertex(quadBuilder, field_78295_j - sh,                  field_78296_k + field_78288_b, cuv, cuv);
-            addVertex(quadBuilder, field_78295_j + field_78286_d[pos] + sh, field_78296_k + field_78288_b, cuv, cuv);
-            addVertex(quadBuilder, field_78295_j + field_78286_d[pos] - sh, field_78296_k + h,           cuv, cuv);
+            addVertex(quadBuilder, posX + sh,                  posY + h,           cuv, cuv);
+            addVertex(quadBuilder, posX - sh,                  posY + FONT_HEIGHT, cuv, cuv);
+            addVertex(quadBuilder, posX + charWidth[pos] + sh, posY + FONT_HEIGHT, cuv, cuv);
+            addVertex(quadBuilder, posX + charWidth[pos] - sh, posY + h,           cuv, cuv);
             builder.add(quadBuilder.build());
         }
-        return field_78286_d[pos];
+        return charWidth[pos];
     }
 
     private final Vector4f vec = new Vector4f();
 
     private void addVertex(UnpackedBakedQuad.Builder quadBuilder, float x, float y, float u, float v)
     {
-        for(int e = 0; e < format.func_177345_h(); e++)
+        for(int e = 0; e < format.getElementCount(); e++)
         {
-            switch(format.func_177348_c(e).func_177375_c())
+            switch(format.getElement(e).getUsage())
             {
                 case POSITION:
                     vec.set(x, y, 0f, 1f);
@@ -140,9 +140,9 @@ public abstract class SimpleModelFontRenderer extends FontRenderer {
                     quadBuilder.put(e, 0, 0, 1, 1);
                     break;
                 case UV:
-                    if(format.func_177348_c(e).func_177369_e() == 0)
+                    if(format.getElement(e).getIndex() == 0)
                     {
-                        quadBuilder.put(e, sprite.func_94214_a(u * 16), sprite.func_94207_b(v * 16), 0, 1);
+                        quadBuilder.put(e, sprite.getInterpolatedU(u * 16), sprite.getInterpolatedV(v * 16), 0, 1);
                         break;
                     }
                     // else fallthrough to default
@@ -154,23 +154,23 @@ public abstract class SimpleModelFontRenderer extends FontRenderer {
     }
 
     @Override
-    public void func_110549_a(IResourceManager resourceManager)
+    public void onResourceManagerReload(IResourceManager resourceManager)
     {
-        super.func_110549_a(resourceManager);
-        String p = field_111273_g.func_110623_a();
+        super.onResourceManagerReload(resourceManager);
+        String p = locationFontTexture.getResourcePath();
         if(p.startsWith("textures/")) p = p.substring("textures/".length(), p.length());
         if(p.endsWith(".png")) p = p.substring(0, p.length() - ".png".length());
-        String f = field_111273_g.func_110624_b() + ":" + p;
-        sprite = Minecraft.func_71410_x().func_147117_R().func_110572_b(f);
+        String f = locationFontTexture.getResourceDomain() + ":" + p;
+        sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(f);
     }
 
     @Override
-    protected abstract float func_78277_a(char c, boolean italic);
+    protected abstract float renderUnicodeChar(char c, boolean italic);
 
     @Override
     protected void doDraw(float shift)
     {
-        field_78295_j += (int)shift;
+        posX += (int)shift;
     }
 
     @Override

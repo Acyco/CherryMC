@@ -73,7 +73,7 @@ public class ModelLoaderRegistry
     public static void registerLoader(ICustomModelLoader loader)
     {
         loaders.add(loader);
-        ((IReloadableResourceManager) Minecraft.func_71410_x().func_110442_L()).func_110542_a(loader);
+        ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(loader);
     }
 
     public static boolean loaded(ResourceLocation location)
@@ -85,8 +85,8 @@ public class ModelLoaderRegistry
     public static ResourceLocation getActualLocation(ResourceLocation location)
     {
         if(location instanceof ModelResourceLocation) return location;
-        if(location.func_110623_a().startsWith("builtin/")) return location;
-        return new ResourceLocation(location.func_110624_b(), "models/" + location.func_110623_a());
+        if(location.getResourcePath().startsWith("builtin/")) return location;
+        return new ResourceLocation(location.getResourceDomain(), "models/" + location.getResourcePath());
     }
 
     /**

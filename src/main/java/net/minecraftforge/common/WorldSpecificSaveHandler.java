@@ -51,17 +51,17 @@ public class WorldSpecificSaveHandler implements ISaveHandler
         this.parent = parent;
     }
 
-    @Override public WorldInfo func_75757_d() { return parent.func_75757_d(); }
-    @Override public void func_75762_c() throws MinecraftException { parent.func_75762_c(); }
-    @Override public IChunkLoader func_75763_a(WorldProvider var1) { return parent.func_75763_a(var1); }
-    @Override public void func_75755_a(WorldInfo var1, NBTTagCompound var2) { parent.func_75755_a(var1, var2); }
-    @Override public void func_75761_a(WorldInfo var1){ parent.func_75761_a(var1); }
-    @Override public IPlayerFileData func_75756_e() { return parent.func_75756_e(); }
-    @Override public void func_75759_a() { parent.func_75759_a(); }
-    @Override public File func_75765_b() { return parent.func_75765_b(); }
+    @Override public WorldInfo loadWorldInfo() { return parent.loadWorldInfo(); }
+    @Override public void checkSessionLock() throws MinecraftException { parent.checkSessionLock(); }
+    @Override public IChunkLoader getChunkLoader(WorldProvider var1) { return parent.getChunkLoader(var1); }
+    @Override public void saveWorldInfoWithPlayer(WorldInfo var1, NBTTagCompound var2) { parent.saveWorldInfoWithPlayer(var1, var2); }
+    @Override public void saveWorldInfo(WorldInfo var1){ parent.saveWorldInfo(var1); }
+    @Override public IPlayerFileData getPlayerNBTManager() { return parent.getPlayerNBTManager(); }
+    @Override public void flush() { parent.flush(); }
+    @Override public File getWorldDirectory() { return parent.getWorldDirectory(); }
 
     @Override
-    public File func_75758_b(String name)
+    public File getMapFileFromName(String name)
     {
         if (dataDir == null) //Delayed down here do that world has time to be initialized first.
         {
@@ -71,7 +71,7 @@ public class WorldSpecificSaveHandler implements ISaveHandler
         File file = new File(dataDir, name + ".dat");
         if (!file.exists())
         {
-            switch (world.field_73011_w.getDimension())
+            switch (world.provider.getDimension())
             {
                 case -1:
                     if (name.equalsIgnoreCase("FORTRESS")) copyFile(name, file);
@@ -86,7 +86,7 @@ public class WorldSpecificSaveHandler implements ISaveHandler
 
     private void copyFile(String name, File to)
     {
-        File parentFile = parent.func_75758_b(name);
+        File parentFile = parent.getMapFileFromName(name);
         if (parentFile.exists())
         {
             try
@@ -101,9 +101,9 @@ public class WorldSpecificSaveHandler implements ISaveHandler
     }
 
     @Override
-    public TemplateManager func_186340_h()
+    public TemplateManager getStructureTemplateManager()
     {
-        return parent.func_186340_h();
+        return parent.getStructureTemplateManager();
     }
 
 }

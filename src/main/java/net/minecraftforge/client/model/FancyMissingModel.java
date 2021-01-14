@@ -65,17 +65,17 @@ final class FancyMissingModel implements IModel
             m.m33 = 1;
             m.setTranslation(new Vector3f(1, 1 + 1f / 0x100, 0));
             return new SimpleModelFontRenderer(
-                Minecraft.func_71410_x().field_71474_y,
+                Minecraft.getMinecraft().gameSettings,
                 font,
-                Minecraft.func_71410_x().func_110434_K(),
+                Minecraft.getMinecraft().getTextureManager(),
                 false,
                 m,
                 format
             ) {
                 @Override
-                protected float func_78277_a(char c, boolean italic)
+                protected float renderUnicodeChar(char c, boolean italic)
                 {
-                    return super.func_78266_a(126, italic);
+                    return super.renderDefaultChar(126, italic);
                 }
             };
         }
@@ -142,7 +142,7 @@ final class FancyMissingModel implements IModel
         }
 
         @Override
-        public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
         {
             if (side == null)
             {
@@ -154,36 +154,36 @@ final class FancyMissingModel implements IModel
                     List<String> splitLines = Lists.newArrayList();
                     for (int y = 0; y < lines.length; y++)
                     {
-                        splitLines.addAll(fontRenderer.func_78271_c(lines[y], 0x80));
+                        splitLines.addAll(fontRenderer.listFormattedStringToWidth(lines[y], 0x80));
                     }
                     for (int y = 0; y < splitLines.size(); y++)
                     {
-                        fontRenderer.func_78276_b(splitLines.get(y), 0, (int)((y - splitLines.size() / 2f) * fontRenderer.field_78288_b) + 0x40, 0xFF00FFFF);
+                        fontRenderer.drawString(splitLines.get(y), 0, (int)((y - splitLines.size() / 2f) * fontRenderer.FONT_HEIGHT) + 0x40, 0xFF00FFFF);
                     }
                     ImmutableList.Builder<BakedQuad> builder = ImmutableList.builder();
-                    builder.addAll(missingModel.func_188616_a(state, side, rand));
+                    builder.addAll(missingModel.getQuads(state, side, rand));
                     builder.addAll(fontRenderer.build());
                     quads = builder.build();
                 }
                 return quads;
             }
-            return missingModel.func_188616_a(state, side, rand);
+            return missingModel.getQuads(state, side, rand);
         }
 
         @Override
-        public boolean func_177555_b() { return true; }
+        public boolean isAmbientOcclusion() { return true; }
 
         @Override
-        public boolean func_177556_c() { return false; }
+        public boolean isGui3d() { return false; }
 
         @Override
-        public boolean func_188618_c() { return false; }
+        public boolean isBuiltInRenderer() { return false; }
 
         @Override
-        public TextureAtlasSprite func_177554_e() { return fontTexture; }
+        public TextureAtlasSprite getParticleTexture() { return fontTexture; }
 
         @Override
-        public ItemOverrideList func_188617_f() { return ItemOverrideList.field_188022_a; }
+        public ItemOverrideList getOverrides() { return ItemOverrideList.NONE; }
 
         @Override
         public Pair<? extends IBakedModel, Matrix4f> handlePerspective(ItemCameraTransforms.TransformType cameraTransformType)

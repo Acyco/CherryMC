@@ -54,14 +54,14 @@ public class ItemModelMesherForge extends ItemModelMesher
 
     @Override
     @Nullable
-    protected IBakedModel func_178088_b(Item item, int meta)
+    protected IBakedModel getItemModel(Item item, int meta)
     {
         Int2ObjectMap<IBakedModel> map = models.get(item.delegate);
         return map == null ? null : map.get(meta);
     }
 
     @Override
-    public void func_178086_a(Item item, int meta, ModelResourceLocation location)
+    public void register(Item item, int meta, ModelResourceLocation location)
     {
         IRegistryDelegate<Item> key = item.delegate;
         Int2ObjectMap<ModelResourceLocation> locs = locations.get(key);
@@ -77,13 +77,13 @@ public class ItemModelMesherForge extends ItemModelMesher
             models.put(key, mods);
         }
         locs.put(meta, location);
-        mods.put(meta, func_178083_a().func_174953_a(location));
+        mods.put(meta, getModelManager().getModel(location));
     }
 
     @Override
-    public void func_178085_b()
+    public void rebuildCache()
     {
-        final ModelManager manager = this.func_178083_a();
+        final ModelManager manager = this.getModelManager();
         for (Map.Entry<IRegistryDelegate<Item>, Int2ObjectMap<ModelResourceLocation>> e : locations.entrySet())
         {
             Int2ObjectMap<IBakedModel> mods = models.get(e.getKey());
@@ -98,34 +98,34 @@ public class ItemModelMesherForge extends ItemModelMesher
             }
             final Int2ObjectMap<IBakedModel> map = mods;
             e.getValue().int2ObjectEntrySet().forEach(entry ->
-                map.put(entry.getIntKey(), manager.func_174953_a(entry.getValue()))
+                map.put(entry.getIntKey(), manager.getModel(entry.getValue()))
             );
         }
     }
 
     public ModelResourceLocation getLocation(@Nonnull ItemStack stack)
     {
-        Item item = stack.func_77973_b();
+        Item item = stack.getItem();
         ModelResourceLocation location = null;
 
         Int2ObjectMap<ModelResourceLocation> map = locations.get(item.delegate);
         if (map != null)
         {
-            location = map.get(func_178084_b(stack));
+            location = map.get(getMetadata(stack));
         }
 
         if (location == null)
         {
-            ItemMeshDefinition definition = field_178092_c.get(item);
+            ItemMeshDefinition definition = shapers.get(item);
             if (definition != null)
             {
-                location = definition.func_178113_a(stack);
+                location = definition.getModelLocation(stack);
             }
         }
 
         if (location == null)
         {
-            location = ModelBakery.field_177604_a;
+            location = ModelBakery.MODEL_MISSING;
         }
 
         return location;

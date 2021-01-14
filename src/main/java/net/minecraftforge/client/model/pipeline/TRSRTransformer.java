@@ -37,7 +37,7 @@ public class TRSRTransformer extends VertexTransformer
     @Override
     public void put(int element, float... data)
     {
-        switch (getVertexFormat().func_177348_c(element).func_177375_c())
+        switch (getVertexFormat().getElement(element).getUsage())
         {
             case POSITION:
                 Vector4f pos = new Vector4f(data);

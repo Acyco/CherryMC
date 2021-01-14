@@ -379,7 +379,7 @@ public class FMLCommonHandler
     {
         for (ICrashCallable call: crashCallables)
         {
-            category.func_189529_a(call.getLabel(), call);
+            category.addDetail(call.getLabel(), call);
         }
     }
 
@@ -393,7 +393,7 @@ public class FMLCommonHandler
                 if (wac != null)
                 {
                     NBTTagCompound dataForWriting = wac.getDataForWriting(handler, worldInfo);
-                    tagCompound.func_74782_a(mc.getModId(), dataForWriting);
+                    tagCompound.setTag(mc.getModId(), dataForWriting);
                 }
             }
         }
@@ -420,7 +420,7 @@ public class FMLCommonHandler
                 WorldAccessContainer wac = ((InjectedModContainer)mc).getWrappedWorldAccessContainer();
                 if (wac != null)
                 {
-                    wac.readData(handler, worldInfo, additionalProperties, tagCompound.func_74775_l(mc.getModId()));
+                    wac.readData(handler, worldInfo, additionalProperties, tagCompound.getCompoundTag(mc.getModId()));
                 }
             }
         }
@@ -633,20 +633,20 @@ public class FMLCommonHandler
         if (!shouldAllowPlayerLogins())
         {
             TextComponentString text = new TextComponentString("Server is still starting! Please wait before reconnecting.");
-            FMLLog.log.info("Disconnecting Player: {}", text.func_150260_c());
-            manager.func_179290_a(new SPacketDisconnect(text));
-            manager.func_150718_a(text);
+            FMLLog.log.info("Disconnecting Player: {}", text.getUnformattedText());
+            manager.sendPacket(new SPacketDisconnect(text));
+            manager.closeChannel(text);
             return false;
         }
 
-        if (packet.func_149594_c() == EnumConnectionState.LOGIN && (!NetworkRegistry.INSTANCE.isVanillaAccepted(Side.CLIENT) && !packet.hasFMLMarker()))
+        if (packet.getRequestedState() == EnumConnectionState.LOGIN && (!NetworkRegistry.INSTANCE.isVanillaAccepted(Side.CLIENT) && !packet.hasFMLMarker()))
         {
-            manager.func_150723_a(EnumConnectionState.LOGIN);
+            manager.setConnectionState(EnumConnectionState.LOGIN);
             TextComponentString text = new TextComponentString("This server has mods that require FML/Forge to be installed on the client. Contact your server admin for more details.");
             Collection<String> modNames = NetworkRegistry.INSTANCE.getRequiredMods(Side.CLIENT);
             FMLLog.log.info("Disconnecting Player: This server has mods that require FML/Forge to be installed on the client: {}", modNames);
-            manager.func_179290_a(new SPacketDisconnect(text));
-            manager.func_150718_a(text);
+            manager.sendPacket(new SPacketDisconnect(text));
+            manager.closeChannel(text);
             return false;
         }
 

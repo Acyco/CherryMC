@@ -77,8 +77,6 @@ import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.SharedDrawable;
 import org.lwjgl.util.glu.GLU;
 
-import net.minecraftforge.fml.common.EnhancedRuntimeException.WrappedPrintStream;
-
 /**
  * Not a fully fleshed out API, may change in future MC versions.
  * However feel free to use and suggest additions.
@@ -95,7 +93,7 @@ public class SplashProgress
     private static final Lock lock = new ReentrantLock(true);
     private static SplashFontRenderer fontRenderer;
 
-    private static final IResourcePack mcPack = Minecraft.func_71410_x().field_110450_ap;
+    private static final IResourcePack mcPack = Minecraft.getMinecraft().mcDefaultResourcePack;
     private static final IResourcePack fmlPack = createResourcePack(FMLSanityChecker.fmlLocation);
     private static IResourcePack miscPack;
 
@@ -149,7 +147,7 @@ public class SplashProgress
 
     public static void start()
     {
-        File configFile = new File(Minecraft.func_71410_x().field_71412_D, "config/splash.properties");
+        File configFile = new File(Minecraft.getMinecraft().mcDataDir, "config/splash.properties");
 
         File parent = configFile.getParentFile();
         if (!parent.exists())
@@ -189,7 +187,7 @@ public class SplashProgress
         final ResourceLocation forgeLoc = new ResourceLocation(getString("forgeTexture", "fml:textures/gui/forge.png"));
         final ResourceLocation forgeFallbackLoc = new ResourceLocation("fml:textures/gui/forge.png");
 
-        File miscPackFile = new File(Minecraft.func_71410_x().field_71412_D, getString("resourcePackPath", "resources"));
+        File miscPackFile = new File(Minecraft.getMinecraft().mcDataDir, getString("resourcePackPath", "resources"));
 
         try (Writer w = new OutputStreamWriter(new FileOutputStream(configFile), StandardCharsets.UTF_8))
         {
@@ -221,9 +219,9 @@ public class SplashProgress
                 return "GL info";
             }
         });
-        CrashReport report = CrashReport.func_85055_a(new Throwable(), "Loading screen debug info");
+        CrashReport report = CrashReport.makeCrashReport(new Throwable(), "Loading screen debug info");
         StringBuilder systemDetailsBuilder = new StringBuilder();
-        report.func_85056_g().func_85072_a(systemDetailsBuilder);
+        report.getCategory().appendToStringBuilder(systemDetailsBuilder);
         FMLLog.log.info(systemDetailsBuilder.toString());
 
         try
@@ -428,7 +426,7 @@ public class SplashProgress
                 setColor(fontColor);
                 glScalef(2, 2, 1);
                 glEnable(GL_TEXTURE_2D);
-                fontRenderer.func_78276_b(b.getTitle() + " - " + b.getMessage(), 0, 0, 0x000000);
+                fontRenderer.drawString(b.getTitle() + " - " + b.getMessage(), 0, 0, 0x000000);
                 glDisable(GL_TEXTURE_2D);
                 glPopMatrix();
                 // border
@@ -445,11 +443,11 @@ public class SplashProgress
                 drawBox((barWidth - 2) * (b.getStep() + 1) / (b.getSteps() + 1), barHeight - 2); // Step can sometimes be 0.
                 // progress text
                 String progress = "" + b.getStep() + "/" + b.getSteps();
-                glTranslatef(((float)barWidth - 2) / 2 - fontRenderer.func_78256_a(progress), 2, 0);
+                glTranslatef(((float)barWidth - 2) / 2 - fontRenderer.getStringWidth(progress), 2, 0);
                 setColor(fontColor);
                 glScalef(2, 2, 1);
                 glEnable(GL_TEXTURE_2D);
-                fontRenderer.func_78276_b(progress, 0, 0, 0x000000);
+                fontRenderer.drawString(progress, 0, 0, 0x000000);
                 glPopMatrix();
             }
 
@@ -465,7 +463,7 @@ public class SplashProgress
                 setColor(fontColor);
                 glScalef(2, 2, 1);
                 glEnable(GL_TEXTURE_2D);
-                fontRenderer.func_78276_b("Memory Used / Total", 0, 0, 0x000000);
+                fontRenderer.drawString("Memory Used / Total", 0, 0, 0x000000);
                 glDisable(GL_TEXTURE_2D);
                 glPopMatrix();
                 // border
@@ -509,11 +507,11 @@ public class SplashProgress
 
                 // progress text
                 String progress = getMemoryString(usedMemory) + " / " + getMemoryString(maxMemory);
-                glTranslatef(((float)barWidth - 2) / 2 - fontRenderer.func_78256_a(progress), 2, 0);
+                glTranslatef(((float)barWidth - 2) / 2 - fontRenderer.getStringWidth(progress), 2, 0);
                 setColor(fontColor);
                 glScalef(2, 2, 1);
                 glEnable(GL_TEXTURE_2D);
-                fontRenderer.func_78276_b(progress, 0, 0, 0x000000);
+                fontRenderer.drawString(progress, 0, 0, 0x000000);
                 glPopMatrix();
             }
 
@@ -543,10 +541,10 @@ public class SplashProgress
 
             private void clearGL()
             {
-                Minecraft mc = Minecraft.func_71410_x();
-                mc.field_71443_c = Display.getWidth();
-                mc.field_71440_d = Display.getHeight();
-                mc.func_71370_a(mc.field_71443_c, mc.field_71440_d);
+                Minecraft mc = Minecraft.getMinecraft();
+                mc.displayWidth = Display.getWidth();
+                mc.displayHeight = Display.getHeight();
+                mc.resize(mc.displayWidth, mc.displayHeight);
                 glClearColor(1, 1, 1, 1);
                 glEnable(GL_DEPTH_TEST);
                 glDepthFunc(GL_LEQUAL);
@@ -586,8 +584,8 @@ public class SplashProgress
         if (max_texture_size != -1) return max_texture_size;
         for (int i = 0x4000; i > 0; i >>= 1)
         {
-            GlStateManager.func_187419_a(GL_PROXY_TEXTURE_2D, 0, GL_RGBA, i, i, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
-            if (GlStateManager.func_187411_c(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH) != 0)
+            GlStateManager.glTexImage2D(GL_PROXY_TEXTURE_2D, 0, GL_RGBA, i, i, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+            if (GlStateManager.glGetTexLevelParameteri(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH) != 0)
             {
                 max_texture_size = i;
                 return i;
@@ -706,7 +704,7 @@ public class SplashProgress
 
     private static boolean disableSplash()
     {
-        File configFile = new File(Minecraft.func_71410_x().field_71412_D, "config/splash.properties");
+        File configFile = new File(Minecraft.getMinecraft().mcDataDir, "config/splash.properties");
         File parent = configFile.getParentFile();
         if (!parent.exists())
             parent.mkdirs();
@@ -895,14 +893,14 @@ public class SplashProgress
     {
         public SplashFontRenderer()
         {
-            super(Minecraft.func_71410_x().field_71474_y, fontTexture.getLocation(), null, false);
-            super.func_110549_a(null);
+            super(Minecraft.getMinecraft().gameSettings, fontTexture.getLocation(), null, false);
+            super.onResourceManagerReload(null);
         }
 
         @Override
         protected void bindTexture(@Nonnull ResourceLocation location)
         {
-            if(location != field_111273_g) throw new IllegalArgumentException();
+            if(location != locationFontTexture) throw new IllegalArgumentException();
             fontTexture.bind();
         }
 
@@ -910,8 +908,8 @@ public class SplashProgress
         @Override
         protected IResource getResource(@Nonnull ResourceLocation location) throws IOException
         {
-            DefaultResourcePack pack = Minecraft.func_71410_x().field_110450_ap;
-            return new SimpleResource(pack.func_130077_b(), location, pack.func_110590_a(location), null, null);
+            DefaultResourcePack pack = Minecraft.getMinecraft().mcDefaultResourcePack;
+            return new SimpleResource(pack.getPackName(), location, pack.getInputStream(location), null, null);
         }
     }
 
@@ -919,7 +917,7 @@ public class SplashProgress
     {
         if(!enabled)
         {
-            Minecraft.func_71410_x().func_180510_a(renderEngine);
+            Minecraft.getMinecraft().drawSplashScreen(renderEngine);
         }
     }
 
@@ -927,7 +925,7 @@ public class SplashProgress
     {
         if(!enabled)
         {
-            renderEngine.func_147645_c(mojangLogo);
+            renderEngine.deleteTexture(mojangLogo);
         }
     }
 
@@ -943,21 +941,21 @@ public class SplashProgress
     private static InputStream open(ResourceLocation loc, @Nullable ResourceLocation fallback, boolean allowResourcePack) throws IOException
     {
         if (!allowResourcePack)
-            return mcPack.func_110590_a(loc);
+            return mcPack.getInputStream(loc);
 
-        if(miscPack.func_110589_b(loc))
+        if(miscPack.resourceExists(loc))
         {
-            return miscPack.func_110590_a(loc);
+            return miscPack.getInputStream(loc);
         }
-        else if(fmlPack.func_110589_b(loc))
+        else if(fmlPack.resourceExists(loc))
         {
-            return fmlPack.func_110590_a(loc);
+            return fmlPack.getInputStream(loc);
         }
-        else if(!mcPack.func_110589_b(loc) && fallback != null)
+        else if(!mcPack.resourceExists(loc) && fallback != null)
         {
             return open(fallback, null, true);
         }
-        return mcPack.func_110590_a(loc);
+        return mcPack.getInputStream(loc);
     }
 
     private static int bytesToMb(long bytes)

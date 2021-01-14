@@ -34,21 +34,21 @@ public class OpenGuiHandler extends SimpleChannelInboundHandler<OpenGui> {
     protected void channelRead0(ChannelHandlerContext ctx, final OpenGui msg) throws Exception
     {
         IThreadListener thread = FMLCommonHandler.instance().getWorldThread(ctx.channel().attr(NetworkRegistry.NET_HANDLER).get());
-        if (thread.func_152345_ab())
+        if (thread.isCallingFromMinecraftThread())
         {
             process(msg);
         }
         else
         {
-            thread.func_152344_a(() -> OpenGuiHandler.this.process(msg));
+            thread.addScheduledTask(() -> OpenGuiHandler.this.process(msg));
         }
     }
 
     private void process(OpenGui msg)
     {
-        EntityPlayer player = FMLClientHandler.instance().getClient().field_71439_g;
-        player.openGui(msg.modId, msg.modGuiId, player.field_70170_p, msg.x, msg.y, msg.z);
-        player.field_71070_bA.field_75152_c = msg.windowId;
+        EntityPlayer player = FMLClientHandler.instance().getClient().player;
+        player.openGui(msg.modId, msg.modGuiId, player.world, msg.x, msg.y, msg.z);
+        player.openContainer.windowId = msg.windowId;
     }
 
     @Override

@@ -61,7 +61,7 @@ public class UniversalBucket extends Item
 
     public UniversalBucket()
     {
-        this(Fluid.BUCKET_VOLUME, new ItemStack(Items.field_151133_ar), false);
+        this(Fluid.BUCKET_VOLUME, new ItemStack(Items.BUCKET), false);
     }
 
     /**
@@ -75,35 +75,35 @@ public class UniversalBucket extends Item
         this.empty = empty;
         this.nbtSensitive = nbtSensitive;
 
-        this.func_77625_d(1);
+        this.setMaxStackSize(1);
 
-        this.func_77637_a(CreativeTabs.field_78026_f);
+        this.setCreativeTab(CreativeTabs.MISC);
 
-        BlockDispenser.field_149943_a.func_82595_a(this, DispenseFluidContainer.getInstance());
+        BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(this, DispenseFluidContainer.getInstance());
     }
 
     @Override
     public boolean hasContainerItem(@Nonnull ItemStack stack)
     {
-        return !getEmpty().func_190926_b();
+        return !getEmpty().isEmpty();
     }
 
     @Nonnull
     @Override
     public ItemStack getContainerItem(@Nonnull ItemStack itemStack)
     {
-        if (!getEmpty().func_190926_b())
+        if (!getEmpty().isEmpty())
         {
             // Create a copy such that the game can't mess with it
-            return getEmpty().func_77946_l();
+            return getEmpty().copy();
         }
         return super.getContainerItem(itemStack);
     }
 
     @Override
-    public void func_150895_a(@Nullable CreativeTabs tab, @Nonnull NonNullList<ItemStack> subItems)
+    public void getSubItems(@Nullable CreativeTabs tab, @Nonnull NonNullList<ItemStack> subItems)
     {
-        if (!this.func_194125_a(tab))
+        if (!this.isInCreativeTab(tab))
             return;
         for (Fluid fluid : FluidRegistry.getRegisteredFluids().values())
         {
@@ -124,33 +124,33 @@ public class UniversalBucket extends Item
 
     @Override
     @Nonnull
-    public String func_77653_i(@Nonnull ItemStack stack)
+    public String getItemStackDisplayName(@Nonnull ItemStack stack)
     {
         FluidStack fluidStack = getFluid(stack);
         if (fluidStack == null)
         {
-            if(!getEmpty().func_190926_b())
+            if(!getEmpty().isEmpty())
             {
-                return getEmpty().func_82833_r();
+                return getEmpty().getDisplayName();
             }
-            return super.func_77653_i(stack);
+            return super.getItemStackDisplayName(stack);
         }
 
-        String unloc = this.func_77657_g(stack);
+        String unloc = this.getUnlocalizedNameInefficiently(stack);
 
-        if (I18n.func_94522_b(unloc + "." + fluidStack.getFluid().getName()))
+        if (I18n.canTranslate(unloc + "." + fluidStack.getFluid().getName()))
         {
-            return I18n.func_74838_a(unloc + "." + fluidStack.getFluid().getName());
+            return I18n.translateToLocal(unloc + "." + fluidStack.getFluid().getName());
         }
 
-        return I18n.func_74837_a(unloc + ".name", fluidStack.getLocalizedName());
+        return I18n.translateToLocalFormatted(unloc + ".name", fluidStack.getLocalizedName());
     }
 
     @Override
     @Nonnull
-    public ActionResult<ItemStack> func_77659_a(@Nonnull World world, @Nonnull EntityPlayer player, @Nonnull EnumHand hand)
+    public ActionResult<ItemStack> onItemRightClick(@Nonnull World world, @Nonnull EntityPlayer player, @Nonnull EnumHand hand)
     {
-        ItemStack itemstack = player.func_184586_b(hand);
+        ItemStack itemstack = player.getHeldItem(hand);
         FluidStack fluidStack = getFluid(itemstack);
         // empty bucket shouldn't exist, do nothing since it should be handled by the bucket event
         if (fluidStack == null)
@@ -159,39 +159,39 @@ public class UniversalBucket extends Item
         }
 
         // clicked on a block?
-        RayTraceResult mop = this.func_77621_a(world, player, false);
+        RayTraceResult mop = this.rayTrace(world, player, false);
 
         ActionResult<ItemStack> ret = ForgeEventFactory.onBucketUse(player, world, itemstack, mop);
         if (ret != null) return ret;
 
-        if(mop == null || mop.field_72313_a != RayTraceResult.Type.BLOCK)
+        if(mop == null || mop.typeOfHit != RayTraceResult.Type.BLOCK)
         {
             return ActionResult.newResult(EnumActionResult.PASS, itemstack);
         }
 
-        BlockPos clickPos = mop.func_178782_a();
+        BlockPos clickPos = mop.getBlockPos();
         // can we place liquid there?
-        if (world.func_175660_a(player, clickPos))
+        if (world.isBlockModifiable(player, clickPos))
         {
             // the block adjacent to the side we clicked on
-            BlockPos targetPos = clickPos.func_177972_a(mop.field_178784_b);
+            BlockPos targetPos = clickPos.offset(mop.sideHit);
 
             // can the player place there?
-            if (player.func_175151_a(targetPos, mop.field_178784_b, itemstack))
+            if (player.canPlayerEdit(targetPos, mop.sideHit, itemstack))
             {
                 // try placing liquid
                 FluidActionResult result = FluidUtil.tryPlaceFluid(player, world, targetPos, itemstack, fluidStack);
-                if (result.isSuccess() && !player.field_71075_bZ.field_75098_d)
+                if (result.isSuccess() && !player.capabilities.isCreativeMode)
                 {
                     // success!
-                    player.func_71029_a(StatList.func_188057_b(this));
+                    player.addStat(StatList.getObjectUseStats(this));
 
-                    itemstack.func_190918_g(1);
+                    itemstack.shrink(1);
                     ItemStack drained = result.getResult();
-                    ItemStack emptyStack = !drained.func_190926_b() ? drained.func_77946_l() : new ItemStack(this);
+                    ItemStack emptyStack = !drained.isEmpty() ? drained.copy() : new ItemStack(this);
 
                     // check whether we replace the item or add the empty one to the inventory
-                    if (itemstack.func_190926_b())
+                    if (itemstack.isEmpty())
                     {
                         return ActionResult.newResult(EnumActionResult.SUCCESS, emptyStack);
                     }
@@ -220,27 +220,27 @@ public class UniversalBucket extends Item
 
         // not for us to handle
         ItemStack emptyBucket = event.getEmptyBucket();
-        if (emptyBucket.func_190926_b() ||
-                !emptyBucket.func_77969_a(getEmpty()) ||
-                (isNbtSensitive() && ItemStack.func_77970_a(emptyBucket, getEmpty())))
+        if (emptyBucket.isEmpty() ||
+                !emptyBucket.isItemEqual(getEmpty()) ||
+                (isNbtSensitive() && ItemStack.areItemStackTagsEqual(emptyBucket, getEmpty())))
         {
             return;
         }
 
         // needs to target a block
         RayTraceResult target = event.getTarget();
-        if (target == null || target.field_72313_a != RayTraceResult.Type.BLOCK)
+        if (target == null || target.typeOfHit != RayTraceResult.Type.BLOCK)
         {
             return;
         }
 
         World world = event.getWorld();
-        BlockPos pos = target.func_178782_a();
+        BlockPos pos = target.getBlockPos();
 
-        ItemStack singleBucket = emptyBucket.func_77946_l();
-        singleBucket.func_190920_e(1);
+        ItemStack singleBucket = emptyBucket.copy();
+        singleBucket.setCount(1);
 
-        FluidActionResult filledResult = FluidUtil.tryPickUpFluid(singleBucket, event.getEntityPlayer(), world, pos, target.field_178784_b);
+        FluidActionResult filledResult = FluidUtil.tryPickUpFluid(singleBucket, event.getEntityPlayer(), world, pos, target.sideHit);
         if (filledResult.isSuccess())
         {
             event.setResult(Event.Result.ALLOW);
@@ -267,7 +267,7 @@ public class UniversalBucket extends Item
     @Nullable
     public FluidStack getFluid(@Nonnull ItemStack container)
     {
-        return FluidStack.loadFluidStackFromNBT(container.func_77978_p());
+        return FluidStack.loadFluidStackFromNBT(container.getTagCompound());
     }
 
     public int getCapacity()

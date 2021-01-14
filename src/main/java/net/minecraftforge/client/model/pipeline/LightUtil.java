@@ -90,18 +90,18 @@ public class LightUtil
 
     public static void putBakedQuad(IVertexConsumer consumer, BakedQuad quad)
     {
-        consumer.setTexture(quad.func_187508_a());
-        consumer.setQuadOrientation(quad.func_178210_d());
-        if(quad.func_178212_b())
+        consumer.setTexture(quad.getSprite());
+        consumer.setQuadOrientation(quad.getFace());
+        if(quad.hasTintIndex())
         {
-            consumer.setQuadTint(quad.func_178211_c());
+            consumer.setQuadTint(quad.getTintIndex());
         }
         consumer.setApplyDiffuseLighting(quad.shouldApplyDiffuseLighting());
         float[] data = new float[4];
         VertexFormat formatFrom = consumer.getVertexFormat();
         VertexFormat formatTo = quad.getFormat();
-        int countFrom = formatFrom.func_177345_h();
-        int countTo = formatTo.func_177345_h();
+        int countFrom = formatFrom.getElementCount();
+        int countTo = formatTo.getElementCount();
         int[] eMap = mapFormats(formatFrom, formatTo);
         for(int v = 0; v < 4; v++)
         {
@@ -109,7 +109,7 @@ public class LightUtil
             {
                 if(eMap[e] != countTo)
                 {
-                    unpack(quad.func_178209_a(), data, formatTo, v, eMap[e]);
+                    unpack(quad.getVertexData(), data, formatTo, v, eMap[e]);
                     consumer.put(e, data);
                 }
                 else
@@ -120,8 +120,8 @@ public class LightUtil
         }
     }
 
-    private static final VertexFormat DEFAULT_FROM = VertexLighterFlat.withNormal(DefaultVertexFormats.field_176600_a);
-    private static final VertexFormat DEFAULT_TO = DefaultVertexFormats.field_176599_b;
+    private static final VertexFormat DEFAULT_FROM = VertexLighterFlat.withNormal(DefaultVertexFormats.BLOCK);
+    private static final VertexFormat DEFAULT_TO = DefaultVertexFormats.ITEM;
     private static final int[] DEFAULT_MAPPING = generateMapping(DEFAULT_FROM, DEFAULT_TO);
     public static int[] mapFormats(VertexFormat from, VertexFormat to)
     {
@@ -133,18 +133,18 @@ public class LightUtil
 
     private static int[] generateMapping(VertexFormat from, VertexFormat to)
     {
-        int fromCount = from.func_177345_h();
-        int toCount = to.func_177345_h();
+        int fromCount = from.getElementCount();
+        int toCount = to.getElementCount();
         int[] eMap = new int[fromCount];
 
         for(int e = 0; e < fromCount; e++)
         {
-            VertexFormatElement expected = from.func_177348_c(e);
+            VertexFormatElement expected = from.getElement(e);
             int e2;
             for(e2 = 0; e2 < toCount; e2++)
             {
-                VertexFormatElement current = to.func_177348_c(e2);
-                if(expected.func_177375_c() == current.func_177375_c() && expected.func_177369_e() == current.func_177369_e())
+                VertexFormatElement current = to.getElement(e2);
+                if(expected.getUsage() == current.getUsage() && expected.getIndex() == current.getIndex())
                 {
                     break;
                 }
@@ -157,11 +157,11 @@ public class LightUtil
     public static void unpack(int[] from, float[] to, VertexFormat formatFrom, int v, int e)
     {
         int length = 4 < to.length ? 4 : to.length;
-        VertexFormatElement element = formatFrom.func_177348_c(e);
-        int vertexStart = v * formatFrom.func_177338_f() + formatFrom.func_181720_d(e);
-        int count = element.func_177370_d();
-        VertexFormatElement.EnumType type = element.func_177367_b();
-        int size = type.func_177395_a();
+        VertexFormatElement element = formatFrom.getElement(e);
+        int vertexStart = v * formatFrom.getNextOffset() + formatFrom.getOffset(e);
+        int count = element.getElementCount();
+        VertexFormatElement.EnumType type = element.getType();
+        int size = type.getSize();
         int mask = (256 << (8 * (size - 1))) - 1;
         for(int i = 0; i < length; i++)
         {
@@ -211,11 +211,11 @@ public class LightUtil
 
     public static void pack(float[] from, int[] to, VertexFormat formatTo, int v, int e)
     {
-        VertexFormatElement element = formatTo.func_177348_c(e);
-        int vertexStart = v * formatTo.func_177338_f() + formatTo.func_181720_d(e);
-        int count = element.func_177370_d();
-        VertexFormatElement.EnumType type = element.func_177367_b();
-        int size = type.func_177395_a();
+        VertexFormatElement element = formatTo.getElement(e);
+        int vertexStart = v * formatTo.getNextOffset() + formatTo.getOffset(e);
+        int count = element.getElementCount();
+        VertexFormatElement.EnumType type = element.getType();
+        int size = type.getSize();
         int mask = (256 << (8 * (size - 1))) - 1;
         for(int i = 0; i < 4; i++)
         {
@@ -255,8 +255,8 @@ public class LightUtil
     {
         if(tessellator == null)
         {
-            Tessellator tes = Tessellator.func_178181_a();
-            BufferBuilder wr = tes.func_178180_c();
+            Tessellator tes = Tessellator.getInstance();
+            BufferBuilder wr = tes.getBuffer();
             tessellator = new VertexBufferConsumer(wr);
         }
         return tessellator;
@@ -305,10 +305,10 @@ public class LightUtil
 
     public static void renderQuadColor(BufferBuilder buffer, BakedQuad quad, int auxColor)
     {
-        if (quad.getFormat().equals(buffer.func_178973_g()))
+        if (quad.getFormat().equals(buffer.getVertexFormat()))
         {
-            buffer.func_178981_a(quad.func_178209_a());
-            if (buffer.func_178973_g().func_177346_d())
+            buffer.addVertexData(quad.getVertexData());
+            if (buffer.getVertexFormat().hasColor())
             {
                 ForgeHooksClient.putQuadColor(buffer, quad, auxColor);
             }
@@ -339,7 +339,7 @@ public class LightUtil
         @Override
         public void put(int element, float... data)
         {
-            if(getVertexFormat().func_177348_c(element).func_177375_c() == EnumUsage.COLOR)
+            if(getVertexFormat().getElement(element).getUsage() == EnumUsage.COLOR)
             {
                 System.arraycopy(auxColor, 0, buf, 0, buf.length);
                 int n = Math.min(4, data.length);
@@ -353,7 +353,7 @@ public class LightUtil
             {
                 super.put(element, data);
             }
-            if(element == getVertexFormat().func_177345_h() - 1)
+            if(element == getVertexFormat().getElementCount() - 1)
             {
                 vertices++;
                 if(vertices == 4)

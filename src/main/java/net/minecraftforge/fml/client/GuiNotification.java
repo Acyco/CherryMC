@@ -32,15 +32,15 @@ public class GuiNotification extends GuiScreen
     }
 
     @Override
-    public void func_73866_w_()
+    public void initGui()
     {
-        this.field_146292_n.add(new GuiButton(0, this.field_146294_l / 2 - 100, this.field_146295_m - 38, I18n.func_135052_a("gui.done")));
+        this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height - 38, I18n.format("gui.done")));
     }
 
     @Override
-    protected void func_146284_a(GuiButton button)
+    protected void actionPerformed(GuiButton button)
     {
-        if (button.field_146124_l && button.field_146127_k == 0)
+        if (button.enabled && button.id == 0)
         {
             FMLClientHandler.instance().showGuiScreen(null);
             query.finish();
@@ -48,13 +48,13 @@ public class GuiNotification extends GuiScreen
     }
 
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        this.func_146276_q_();
+        this.drawDefaultBackground();
 
         String[] lines = query.getText().split("\n");
 
-        int spaceAvailable = this.field_146295_m - 38 - 20;
+        int spaceAvailable = this.height - 38 - 20;
         int spaceRequired = Math.min(spaceAvailable, 10 + 10 * lines.length);
 
         int offset = 10 + (spaceAvailable - spaceRequired) / 2; // vertically centered
@@ -63,17 +63,17 @@ public class GuiNotification extends GuiScreen
         {
             if (offset >= spaceAvailable)
             {
-                this.func_73732_a(this.field_146289_q, "...", this.field_146294_l / 2, offset, 0xFFFFFF);
+                this.drawCenteredString(this.fontRenderer, "...", this.width / 2, offset, 0xFFFFFF);
                 break;
             }
             else
             {
-                if (!line.isEmpty()) this.func_73732_a(this.field_146289_q, line, this.field_146294_l / 2, offset, 0xFFFFFF);
+                if (!line.isEmpty()) this.drawCenteredString(this.fontRenderer, line, this.width / 2, offset, 0xFFFFFF);
                 offset += 10;
             }
         }
 
-        super.func_73863_a(mouseX, mouseY, partialTicks);
+        super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
     protected final StartupQuery query;

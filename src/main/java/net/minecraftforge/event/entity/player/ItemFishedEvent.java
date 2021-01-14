@@ -38,13 +38,13 @@ import java.util.List;
 @Cancelable
 public class ItemFishedEvent extends PlayerEvent
 {
-    private final NonNullList<ItemStack> stacks = NonNullList.func_191196_a();
+    private final NonNullList<ItemStack> stacks = NonNullList.create();
     private final EntityFishHook hook;
     private int rodDamage;
 
     public ItemFishedEvent(List<ItemStack> stacks, int rodDamage, EntityFishHook hook)
     {
-        super(hook.func_190619_l());
+        super(hook.getAngler());
         this.stacks.addAll(stacks);
         this.rodDamage = rodDamage;
         this.hook = hook;

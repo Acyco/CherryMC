@@ -31,7 +31,7 @@ public class PlayerArmorInvWrapper extends RangedWrapper
 
     public PlayerArmorInvWrapper(InventoryPlayer inv)
     {
-        super(new InvWrapper(inv), inv.field_70462_a.size(), inv.field_70462_a.size() + inv.field_70460_b.size());
+        super(new InvWrapper(inv), inv.mainInventory.size(), inv.mainInventory.size() + inv.armorInventory.size());
         inventoryPlayer = inv;
     }
 
@@ -42,14 +42,14 @@ public class PlayerArmorInvWrapper extends RangedWrapper
         EntityEquipmentSlot equ = null;
         for (EntityEquipmentSlot s : EntityEquipmentSlot.values())
         {
-            if (s.func_188453_a() == EntityEquipmentSlot.Type.ARMOR && s.func_188454_b() == slot)
+            if (s.getSlotType() == EntityEquipmentSlot.Type.ARMOR && s.getIndex() == slot)
             {
                 equ = s;
                 break;
             }
         }
         // check if it's valid for the armor slot
-        if (equ != null && slot < 4 && !stack.func_190926_b() && stack.func_77973_b().isValidArmor(stack, equ, getInventoryPlayer().field_70458_d))
+        if (equ != null && slot < 4 && !stack.isEmpty() && stack.getItem().isValidArmor(stack, equ, getInventoryPlayer().player))
         {
             return super.insertItem(slot, stack, simulate);
         }

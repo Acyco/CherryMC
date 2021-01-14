@@ -73,9 +73,9 @@ public class PerspectiveMapWrapper implements IBakedModel
         EnumMap<ItemCameraTransforms.TransformType, TRSRTransformation> map = new EnumMap<>(ItemCameraTransforms.TransformType.class);
         for(ItemCameraTransforms.TransformType type : ItemCameraTransforms.TransformType.values())
         {
-            if (transforms.func_181687_c(type))
+            if (transforms.hasCustomTransform(type))
             {
-                map.put(type, TRSRTransformation.blockCenterToCorner(TRSRTransformation.from(transforms.func_181688_b(type))));
+                map.put(type, TRSRTransformation.blockCenterToCorner(TRSRTransformation.from(transforms.getTransform(type))));
             }
         }
         return ImmutableMap.copyOf(map);
@@ -101,15 +101,15 @@ public class PerspectiveMapWrapper implements IBakedModel
         return Pair.of(model, null);
     }
 
-    @Override public boolean func_177555_b() { return parent.func_177555_b(); }
+    @Override public boolean isAmbientOcclusion() { return parent.isAmbientOcclusion(); }
     @Override public boolean isAmbientOcclusion(IBlockState state) { return parent.isAmbientOcclusion(state); }
-    @Override public boolean func_177556_c() { return parent.func_177556_c(); }
-    @Override public boolean func_188618_c() { return parent.func_188618_c(); }
-    @Override public TextureAtlasSprite func_177554_e() { return parent.func_177554_e(); }
+    @Override public boolean isGui3d() { return parent.isGui3d(); }
+    @Override public boolean isBuiltInRenderer() { return parent.isBuiltInRenderer(); }
+    @Override public TextureAtlasSprite getParticleTexture() { return parent.getParticleTexture(); }
     @SuppressWarnings("deprecation")
-    @Override public ItemCameraTransforms func_177552_f() { return parent.func_177552_f(); }
-    @Override public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand) { return parent.func_188616_a(state, side, rand); }
-    @Override public ItemOverrideList func_188617_f() { return parent.func_188617_f(); }
+    @Override public ItemCameraTransforms getItemCameraTransforms() { return parent.getItemCameraTransforms(); }
+    @Override public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand) { return parent.getQuads(state, side, rand); }
+    @Override public ItemOverrideList getOverrides() { return parent.getOverrides(); }
 
     @Override
     public Pair<? extends IBakedModel, Matrix4f> handlePerspective(ItemCameraTransforms.TransformType cameraTransformType)

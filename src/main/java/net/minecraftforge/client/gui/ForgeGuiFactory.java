@@ -53,8 +53,6 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModContainer;
 import static net.minecraftforge.common.ForgeModContainer.VERSION_CHECK_CAT;
 
-import net.minecraftforge.fml.client.IModGuiFactory.RuntimeOptionCategoryElement;
-
 /**
  * This is the base GuiConfig screen class that all the other Forge-specific config screens will be called from.
  * Since Forge has multiple config files I thought I would use that opportunity to show some of the ways
@@ -114,7 +112,7 @@ public class ForgeGuiFactory implements IModGuiFactory
     {
         public ForgeConfigGui(GuiScreen parentScreen)
         {
-            super(parentScreen, getConfigElements(), ForgeVersion.MOD_ID, false, false, I18n.func_135052_a("forge.configgui.forgeConfigTitle"));
+            super(parentScreen, getConfigElements(), ForgeVersion.MOD_ID, false, false, I18n.format("forge.configgui.forgeConfigTitle"));
         }
 
         private static List<IConfigElement> getConfigElements()
@@ -201,7 +199,7 @@ public class ForgeGuiFactory implements IModGuiFactory
                         this.configElement.requiresWorldRestart() || this.owningScreen.allRequireWorldRestart,
                         this.configElement.requiresMcRestart() || this.owningScreen.allRequireMcRestart,
                         GuiConfig.getAbridgedConfigPath(ForgeChunkManager.getConfig().toString()),
-                        I18n.func_135052_a("forge.configgui.ctgy.forgeChunkLoadingConfig"));
+                        I18n.format("forge.configgui.ctgy.forgeChunkLoadingConfig"));
             }
         }
 
@@ -279,7 +277,7 @@ public class ForgeGuiFactory implements IModGuiFactory
                 return new GuiConfig(this.owningScreen, list, this.owningScreen.modID,
                         this.configElement.requiresWorldRestart() || this.owningScreen.allRequireWorldRestart,
                         this.configElement.requiresMcRestart() || this.owningScreen.allRequireMcRestart, this.owningScreen.title,
-                        I18n.func_135052_a("forge.configgui.ctgy.forgeChunkLoadingModConfig"));
+                        I18n.format("forge.configgui.ctgy.forgeChunkLoadingModConfig"));
             }
 
             /**
@@ -355,7 +353,7 @@ public class ForgeGuiFactory implements IModGuiFactory
                 return new GuiConfig(this.owningScreen, list, this.owningScreen.modID,
                         this.configElement.requiresWorldRestart() || this.owningScreen.allRequireWorldRestart,
                         this.configElement.requiresMcRestart() || this.owningScreen.allRequireMcRestart, this.owningScreen.title,
-                        I18n.func_135052_a("forge.configgui.ctgy.forgeChunkLoadingAddModConfig"));
+                        I18n.format("forge.configgui.ctgy.forgeChunkLoadingAddModConfig"));
             }
 
             @Override
@@ -375,7 +373,7 @@ public class ForgeGuiFactory implements IModGuiFactory
             {
                 super(owningScreen, owningEntryList, prop, getSelectableValues());
                 if (this.selectableValues.size() == 0)
-                    this.btnValue.field_146124_l = false;
+                    this.btnValue.enabled = false;
             }
 
             private static Map<Object, String> getSelectableValues()
@@ -428,7 +426,7 @@ public class ForgeGuiFactory implements IModGuiFactory
                             superParent.configElements.add(modConfig);
 
                         superParent.needsRefresh = true;
-                        superParent.func_73866_w_();
+                        superParent.initGui();
                     }
                 }
             }

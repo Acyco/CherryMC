@@ -85,8 +85,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.Level;
 
-import net.minecraftforge.fml.common.EnhancedRuntimeException.WrappedPrintStream;
-
 /**
  * INTERNAL ONLY
  * MODDERS SHOULD HAVE NO REASON TO USE THIS CLASS
@@ -301,16 +299,16 @@ public class GameData
     {
         void clear()
         {
-            this.field_148749_a.clear();
-            this.field_148748_b.clear();
+            this.identityMap.clear();
+            this.objectList.clear();
         }
 
         void remove(I key)
         {
-            Integer prev = this.field_148749_a.remove(key);
+            Integer prev = this.identityMap.remove(key);
             if (prev != null)
             {
-                this.field_148748_b.set(prev, null);
+                this.objectList.set(prev, null);
             }
         }
     }
@@ -329,7 +327,7 @@ public class GameData
 
             if (oldBlock != null)
             {
-                for (IBlockState state : oldBlock.func_176194_O().func_177619_a())
+                for (IBlockState state : oldBlock.getBlockState().getValidStates())
                 {
                     blockstateMap.remove(state);
                 }
@@ -338,7 +336,7 @@ public class GameData
             if ("minecraft:tripwire".equals(block.getRegistryName().toString())) //Tripwire is crap so we have to special case whee!
             {
                 for (int meta = 0; meta < 15; meta++)
-                    blockstateMap.func_148746_a(block.func_176203_a(meta), id << 4 | meta);
+                    blockstateMap.put(block.getStateFromMeta(meta), id << 4 | meta);
             }
 
             //So, due to blocks having more in-world states then metadata allows, we have to turn the map into a semi-milti-bimap.
@@ -346,10 +344,10 @@ public class GameData
             //Multiple states -> meta. But meta to CORRECT state.
 
             final boolean[] usedMeta = new boolean[16]; //Hold a list of known meta from all states.
-            for (IBlockState state : block.func_176194_O().func_177619_a())
+            for (IBlockState state : block.getBlockState().getValidStates())
             {
-                final int meta = block.func_176201_c(state);
-                blockstateMap.func_148746_a(state, id << 4 | meta); //Add ALL the things!
+                final int meta = block.getMetaFromState(state);
+                blockstateMap.put(state, id << 4 | meta); //Add ALL the things!
                 usedMeta[meta] = true;
             }
 
@@ -358,7 +356,7 @@ public class GameData
                 if (block.getClass() == BlockObserver.class)
                     continue; //Observers are bad and have non-cyclical states. So we HAVE to use the vanilla logic above.
                 if (usedMeta[meta])
-                    blockstateMap.func_148746_a(block.func_176203_a(meta), id << 4 | meta); // Put the CORRECT thing!
+                    blockstateMap.put(block.getStateFromMeta(meta), id << 4 | meta); // Put the CORRECT thing!
             }
 
             if (oldBlock != null)
@@ -384,13 +382,13 @@ public class GameData
             {
                 @SuppressWarnings("deprecation")
                 @Override
-                public int func_148747_b(IBlockState key)
+                public int get(IBlockState key)
                 {
-                    Integer integer = (Integer)this.field_148749_a.get(key);
+                    Integer integer = (Integer)this.identityMap.get(key);
                     // There are some cases where this map is queried to serialize a state that is valid,
                     //but somehow not in this list, so attempt to get real metadata. Doing this hear saves us 7 patches
                     if (integer == null && key != null)
-                        integer = this.field_148749_a.get(key.func_177230_c().func_176203_a(key.func_177230_c().func_176201_c(key)));
+                        integer = this.identityMap.get(key.getBlock().getStateFromMeta(key.getBlock().getMetaFromState(key)));
                     return integer == null ? -1 : integer.intValue();
                 }
             };
@@ -401,7 +399,7 @@ public class GameData
         @Override
         public Block createDummy(ResourceLocation key)
         {
-            Block ret = new BlockDummyAir().func_149663_c("air");
+            Block ret = new BlockDummyAir().setUnlocalizedName("air");
             GameData.forceRegistryName(ret, key);
             return ret;
         }
@@ -424,13 +422,13 @@ public class GameData
             {
                 @SuppressWarnings("unchecked")
                 BiMap<Block, Item> blockToItem = owner.getSlaveMap(BLOCK_TO_ITEM, BiMap.class);
-                blockToItem.remove(((ItemBlock)oldItem).func_179223_d());
+                blockToItem.remove(((ItemBlock)oldItem).getBlock());
             }
             if (item instanceof ItemBlock)
             {
                 @SuppressWarnings("unchecked")
                 BiMap<Block, Item> blockToItem = owner.getSlaveMap(BLOCK_TO_ITEM, BiMap.class);
-                blockToItem.forcePut(((ItemBlock)item).func_179223_d(), item);
+                blockToItem.forcePut(((ItemBlock)item).getBlock(), item);
             }
         }
 
@@ -458,7 +456,7 @@ public class GameData
         {
             if (stage != RegistryManager.ACTIVE) return;
             // verify the recipe output yields a registered item
-            Item item = obj.func_77571_b().func_77973_b();
+            Item item = obj.getRecipeOutput().getItem();
             if (!stage.getRegistry(Item.class).containsValue(item))
             {
                 throw new IllegalStateException(String.format("Recipe %s (%s) produces unregistered item %s (%s)", key, obj, item.getRegistryName(), item));
@@ -472,7 +470,7 @@ public class GameData
         }
         private static class DummyRecipe implements IRecipe
         {
-            private static ItemStack result = new ItemStack(Items.field_151045_i, 64);
+            private static ItemStack result = new ItemStack(Items.DIAMOND, 64);
             private ResourceLocation name;
 
             @Override
@@ -482,11 +480,11 @@ public class GameData
             }
             @Override public ResourceLocation getRegistryName() { return name; }
             @Override public Class<IRecipe> getRegistryType() { return IRecipe.class; }
-            @Override public boolean func_77569_a(InventoryCrafting inv, World worldIn) { return false; } //dirt?
-            @Override public ItemStack func_77572_b(InventoryCrafting inv) { return result; }
-            @Override public boolean func_194133_a(int width, int height) { return false; }
-            @Override public ItemStack func_77571_b() { return result; }
-            @Override public boolean func_192399_d() { return true; }
+            @Override public boolean matches(InventoryCrafting inv, World worldIn) { return false; } //dirt?
+            @Override public ItemStack getCraftingResult(InventoryCrafting inv) { return result; }
+            @Override public boolean canFit(int width, int height) { return false; }
+            @Override public ItemStack getRecipeOutput() { return result; }
+            @Override public boolean isDynamic() { return true; }
         }
     }
 
@@ -496,7 +494,7 @@ public class GameData
     public static void registerEntity(int id, ResourceLocation key, Class<? extends Entity> clazz, String oldName)
     {
         RegistryNamespaced<ResourceLocation, EntityEntry> reg = getWrapper(EntityEntry.class);
-        reg.func_177775_a(id, key, new EntityEntry(clazz, oldName));
+        reg.register(id, key, new EntityEntry(clazz, oldName));
     }
 
     private static class EntityCallbacks implements IForgeRegistry.AddCallback<EntityEntry>, IForgeRegistry.ClearCallback<EntityEntry>, IForgeRegistry.CreateCallback<EntityEntry>
@@ -512,7 +510,7 @@ public class GameData
             }
             if (entry.getEgg() != null)
             {
-                EntityList.field_75627_a.put(entry.getRegistryName(), entry.getEgg());
+                EntityList.ENTITY_EGGS.put(entry.getRegistryName(), entry.getEgg());
             }
             @SuppressWarnings("unchecked")
             Map<Class<? extends Entity>, EntityEntry> map = owner.getSlaveMap(ENTITY_CLASS_TO_ENTRY, Map.class);

@@ -59,8 +59,8 @@ public class BlockLiquidWrapper implements IFluidHandler
     public IFluidTankProperties[] getTankProperties()
     {
         FluidStack containedStack = null;
-        IBlockState blockState = world.func_180495_p(blockPos);
-        if (blockState.func_177230_c() == blockLiquid)
+        IBlockState blockState = world.getBlockState(blockPos);
+        if (blockState.getBlock() == blockLiquid)
         {
             containedStack = getStack(blockState);
         }
@@ -78,9 +78,9 @@ public class BlockLiquidWrapper implements IFluidHandler
 
         if (doFill)
         {
-            Material material = blockLiquid.func_176223_P().func_185904_a();
-            BlockLiquid block = BlockLiquid.func_176361_a(material);
-            world.func_180501_a(blockPos, block.func_176223_P().func_177226_a(BlockLiquid.field_176367_b, 0), 11);
+            Material material = blockLiquid.getDefaultState().getMaterial();
+            BlockLiquid block = BlockLiquid.getFlowingBlock(material);
+            world.setBlockState(blockPos, block.getDefaultState().withProperty(BlockLiquid.LEVEL, 0), 11);
         }
 
         return Fluid.BUCKET_VOLUME;
@@ -95,15 +95,15 @@ public class BlockLiquidWrapper implements IFluidHandler
             return null;
         }
 
-        IBlockState blockState = world.func_180495_p(blockPos);
-        if (blockState.func_177230_c() == blockLiquid && blockState.func_177229_b(BlockLiquid.field_176367_b) == 0)
+        IBlockState blockState = world.getBlockState(blockPos);
+        if (blockState.getBlock() == blockLiquid && blockState.getValue(BlockLiquid.LEVEL) == 0)
         {
             FluidStack containedStack = getStack(blockState);
             if (containedStack != null && resource.containsFluid(containedStack))
             {
                 if (doDrain)
                 {
-                    world.func_180501_a(blockPos, Blocks.field_150350_a.func_176223_P(), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+                    world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), Constants.BlockFlags.DEFAULT_AND_RERENDER);
                 }
                 return containedStack;
             }
@@ -121,15 +121,15 @@ public class BlockLiquidWrapper implements IFluidHandler
             return null;
         }
 
-        IBlockState blockState = world.func_180495_p(blockPos);
-        if (blockState.func_177230_c() == blockLiquid)
+        IBlockState blockState = world.getBlockState(blockPos);
+        if (blockState.getBlock() == blockLiquid)
         {
             FluidStack containedStack = getStack(blockState);
             if (containedStack != null && containedStack.amount <= maxDrain)
             {
                 if (doDrain)
                 {
-                    world.func_180501_a(blockPos, Blocks.field_150350_a.func_176223_P(), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+                    world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), Constants.BlockFlags.DEFAULT_AND_RERENDER);
                 }
                 return containedStack;
             }
@@ -141,12 +141,12 @@ public class BlockLiquidWrapper implements IFluidHandler
     @Nullable
     private FluidStack getStack(IBlockState blockState)
     {
-        Material material = blockState.func_185904_a();
-        if (material == Material.field_151586_h && blockState.func_177229_b(BlockLiquid.field_176367_b) == 0)
+        Material material = blockState.getMaterial();
+        if (material == Material.WATER && blockState.getValue(BlockLiquid.LEVEL) == 0)
         {
             return new FluidStack(FluidRegistry.WATER, Fluid.BUCKET_VOLUME);
         }
-        else if (material == Material.field_151587_i && blockState.func_177229_b(BlockLiquid.field_176367_b) == 0)
+        else if (material == Material.LAVA && blockState.getValue(BlockLiquid.LEVEL) == 0)
         {
             return new FluidStack(FluidRegistry.LAVA, Fluid.BUCKET_VOLUME);
         }

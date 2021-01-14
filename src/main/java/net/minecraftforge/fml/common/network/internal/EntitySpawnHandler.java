@@ -46,13 +46,13 @@ public class EntitySpawnHandler extends SimpleChannelInboundHandler<EntityMessag
     protected void channelRead0(ChannelHandlerContext ctx, final EntityMessage msg) throws Exception
     {
         IThreadListener thread = FMLCommonHandler.instance().getWorldThread(ctx.channel().attr(NetworkRegistry.NET_HANDLER).get());
-        if (thread.func_152345_ab())
+        if (thread.isCallingFromMinecraftThread())
         {
             process(msg);
         }
         else
         {
-            thread.func_152344_a(() -> EntitySpawnHandler.this.process(msg));
+            thread.addScheduledTask(() -> EntitySpawnHandler.this.process(msg));
         }
     }
 
@@ -86,49 +86,49 @@ public class EntitySpawnHandler extends SimpleChannelInboundHandler<EntityMessag
             {
                 entity = er.newInstance(wc);
 
-                int offset = spawnMsg.entityId - entity.func_145782_y();
-                entity.func_145769_d(spawnMsg.entityId);
-                entity.func_184221_a(spawnMsg.entityUUID);
-                entity.func_70012_b(spawnMsg.rawX, spawnMsg.rawY, spawnMsg.rawZ, spawnMsg.scaledYaw, spawnMsg.scaledPitch);
+                int offset = spawnMsg.entityId - entity.getEntityId();
+                entity.setEntityId(spawnMsg.entityId);
+                entity.setUniqueId(spawnMsg.entityUUID);
+                entity.setLocationAndAngles(spawnMsg.rawX, spawnMsg.rawY, spawnMsg.rawZ, spawnMsg.scaledYaw, spawnMsg.scaledPitch);
                 if (entity instanceof EntityLiving)
                 {
-                    ((EntityLiving) entity).field_70759_as = spawnMsg.scaledHeadYaw;
+                    ((EntityLiving) entity).rotationYawHead = spawnMsg.scaledHeadYaw;
                 }
 
-                Entity parts[] = entity.func_70021_al();
+                Entity parts[] = entity.getParts();
                 if (parts != null)
                 {
                     for (int j = 0; j < parts.length; j++)
                     {
-                        parts[j].func_145769_d(parts[j].func_145782_y() + offset);
+                        parts[j].setEntityId(parts[j].getEntityId() + offset);
                     }
                 }
             }
 
-            EntityTracker.func_187254_a(entity, spawnMsg.rawX, spawnMsg.rawY, spawnMsg.rawZ);
+            EntityTracker.updateServerPosition(entity, spawnMsg.rawX, spawnMsg.rawY, spawnMsg.rawZ);
 
             EntityPlayerSP clientPlayer = FMLClientHandler.instance().getClientPlayerEntity();
             if (entity instanceof IThrowableEntity)
             {
-                Entity thrower = clientPlayer.func_145782_y() == spawnMsg.throwerId ? clientPlayer : wc.func_73045_a(spawnMsg.throwerId);
+                Entity thrower = clientPlayer.getEntityId() == spawnMsg.throwerId ? clientPlayer : wc.getEntityByID(spawnMsg.throwerId);
                 ((IThrowableEntity) entity).setThrower(thrower);
             }
 
             if (spawnMsg.dataWatcherList != null)
             {
-                entity.func_184212_Q().func_187218_a(spawnMsg.dataWatcherList);
+                entity.getDataManager().setEntryValues(spawnMsg.dataWatcherList);
             }
 
             if (spawnMsg.throwerId > 0)
             {
-                entity.func_70016_h(spawnMsg.speedScaledX, spawnMsg.speedScaledY, spawnMsg.speedScaledZ);
+                entity.setVelocity(spawnMsg.speedScaledX, spawnMsg.speedScaledY, spawnMsg.speedScaledZ);
             }
 
             if (entity instanceof IEntityAdditionalSpawnData)
             {
                 ((IEntityAdditionalSpawnData) entity).readSpawnData(spawnMsg.dataStream);
             }
-            wc.func_73027_a(spawnMsg.entityId, entity);
+            wc.addEntityToWorld(spawnMsg.entityId, entity);
         }
         catch (Exception e)
         {

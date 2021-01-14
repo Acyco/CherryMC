@@ -54,19 +54,19 @@ class CommandEntity extends CommandTreeBase
     }
 
     @Override
-    public String func_71518_a(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
         return "commands.forge.entity.usage";
     }
 
     @Override
-    public int func_82362_a()
+    public int getRequiredPermissionLevel()
     {
         return 2;
     }
 
     @Override
-    public String func_71517_b()
+    public String getName()
     {
         return "entity";
     }
@@ -74,25 +74,25 @@ class CommandEntity extends CommandTreeBase
     private static class EntityListCommand extends CommandBase
     {
         @Override
-        public String func_71517_b()
+        public String getName()
         {
             return "list";
         }
 
         @Override
-        public int func_82362_a()
+        public int getRequiredPermissionLevel()
         {
             return 2;
         }
 
         @Override
-        public String func_71518_a(ICommandSender sender)
+        public String getUsage(ICommandSender sender)
         {
             return "commands.forge.entity.list.usage";
         }
 
         @Override
-        public void func_184881_a(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+        public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
         {
             String filter = "*";
             if (args.length > 0)
@@ -100,24 +100,24 @@ class CommandEntity extends CommandTreeBase
                 filter = args[0];
             }
             final String cleanFilter = filter.replace("?", ".?").replace("*", ".*?");
-            Set<ResourceLocation> names = EntityList.func_180124_b().stream().filter(n -> n.toString().matches(cleanFilter)).collect(Collectors.toSet());
+            Set<ResourceLocation> names = EntityList.getEntityNameList().stream().filter(n -> n.toString().matches(cleanFilter)).collect(Collectors.toSet());
 
             if (names.isEmpty())
                 throw new WrongUsageException("commands.forge.entity.list.invalid");
 
-            int dim = args.length > 1 ? func_175755_a(args[1]) : sender.func_130014_f_().field_73011_w.getDimension();
+            int dim = args.length > 1 ? parseInt(args[1]) : sender.getEntityWorld().provider.getDimension();
 
             WorldServer world = DimensionManager.getWorld(dim);
             if (world == null)
                 throw new WrongUsageException("commands.forge.entity.list.invalidworld", dim);
 
             Map<ResourceLocation, MutablePair<Integer, Map<ChunkPos, Integer>>> list = Maps.newHashMap();
-            List<Entity> entities = world.field_72996_f;
+            List<Entity> entities = world.loadedEntityList;
             entities.forEach(e -> {
-                ResourceLocation key = EntityList.func_191301_a(e);
+                ResourceLocation key = EntityList.getKey(e);
 
                 MutablePair<Integer, Map<ChunkPos, Integer>> info = list.computeIfAbsent(key, k -> MutablePair.of(0, Maps.newHashMap()));
-                ChunkPos chunk = new ChunkPos(e.func_180425_c());
+                ChunkPos chunk = new ChunkPos(e.getPosition());
                 info.left++;
                 info.right.put(chunk, info.right.getOrDefault(chunk, 0) + 1);
             });
@@ -128,7 +128,7 @@ class CommandEntity extends CommandTreeBase
                 Pair<Integer, Map<ChunkPos, Integer>> info = list.get(name);
                 if (info == null)
                     throw new WrongUsageException("commands.forge.entity.list.none");
-                sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, "commands.forge.entity.list.single.header", name, info.getLeft()));
+                sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, "commands.forge.entity.list.single.header", name, info.getLeft()));
                 List<Map.Entry<ChunkPos, Integer>> toSort = new ArrayList<>();
                 toSort.addAll(info.getRight().entrySet());
                 toSort.sort((a, b) -> {
@@ -145,7 +145,7 @@ class CommandEntity extends CommandTreeBase
                 for (Map.Entry<ChunkPos, Integer> e : toSort)
                 {
                     if (limit-- == 0) break;
-                    sender.func_145747_a(new TextComponentString("  " + e.getValue() + ": " + e.getKey().field_77276_a + ", " + e.getKey().field_77275_b));
+                    sender.sendMessage(new TextComponentString("  " + e.getValue() + ": " + e.getKey().x + ", " + e.getKey().z));
                 }
             }
             else
@@ -174,18 +174,18 @@ class CommandEntity extends CommandTreeBase
                     throw new WrongUsageException("commands.forge.entity.list.none");
 
                 int count = info.stream().mapToInt(Pair::getRight).sum();
-                sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, "commands.forge.entity.list.multiple.header", count));
-                info.forEach(e -> sender.func_145747_a(new TextComponentString("  " + e.getValue() + ": " + e.getKey())));
+                sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, "commands.forge.entity.list.multiple.header", count));
+                info.forEach(e -> sender.sendMessage(new TextComponentString("  " + e.getValue() + ": " + e.getKey())));
             }
         }
 
         @Override
-        public List<String> func_184883_a(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
+        public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
         {
             if (args.length == 1)
             {
-                String[] entityNames = EntityList.func_180124_b().stream().map(ResourceLocation::toString).sorted().toArray(String[]::new);
-                return func_71530_a(args, entityNames);
+                String[] entityNames = EntityList.getEntityNameList().stream().map(ResourceLocation::toString).sorted().toArray(String[]::new);
+                return getListOfStringsMatchingLastWord(args, entityNames);
             }
             return Collections.emptyList();
         }

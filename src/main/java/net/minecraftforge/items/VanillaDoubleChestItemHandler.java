@@ -53,23 +53,23 @@ public class VanillaDoubleChestItemHandler extends WeakReference<TileEntityChest
     @Nullable
     public static VanillaDoubleChestItemHandler get(TileEntityChest chest)
     {
-        World world = chest.func_145831_w();
-        BlockPos pos = chest.func_174877_v();
-        if (world == null || pos == null || !world.func_175667_e(pos))
+        World world = chest.getWorld();
+        BlockPos pos = chest.getPos();
+        if (world == null || pos == null || !world.isBlockLoaded(pos))
             return null; // Still loading
 
-        Block blockType = chest.func_145838_q();
+        Block blockType = chest.getBlockType();
 
-        EnumFacing[] horizontals = EnumFacing.field_176754_o;
+        EnumFacing[] horizontals = EnumFacing.HORIZONTALS;
         for (int i = horizontals.length - 1; i >= 0; i--)   // Use reverse order so we can return early
         {
             EnumFacing enumfacing = horizontals[i];
-            BlockPos blockpos = pos.func_177972_a(enumfacing);
-            Block block = world.func_180495_p(blockpos).func_177230_c();
+            BlockPos blockpos = pos.offset(enumfacing);
+            Block block = world.getBlockState(blockpos).getBlock();
 
             if (block == blockType)
             {
-                TileEntity otherTE = world.func_175625_s(blockpos);
+                TileEntity otherTE = world.getTileEntity(blockpos);
 
                 if (otherTE instanceof TileEntityChest)
                 {
@@ -98,7 +98,7 @@ public class VanillaDoubleChestItemHandler extends WeakReference<TileEntityChest
     private TileEntityChest getOtherChest()
     {
         TileEntityChest tileEntityChest = get();
-        return tileEntityChest != null && !tileEntityChest.func_145837_r() ? tileEntityChest : null;
+        return tileEntityChest != null && !tileEntityChest.isInvalid() ? tileEntityChest : null;
     }
 
     @Override
@@ -114,7 +114,7 @@ public class VanillaDoubleChestItemHandler extends WeakReference<TileEntityChest
         boolean accessingUpperChest = slot < 27;
         int targetSlot = accessingUpperChest ? slot : slot - 27;
         TileEntityChest chest = getChest(accessingUpperChest);
-        return chest != null ? chest.func_70301_a(targetSlot) : ItemStack.field_190927_a;
+        return chest != null ? chest.getStackInSlot(targetSlot) : ItemStack.EMPTY;
     }
 
     @Override
@@ -134,7 +134,7 @@ public class VanillaDoubleChestItemHandler extends WeakReference<TileEntityChest
 
         chest = getChest(!accessingUpperChest);
         if (chest != null)
-            chest.func_70296_d();
+            chest.markDirty();
     }
 
     @Override
@@ -147,13 +147,13 @@ public class VanillaDoubleChestItemHandler extends WeakReference<TileEntityChest
         if (chest == null)
             return stack;
 
-        int starting = stack.func_190916_E();
+        int starting = stack.getCount();
         ItemStack ret = chest.getSingleChestHandler().insertItem(targetSlot, stack, simulate);
-        if (ret.func_190916_E() != starting && !simulate)
+        if (ret.getCount() != starting && !simulate)
         {
             chest = getChest(!accessingUpperChest);
             if (chest != null)
-                chest.func_70296_d();
+                chest.markDirty();
         }
 
         return ret;
@@ -167,14 +167,14 @@ public class VanillaDoubleChestItemHandler extends WeakReference<TileEntityChest
         int targetSlot = accessingUpperChest ? slot : slot - 27;
         TileEntityChest chest = getChest(accessingUpperChest);
         if (chest == null)
-            return ItemStack.field_190927_a;
+            return ItemStack.EMPTY;
 
         ItemStack ret = chest.getSingleChestHandler().extractItem(targetSlot, amount, simulate);
-        if (!ret.func_190926_b() && !simulate)
+        if (!ret.isEmpty() && !simulate)
         {
             chest = getChest(!accessingUpperChest);
             if (chest != null)
-                chest.func_70296_d();
+                chest.markDirty();
         }
 
         return ret;
@@ -184,7 +184,7 @@ public class VanillaDoubleChestItemHandler extends WeakReference<TileEntityChest
     public int getSlotLimit(int slot)
     {
         boolean accessingUpperChest = slot < 27;
-        return getChest(accessingUpperChest).func_70297_j_();
+        return getChest(accessingUpperChest).getInventoryStackLimit();
     }
 
     @Override
@@ -231,6 +231,6 @@ public class VanillaDoubleChestItemHandler extends WeakReference<TileEntityChest
         if (this == NO_ADJACENT_CHESTS_INSTANCE)
             return false;
         TileEntityChest tileEntityChest = get();
-        return tileEntityChest == null || tileEntityChest.func_145837_r();
+        return tileEntityChest == null || tileEntityChest.isInvalid();
     }
 }

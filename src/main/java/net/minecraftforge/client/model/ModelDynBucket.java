@@ -153,8 +153,8 @@ public final class ModelDynBucket implements IModel
         {
             // build base (insidest)
             IBakedModel model = (new ItemLayerModel(ImmutableList.of(baseLocation))).bake(state, format, bakedTextureGetter);
-            builder.addAll(model.func_188616_a(null, null, 0));
-            particleSprite = model.func_177554_e();
+            builder.addAll(model.getQuads(null, null, 0));
+            particleSprite = model.getParticleTexture();
         }
         if (liquidLocation != null && fluidSprite != null)
         {
@@ -255,7 +255,7 @@ public final class ModelDynBucket implements IModel
         @Override
         public boolean accepts(ResourceLocation modelLocation)
         {
-            return modelLocation.func_110624_b().equals(ForgeVersion.MOD_ID) && modelLocation.func_110623_a().contains("forgebucket");
+            return modelLocation.getResourceDomain().equals(ForgeVersion.MOD_ID) && modelLocation.getResourcePath().contains("forgebucket");
         }
 
         @Override
@@ -265,7 +265,7 @@ public final class ModelDynBucket implements IModel
         }
 
         @Override
-        public void func_110549_a(IResourceManager resourceManager)
+        public void onResourceManagerReload(IResourceManager resourceManager)
         {
             // no need to clear cache since we create a new model instance
         }
@@ -301,7 +301,7 @@ public final class ModelDynBucket implements IModel
         {
             try
             {
-                return Minecraft.func_71410_x().func_110442_L().func_110536_a(resourceLocation);
+                return Minecraft.getMinecraft().getResourceManager().getResource(resourceLocation);
             }
             catch (IOException ignored)
             {
@@ -336,11 +336,11 @@ public final class ModelDynBucket implements IModel
         public boolean load(@Nonnull IResourceManager manager, @Nonnull ResourceLocation location, @Nonnull Function<ResourceLocation, TextureAtlasSprite> textureGetter)
         {
             final TextureAtlasSprite sprite = textureGetter.apply(bucket);
-            field_130223_c = sprite.func_94211_a();
-            field_130224_d = sprite.func_94216_b();
-            final int[][] pixels = sprite.func_147965_a(0);
-            this.func_130103_l();
-            this.field_110976_a.add(pixels);
+            width = sprite.getIconWidth();
+            height = sprite.getIconHeight();
+            final int[][] pixels = sprite.getFrameTextureData(0);
+            this.clearFramesTextureData();
+            this.framesTextureData.add(pixels);
             return false;
         }
     }
@@ -376,23 +376,23 @@ public final class ModelDynBucket implements IModel
         {
             final TextureAtlasSprite sprite = textureGetter.apply(bucket);
             final TextureAtlasSprite alphaMask = textureGetter.apply(bucketCoverMask);
-            field_130223_c = sprite.func_94211_a();
-            field_130224_d = sprite.func_94216_b();
-            final int[][] pixels = new int[Minecraft.func_71410_x().field_71474_y.field_151442_I + 1][];
-            pixels[0] = new int[field_130223_c * field_130224_d];
+            width = sprite.getIconWidth();
+            height = sprite.getIconHeight();
+            final int[][] pixels = new int[Minecraft.getMinecraft().gameSettings.mipmapLevels + 1][];
+            pixels[0] = new int[width * height];
 
             try (
                  IResource empty = getResource(new ResourceLocation("textures/items/bucket_empty.png"));
                  IResource mask = getResource(new ResourceLocation(ForgeVersion.MOD_ID, "textures/items/vanilla_bucket_cover_mask.png"))
             ) {
                 // use the alpha mask if it fits, otherwise leave the cover texture blank
-                if (empty != null && mask != null && Objects.equals(empty.func_177240_d(), mask.func_177240_d()) &&
-                        alphaMask.func_94211_a() == field_130223_c && alphaMask.func_94216_b() == field_130224_d)
+                if (empty != null && mask != null && Objects.equals(empty.getResourcePackName(), mask.getResourcePackName()) &&
+                        alphaMask.getIconWidth() == width && alphaMask.getIconHeight() == height)
                 {
-                    final int[][] oldPixels = sprite.func_147965_a(0);
-                    final int[][] alphaPixels = alphaMask.func_147965_a(0);
+                    final int[][] oldPixels = sprite.getFrameTextureData(0);
+                    final int[][] alphaPixels = alphaMask.getFrameTextureData(0);
 
-                    for (int p = 0; p < field_130223_c * field_130224_d; p++)
+                    for (int p = 0; p < width * height; p++)
                     {
                         final int alphaMultiplier = alphaPixels[0][p] >>> 24;
                         final int oldPixel = oldPixels[0][p];
@@ -407,8 +407,8 @@ public final class ModelDynBucket implements IModel
                 FMLLog.log.error("Failed to close resource", e);
             }
 
-            this.func_130103_l();
-            this.field_110976_a.add(pixels);
+            this.clearFramesTextureData();
+            this.framesTextureData.add(pixels);
             return false;
         }
     }
@@ -442,7 +442,7 @@ public final class ModelDynBucket implements IModel
             {
                 IModel parent = model.parent.process(ImmutableMap.of("fluid", name));
                 Function<ResourceLocation, TextureAtlasSprite> textureGetter;
-                textureGetter = location -> Minecraft.func_71410_x().func_147117_R().func_110572_b(location.toString());
+                textureGetter = location -> Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(location.toString());
 
                 IBakedModel bakedModel = parent.bake(new SimpleModelState(model.transforms), model.format, textureGetter);
                 model.cache.put(name, bakedModel);

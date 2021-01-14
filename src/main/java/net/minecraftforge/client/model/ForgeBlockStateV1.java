@@ -73,7 +73,7 @@ public class ForgeBlockStateV1 extends Marker
         {
             JsonObject json = element.getAsJsonObject();
             ForgeBlockStateV1 ret = new ForgeBlockStateV1();
-            ret.forge_marker = JsonUtils.func_151203_m(json, "forge_marker");
+            ret.forge_marker = JsonUtils.getInt(json, "forge_marker");
 
             if (json.has("defaults"))   // Load defaults Variant.
             {
@@ -86,7 +86,7 @@ public class ForgeBlockStateV1 extends Marker
             Map<String, Map<String, Variant>> condensed = Maps.newLinkedHashMap();    // map(property name -> map(property value -> variant))
             Multimap<String, Variant> specified = LinkedHashMultimap.create();    // Multimap containing all the states specified with "property=value".
 
-            for (Entry<String, JsonElement> e : JsonUtils.func_152754_s(json, "variants").entrySet())
+            for (Entry<String, JsonElement> e : JsonUtils.getJsonObject(json, "variants").entrySet())
             {
                 if (e.getValue().isJsonArray())
                 {
@@ -446,7 +446,7 @@ public class ForgeBlockStateV1 extends Marker
             protected ResourceLocation getBlockLocation(String location)
             {
                 ResourceLocation tmp = new ResourceLocation(location);
-                return new ResourceLocation(tmp.func_110624_b(), "block/" + tmp.func_110623_a());
+                return new ResourceLocation(tmp.getResourceDomain(), "block/" + tmp.getResourcePath());
             }
 
             /** Throws an error if there are submodels in this submodel. */
@@ -467,7 +467,7 @@ public class ForgeBlockStateV1 extends Marker
                     if (json.get("model").isJsonNull())
                         ret.model = null;   // Allow overriding base model to remove it from a state.
                     else
-                        ret.model = getBlockLocation(JsonUtils.func_151200_h(json, "model"));
+                        ret.model = getBlockLocation(JsonUtils.getString(json, "model"));
                     ret.modelSet = true;
                 }
 
@@ -484,9 +484,9 @@ public class ForgeBlockStateV1 extends Marker
 
                 if (json.has("x") || json.has("y"))
                 {   // Load rotation values.
-                    int x = JsonUtils.func_151208_a(json, "x", 0);
-                    int y = JsonUtils.func_151208_a(json, "y", 0);
-                    ret.state = Optional.ofNullable(ModelRotation.func_177524_a(x, y));
+                    int x = JsonUtils.getInt(json, "x", 0);
+                    int y = JsonUtils.getInt(json, "y", 0);
+                    ret.state = Optional.ofNullable(ModelRotation.getModelRotation(x, y));
                     if (!ret.state.isPresent())
                         throw new JsonParseException("Invalid BlockModelRotation x: " + x + " y: " + y);
                 }
@@ -609,22 +609,22 @@ public class ForgeBlockStateV1 extends Marker
 
                 if (json.has("uvlock"))
                 {   // Load uvlock.
-                    ret.uvLock = Optional.of(JsonUtils.func_151212_i(json, "uvlock"));
+                    ret.uvLock = Optional.of(JsonUtils.getBoolean(json, "uvlock"));
                 }
 
                 if (json.has("smooth_lighting"))
                 {
-                    ret.smooth = Optional.of(JsonUtils.func_151212_i(json, "smooth_lighting"));
+                    ret.smooth = Optional.of(JsonUtils.getBoolean(json, "smooth_lighting"));
                 }
 
                 if (json.has("gui3d"))
                 {
-                    ret.gui3d = Optional.of(JsonUtils.func_151212_i(json, "gui3d"));
+                    ret.gui3d = Optional.of(JsonUtils.getBoolean(json, "gui3d"));
                 }
 
                 if (json.has("weight"))
                 {   // Load weight.
-                    ret.weight = Optional.of(JsonUtils.func_151203_m(json, "weight"));
+                    ret.weight = Optional.of(JsonUtils.getInt(json, "weight"));
                 }
 
                 if (json.has("submodel"))

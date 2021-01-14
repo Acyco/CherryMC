@@ -107,7 +107,7 @@ public enum B3DLoader implements ICustomModelLoader
     }
 
     @Override
-    public void func_110549_a(IResourceManager manager)
+    public void onResourceManagerReload(IResourceManager manager)
     {
         this.manager = manager;
     }
@@ -115,31 +115,31 @@ public enum B3DLoader implements ICustomModelLoader
     @Override
     public boolean accepts(ResourceLocation modelLocation)
     {
-        return enabledDomains.contains(modelLocation.func_110624_b()) && modelLocation.func_110623_a().endsWith(".b3d");
+        return enabledDomains.contains(modelLocation.getResourceDomain()) && modelLocation.getResourcePath().endsWith(".b3d");
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public IModel loadModel(ResourceLocation modelLocation) throws Exception
     {
-        ResourceLocation file = new ResourceLocation(modelLocation.func_110624_b(), modelLocation.func_110623_a());
+        ResourceLocation file = new ResourceLocation(modelLocation.getResourceDomain(), modelLocation.getResourcePath());
         B3DModel model;
         IResource resource = null;
         try
         {
             try
             {
-                resource = manager.func_110536_a(file);
+                resource = manager.getResource(file);
             }
             catch(FileNotFoundException e)
             {
-                if(modelLocation.func_110623_a().startsWith("models/block/"))
-                    resource = manager.func_110536_a(new ResourceLocation(file.func_110624_b(), "models/item/" + file.func_110623_a().substring("models/block/".length())));
-                else if(modelLocation.func_110623_a().startsWith("models/item/"))
-                    resource = manager.func_110536_a(new ResourceLocation(file.func_110624_b(), "models/block/" + file.func_110623_a().substring("models/item/".length())));
+                if(modelLocation.getResourcePath().startsWith("models/block/"))
+                    resource = manager.getResource(new ResourceLocation(file.getResourceDomain(), "models/item/" + file.getResourcePath().substring("models/block/".length())));
+                else if(modelLocation.getResourcePath().startsWith("models/item/"))
+                    resource = manager.getResource(new ResourceLocation(file.getResourceDomain(), "models/block/" + file.getResourcePath().substring("models/item/".length())));
                 else throw e;
             }
-            B3DModel.Parser parser = new B3DModel.Parser(resource.func_110527_b());
+            B3DModel.Parser parser = new B3DModel.Parser(resource.getInputStream());
             model = parser.parse();
         }
         catch(IOException e)
@@ -188,7 +188,7 @@ public enum B3DLoader implements ICustomModelLoader
             this.animation = animation;
             this.frame = frame;
             this.nextFrame = nextFrame;
-            this.progress = MathHelper.func_76131_a(progress, 0, 1);
+            this.progress = MathHelper.clamp(progress, 0, 1);
             this.parent = getParent(parent);
         }
 
@@ -445,7 +445,7 @@ public enum B3DLoader implements ICustomModelLoader
         @Override
         public Collection<ResourceLocation> getTextures()
         {
-            return Collections2.filter(textures.values(), loc -> !loc.func_110623_a().startsWith("#"));
+            return Collections2.filter(textures.values(), loc -> !loc.getResourcePath().startsWith("#"));
         }
 
         @Override
@@ -455,9 +455,9 @@ public enum B3DLoader implements ICustomModelLoader
             TextureAtlasSprite missing = bakedTextureGetter.apply(new ResourceLocation("missingno"));
             for(Map.Entry<String, ResourceLocation> e : textures.entrySet())
             {
-                if(e.getValue().func_110623_a().startsWith("#"))
+                if(e.getValue().getResourcePath().startsWith("#"))
                 {
-                    FMLLog.log.fatal("unresolved texture '{}' for b3d model '{}'", e.getValue().func_110623_a(), modelLocation);
+                    FMLLog.log.fatal("unresolved texture '{}' for b3d model '{}'", e.getValue().getResourcePath(), modelLocation);
                     builder.put(e.getKey(), missing);
                 }
                 else
@@ -630,7 +630,7 @@ public enum B3DLoader implements ICustomModelLoader
         }
 
         @Override
-        public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
         {
             if(side != null) return ImmutableList.of();
             IModelState modelState = this.state;
@@ -713,7 +713,7 @@ public enum B3DLoader implements ICustomModelLoader
                 {
                     UnpackedBakedQuad.Builder quadBuilder = new UnpackedBakedQuad.Builder(format);
                     quadBuilder.setContractUVs(true);
-                    quadBuilder.setQuadOrientation(EnumFacing.func_176737_a(f.getNormal().x, f.getNormal().y, f.getNormal().z));
+                    quadBuilder.setQuadOrientation(EnumFacing.getFacingFromVector(f.getNormal().x, f.getNormal().y, f.getNormal().z));
                     List<Texture> textures = null;
                     if(f.getBrush() != null) textures = f.getBrush().getTextures();
                     TextureAtlasSprite sprite;
@@ -733,9 +733,9 @@ public enum B3DLoader implements ICustomModelLoader
         private final void putVertexData(UnpackedBakedQuad.Builder builder, Vertex v, Vector3f faceNormal, TextureAtlasSprite sprite)
         {
             // TODO handle everything not handled (texture transformations, bones, transformations, normals, e.t.c)
-            for(int e = 0; e < format.func_177345_h(); e++)
+            for(int e = 0; e < format.getElementCount(); e++)
             {
-                switch(format.func_177348_c(e).func_177375_c())
+                switch(format.getElement(e).getUsage())
                 {
                 case POSITION:
                     builder.put(e, v.getPos().x, v.getPos().y, v.getPos().z, 1);
@@ -752,11 +752,11 @@ public enum B3DLoader implements ICustomModelLoader
                     break;
                 case UV:
                     // TODO handle more brushes
-                    if(format.func_177348_c(e).func_177369_e() < v.getTexCoords().length)
+                    if(format.getElement(e).getIndex() < v.getTexCoords().length)
                     {
                         builder.put(e,
-                            sprite.func_94214_a(v.getTexCoords()[0].x * 16),
-                            sprite.func_94207_b(v.getTexCoords()[0].y * 16),
+                            sprite.getInterpolatedU(v.getTexCoords()[0].x * 16),
+                            sprite.getInterpolatedV(v.getTexCoords()[0].y * 16),
                             0,
                             1
                         );
@@ -783,25 +783,25 @@ public enum B3DLoader implements ICustomModelLoader
         }
 
         @Override
-        public boolean func_177555_b()
+        public boolean isAmbientOcclusion()
         {
             return smooth;
         }
 
         @Override
-        public boolean func_177556_c()
+        public boolean isGui3d()
         {
             return gui3d;
         }
 
         @Override
-        public boolean func_188618_c()
+        public boolean isBuiltInRenderer()
         {
             return false;
         }
 
         @Override
-        public TextureAtlasSprite func_177554_e()
+        public TextureAtlasSprite getParticleTexture()
         {
             // FIXME somehow specify particle texture in the model
             return textures.values().asList().get(0);
@@ -814,10 +814,10 @@ public enum B3DLoader implements ICustomModelLoader
         }
 
         @Override
-        public ItemOverrideList func_188617_f()
+        public ItemOverrideList getOverrides()
         {
             // TODO handle items
-            return ItemOverrideList.field_188022_a;
+            return ItemOverrideList.NONE;
         }
     }
 }

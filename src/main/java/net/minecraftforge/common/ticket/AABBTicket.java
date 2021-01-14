@@ -37,6 +37,6 @@ public class AABBTicket extends SimpleTicket<Vec3d>
     @Override
     public boolean matches(Vec3d toMatch)
     {
-        return this.axisAlignedBB.func_72318_a(toMatch);
+        return this.axisAlignedBB.contains(toMatch);
     }
 }

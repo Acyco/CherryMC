@@ -43,18 +43,18 @@ public class CompoundDataFixer extends DataFixer
     public CompoundDataFixer(DataFixer vanilla)
     {
         super(0);
-        this.vanilla = init("minecraft", vanilla.field_188262_d);
+        this.vanilla = init("minecraft", vanilla.version);
     }
 
     @Override
-    public NBTTagCompound func_188257_a(IFixType type, NBTTagCompound nbt)
+    public NBTTagCompound process(IFixType type, NBTTagCompound nbt)
     {
         final Map<String, Integer>versions = getVersions(nbt);
         final int mcversion = versions.get("minecraft") == null ? -1 : versions.get("minecraft");
         final IDataFixerData holder = new IDataFixerData()
         {
             @Override
-            public NBTTagCompound func_188251_a(IFixType type, NBTTagCompound nbt, int version)
+            public NBTTagCompound process(IFixType type, NBTTagCompound nbt, int version)
             {
                 for (Entry<String, ModFixs> e : modFixers.entrySet())
                 {
@@ -68,12 +68,12 @@ public class CompoundDataFixer extends DataFixer
                     {
                        for (IFixableData fix : fixer.getFixes(type))
                        {
-                           if (fix.func_188216_a() > ver)
-                               nbt = fix.func_188217_a(nbt);
+                           if (fix.getFixVersion() > ver)
+                               nbt = fix.fixTagCompound(nbt);
                        }
 
                        for (IDataWalker walker : getWalkers(type))
-                           nbt = walker.func_188266_a(this, nbt, version); //We pass in the holder, in case a walker wants to know a mod version
+                           nbt = walker.process(this, nbt, version); //We pass in the holder, in case a walker wants to know a mod version
                     }
                 }
                 return nbt;
@@ -86,20 +86,20 @@ public class CompoundDataFixer extends DataFixer
                 return ret == null ? -1 : ret;
             }
         };
-        return holder.func_188251_a(type, nbt, mcversion);
+        return holder.process(type, nbt, mcversion);
     }
 
     @Override
     @Deprecated //MODDERS DO NOT CALL DIRECTLY! Only use from DataWalker!
-    public NBTTagCompound func_188251_a(IFixType type, NBTTagCompound nbt, int mcversion)
+    public NBTTagCompound process(IFixType type, NBTTagCompound nbt, int mcversion)
     {
         if (type != FixTypes.OPTIONS) //Options are vanilla only
             throw new IllegalStateException("Do not call recursive process directly on DataFixer!");
 
         for (IFixableData fix : vanilla.getFixes(type))
         {
-            if (fix.func_188216_a() > mcversion)
-                nbt = fix.func_188217_a(nbt);
+            if (fix.getFixVersion() > mcversion)
+                nbt = fix.fixTagCompound(nbt);
         }
         //Options is a hack, and doesn't have any nested components
         //for (IDataWalker walker : getWalkers(type))
@@ -114,7 +114,7 @@ public class CompoundDataFixer extends DataFixer
 
     @Override
     @Deprecated //Modders do not use this, this will register you as vanilla. Use the ModID version below.
-    public void func_188256_a(IFixType type, IFixableData fixable)
+    public void registerFix(IFixType type, IFixableData fixable)
     {
         vanilla.registerFix(type, fixable);
     }
@@ -122,13 +122,13 @@ public class CompoundDataFixer extends DataFixer
 
     @Override
     @Deprecated //Modders do not use this, use add below, To better allow custom fix types.
-    public void func_188258_a(FixTypes type, IDataWalker walker)
+    public void registerWalker(FixTypes type, IDataWalker walker)
     {
-        func_188255_a(type, walker);
+        registerVanillaWalker(type, walker);
     }
 
     @Override
-    public void func_188255_a(IFixType type, IDataWalker walker)
+    public void registerVanillaWalker(IFixType type, IDataWalker walker)
     {
         getWalkers(type).add(walker);
     }
@@ -162,13 +162,13 @@ public class CompoundDataFixer extends DataFixer
     private Map<String, Integer> getVersions(NBTTagCompound nbt)
     {
         Map<String, Integer> ret = Maps.newHashMap();
-        ret.put("minecraft", nbt.func_150297_b("DataVersion", 99) ? nbt.func_74762_e("DataVersion") : -1);
-        if (nbt.func_150297_b("ForgeDataVersion", 10))
+        ret.put("minecraft", nbt.hasKey("DataVersion", 99) ? nbt.getInteger("DataVersion") : -1);
+        if (nbt.hasKey("ForgeDataVersion", 10))
         {
-            NBTTagCompound sub = nbt.func_74775_l("ForgeDataVersion");
-            for (String key : sub.func_150296_c())
+            NBTTagCompound sub = nbt.getCompoundTag("ForgeDataVersion");
+            for (String key : sub.getKeySet())
             {
-                ret.put(key, sub.func_150297_b(key, 99) ? sub.func_74762_e(key) : -1);
+                ret.put(key, sub.hasKey(key, 99) ? sub.getInteger(key) : -1);
             }
         }
         return ret;
@@ -178,8 +178,8 @@ public class CompoundDataFixer extends DataFixer
     {
         //nbt.setInteger("DataVersion", vanilla.version);
         NBTTagCompound sub = new NBTTagCompound();
-        nbt.func_74782_a("ForgeDataVersion", sub);
+        nbt.setTag("ForgeDataVersion", sub);
         for (ModFixs mod : modFixers.values())
-            sub.func_74768_a(mod.mod, mod.version);
+            sub.setInteger(mod.mod, mod.version);
     }
 }

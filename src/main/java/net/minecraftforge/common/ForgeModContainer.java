@@ -426,7 +426,7 @@ public class ForgeModContainer extends DummyModContainer implements WorldAccessC
     @SubscribeEvent
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event)
     {
-        UsernameCache.setUsername(event.player.getPersistentID(), event.player.func_146103_bH().getName());
+        UsernameCache.setUsername(event.player.getPersistentID(), event.player.getGameProfile().getName());
     }
 
     @Override
@@ -513,7 +513,7 @@ public class ForgeModContainer extends DummyModContainer implements WorldAccessC
         if(FluidRegistry.isUniversalBucketEnabled())
         {
             universalBucket = new UniversalBucket();
-            universalBucket.func_77655_b("forge.bucketFilled");
+            universalBucket.setUnlocalizedName("forge.bucketFilled");
             event.getRegistry().register(universalBucket.setRegistryName(ForgeVersion.MOD_ID, "bucketFilled"));
             MinecraftForge.EVENT_BUS.register(universalBucket);
         }
@@ -530,9 +530,9 @@ public class ForgeModContainer extends DummyModContainer implements WorldAccessC
     {
         for (Biome biome : ForgeRegistries.BIOMES.getValuesCollection())
         {
-            if (biome.field_76760_I instanceof DeferredBiomeDecorator)
+            if (biome.decorator instanceof DeferredBiomeDecorator)
             {
-                DeferredBiomeDecorator decorator = (DeferredBiomeDecorator)biome.field_76760_I;
+                DeferredBiomeDecorator decorator = (DeferredBiomeDecorator)biome.decorator;
                 decorator.fireCreateEventAndReplace(biome);
             }
 
@@ -567,7 +567,7 @@ public class ForgeModContainer extends DummyModContainer implements WorldAccessC
     {
         NBTTagCompound forgeData = new NBTTagCompound();
         NBTTagCompound dimData = DimensionManager.saveDimensionDataMap();
-        forgeData.func_74782_a("DimensionData", dimData);
+        forgeData.setTag("DimensionData", dimData);
         FluidRegistry.writeDefaultFluidList(forgeData);
         return forgeData;
     }
@@ -575,7 +575,7 @@ public class ForgeModContainer extends DummyModContainer implements WorldAccessC
     @Override
     public void readData(SaveHandler handler, WorldInfo info, Map<String, NBTBase> propertyMap, NBTTagCompound tag)
     {
-        DimensionManager.loadDimensionDataMap(tag.func_74764_b("DimensionData") ? tag.func_74775_l("DimensionData") : null);
+        DimensionManager.loadDimensionDataMap(tag.hasKey("DimensionData") ? tag.getCompoundTag("DimensionData") : null);
         FluidRegistry.loadFluidDefaults(tag);
     }
 

@@ -37,23 +37,23 @@ public class PacketUtil
      */
     public static void writeItemStackFromClientToServer(PacketBuffer buffer, ItemStack stack)
     {
-        if (stack.func_190926_b())
+        if (stack.isEmpty())
         {
             buffer.writeShort(-1);
         }
         else
         {
-            buffer.writeShort(Item.func_150891_b(stack.func_77973_b()));
-            buffer.writeByte(stack.func_190916_E());
-            buffer.writeShort(stack.func_77960_j());
+            buffer.writeShort(Item.getIdFromItem(stack.getItem()));
+            buffer.writeByte(stack.getCount());
+            buffer.writeShort(stack.getMetadata());
             NBTTagCompound nbttagcompound = null;
 
-            if (stack.func_77973_b().func_77645_m() || stack.func_77973_b().func_77651_p())
+            if (stack.getItem().isDamageable() || stack.getItem().getShareTag())
             {
-                nbttagcompound = stack.func_77978_p();
+                nbttagcompound = stack.getTagCompound();
             }
 
-            buffer.func_150786_a(nbttagcompound);
+            buffer.writeCompoundTag(nbttagcompound);
         }
     }
 }

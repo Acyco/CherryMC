@@ -29,8 +29,6 @@ import net.minecraftforge.fml.client.IDisplayableError;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import net.minecraftforge.fml.common.EnhancedRuntimeException.WrappedPrintStream;
-
 public class DuplicateModsFoundException extends LoaderException implements IDisplayableError
 {
     private static final long serialVersionUID = 1L;

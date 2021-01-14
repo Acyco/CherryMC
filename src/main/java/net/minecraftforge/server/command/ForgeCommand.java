@@ -38,7 +38,7 @@ public class ForgeCommand extends CommandTreeBase
     }
 
     @Override
-    public String func_71517_b()
+    public String getName()
     {
         return "forge";
     }
@@ -50,19 +50,19 @@ public class ForgeCommand extends CommandTreeBase
     }
 
     @Override
-    public int func_82362_a()
+    public int getRequiredPermissionLevel()
     {
         return 0;
     }
 
     @Override
-    public boolean func_184882_a(MinecraftServer server, ICommandSender sender)
+    public boolean checkPermission(MinecraftServer server, ICommandSender sender)
     {
         return true;
     }
 
     @Override
-    public String func_71518_a(ICommandSender icommandsender)
+    public String getUsage(ICommandSender icommandsender)
     {
         return "commands.forge.usage";
     }

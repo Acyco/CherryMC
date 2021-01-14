@@ -123,7 +123,7 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
         this.handshakeChannel.attr(FML_DISPATCHER).set(this);
         this.handshakeChannel.attr(NetworkRegistry.CHANNEL_SOURCE).set(Side.SERVER);
         this.handshakeChannel.attr(NetworkRegistry.FML_CHANNEL).set("FML|HS");
-        this.handshakeChannel.attr(IS_LOCAL).set(manager.func_150731_c());
+        this.handshakeChannel.attr(IS_LOCAL).set(manager.isLocalChannel());
         if (DEBUG_HANDSHAKE)
             PacketLoggingHandler.register(manager);
     }
@@ -138,7 +138,7 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
         this.handshakeChannel.attr(FML_DISPATCHER).set(this);
         this.handshakeChannel.attr(NetworkRegistry.CHANNEL_SOURCE).set(Side.CLIENT);
         this.handshakeChannel.attr(NetworkRegistry.FML_CHANNEL).set("FML|HS");
-        this.handshakeChannel.attr(IS_LOCAL).set(manager.func_150731_c());
+        this.handshakeChannel.attr(IS_LOCAL).set(manager.isLocalChannel());
         if (DEBUG_HANDSHAKE)
             PacketLoggingHandler.register(manager);
     }
@@ -195,32 +195,32 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
         // This will be ignored by vanilla clients
         this.state = ConnectionState.AWAITING_HANDSHAKE;
         // Need to start the handler here, so we can send custompayload packets
-        serverHandler = new NetHandlerPlayServer(scm.func_72365_p(), manager, player)
+        serverHandler = new NetHandlerPlayServer(scm.getServerInstance(), manager, player)
         {
             @Override
-            public void func_73660_a()
+            public void update()
             {
                 if (NetworkDispatcher.this.state == ConnectionState.FINALIZING)
                 {
                     completeServerSideConnection(ConnectionType.MODDED);
                 }
                 // FORGE: sometimes the netqueue will tick while login is occurring, causing an NPE. We shouldn't tick until the connection is complete
-                if (this.field_147369_b.field_71135_a != this) return;
-                super.func_73660_a();
+                if (this.player.connection != this) return;
+                super.update();
             }
         };
         this.netHandler = serverHandler;
         // NULL the play server here - we restore it further on. If not, there are packets sent before the login
-        player.field_71135_a = null;
+        player.connection = null;
         // manually for the manager into the PLAY state, so we can send packets later
-        this.manager.func_150723_a(EnumConnectionState.PLAY);
+        this.manager.setConnectionState(EnumConnectionState.PLAY);
 
         // Return the dimension the player is in, so it can be pre-sent to the client in the ServerHello v2 packet
         // Requires some hackery to the serverconfigmanager and stuff for this to work
         NBTTagCompound playerNBT = scm.getPlayerNBT(player);
         if (playerNBT!=null)
         {
-            int dimension = playerNBT.func_74762_e("Dimension");
+            int dimension = playerNBT.getInteger("Dimension");
             if (DimensionManager.isDimensionRegistered(dimension))
             {
                 return dimension;
@@ -231,7 +231,7 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
 
     void clientListenForServerHandshake()
     {
-        manager.func_150723_a(EnumConnectionState.PLAY);
+        manager.setConnectionState(EnumConnectionState.PLAY);
         //FMLCommonHandler.instance().waitForPlayClient();
         this.netHandler = FMLCommonHandler.instance().getClientPlayHandler();
         this.state = ConnectionState.AWAITING_HANDSHAKE;
@@ -251,7 +251,7 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
         FMLLog.log.info("[{}] Server side {} connection established", Thread.currentThread().getName(), this.connectionType.name().toLowerCase(Locale.ENGLISH));
         this.state = ConnectionState.CONNECTED;
         if (DEBUG_HANDSHAKE)
-            manager.func_150718_a(new TextComponentString("Handshake Complete review log file for details."));
+            manager.closeChannel(new TextComponentString("Handshake Complete review log file for details."));
         scm.initializeConnectionToPlayer(manager, player, serverHandler);
     }
 
@@ -326,16 +326,16 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
         final TextComponentString TextComponentString = new TextComponentString(message);
         if (side == Side.CLIENT)
         {
-            manager.func_150718_a(TextComponentString);
+            manager.closeChannel(TextComponentString);
         }
         else
         {
-            manager.func_179288_a(new SPacketDisconnect(TextComponentString), new GenericFutureListener<Future<? super Void>>()
+            manager.sendPacket(new SPacketDisconnect(TextComponentString), new GenericFutureListener<Future<? super Void>>()
             {
                 @Override
                 public void operationComplete(Future<? super Void> result)
                 {
-                    manager.func_150718_a(TextComponentString);
+                    manager.closeChannel(TextComponentString);
                 }
             }, (GenericFutureListener<? extends Future<? super Void>>[])null);
         }
@@ -346,13 +346,13 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
 
     private boolean handleClientSideCustomPacket(SPacketCustomPayload msg, ChannelHandlerContext context)
     {
-        String channelName = msg.func_149169_c();
+        String channelName = msg.getChannelName();
         if ("FML|MP".equals(channelName))
         {
             boolean result = handleMultiPartCustomPacket(msg, context);
             if (result)
             {
-                msg.func_180735_b().release();
+                msg.getBufferData().release();
             }
             return result;
         }
@@ -391,11 +391,11 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
         {
             if (multipart == null)
             {
-                multipart = new MultiPartCustomPayload(msg.func_180735_b());
+                multipart = new MultiPartCustomPayload(msg.getBufferData());
             }
             else
             {
-                multipart.processPart(msg.func_180735_b());
+                multipart.processPart(msg.getBufferData());
             }
         }
         catch (IOException e)
@@ -426,7 +426,7 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
                 }
             }
         }
-        String channelName = msg.func_149559_c();
+        String channelName = msg.getChannelName();
         if ("FML|HS".equals(channelName) || "REGISTER".equals(channelName) || "UNREGISTER".equals(channelName))
         {
             FMLProxyPacket proxy = new FMLProxyPacket(msg);
@@ -457,9 +457,9 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
 
     public void sendProxy(FMLProxyPacket msg)
     {
-        if (!manager.func_150724_d())
+        if (!manager.isChannelOpen())
             msg = msg.copy();
-        manager.func_179290_a(msg);
+        manager.sendPacket(msg);
     }
 
     public void rejectHandshake(String result)
@@ -622,7 +622,7 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
 
     public int getOverrideDimension(SPacketJoinGame packetIn) {
         FMLLog.log.debug("Overriding dimension: using {}", this.overrideLoginDim);
-        return this.overrideLoginDim != 0 ? this.overrideLoginDim : packetIn.func_149194_f();
+        return this.overrideLoginDim != 0 ? this.overrideLoginDim : packetIn.getDimension();
     }
 
     private class MultiPartCustomPayload extends SPacketCustomPayload
@@ -636,7 +636,7 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
 
         private MultiPartCustomPayload(PacketBuffer preamble) throws IOException
         {
-            channel = preamble.func_150789_c(20);
+            channel = preamble.readString(20);
             part_count = preamble.readUnsignedByte();
             int length = preamble.readInt();
             if (length <= 0 || length >= FMLProxyPacket.MAX_LENGTH)
@@ -666,13 +666,13 @@ public class NetworkDispatcher extends SimpleChannelInboundHandler<Packet<?>> im
         }
 
         @Override
-        public String func_149169_c() // getChannel
+        public String getChannelName() // getChannel
         {
             return this.channel;
         }
 
         @Override
-        public PacketBuffer func_180735_b() // getData
+        public PacketBuffer getBufferData() // getData
         {
             return this.data_buf;
         }

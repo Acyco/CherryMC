@@ -125,7 +125,7 @@ public class GuiUtils
     public static void drawContinuousTexturedBox(ResourceLocation res, int x, int y, int u, int v, int width, int height, int textureWidth, int textureHeight,
             int topBorder, int bottomBorder, int leftBorder, int rightBorder, float zLevel)
     {
-        Minecraft.func_71410_x().func_110434_K().func_110577_a(res);
+        Minecraft.getMinecraft().getTextureManager().bindTexture(res);
         drawContinuousTexturedBox(x, y, u, v, width, height, textureWidth, textureHeight, topBorder, bottomBorder, leftBorder, rightBorder, zLevel);
     }
 
@@ -151,9 +151,9 @@ public class GuiUtils
     public static void drawContinuousTexturedBox(int x, int y, int u, int v, int width, int height, int textureWidth, int textureHeight,
             int topBorder, int bottomBorder, int leftBorder, int rightBorder, float zLevel)
     {
-        GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.func_179147_l();
-        GlStateManager.func_179120_a(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
 
         int fillerWidth = textureWidth - leftBorder - rightBorder;
         int fillerHeight = textureHeight - topBorder - bottomBorder;
@@ -201,18 +201,18 @@ public class GuiUtils
         final float uScale = 1f / 0x100;
         final float vScale = 1f / 0x100;
 
-        Tessellator tessellator = Tessellator.func_178181_a();
-        BufferBuilder wr = tessellator.func_178180_c();
-        wr.func_181668_a(GL11.GL_QUADS, DefaultVertexFormats.field_181707_g);
-        wr.func_181662_b(x        , y + height, zLevel).func_187315_a( u          * uScale, ((v + height) * vScale)).func_181675_d();
-        wr.func_181662_b(x + width, y + height, zLevel).func_187315_a((u + width) * uScale, ((v + height) * vScale)).func_181675_d();
-        wr.func_181662_b(x + width, y         , zLevel).func_187315_a((u + width) * uScale, ( v           * vScale)).func_181675_d();
-        wr.func_181662_b(x        , y         , zLevel).func_187315_a( u          * uScale, ( v           * vScale)).func_181675_d();
-        tessellator.func_78381_a();
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder wr = tessellator.getBuffer();
+        wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        wr.pos(x        , y + height, zLevel).tex( u          * uScale, ((v + height) * vScale)).endVertex();
+        wr.pos(x + width, y + height, zLevel).tex((u + width) * uScale, ((v + height) * vScale)).endVertex();
+        wr.pos(x + width, y         , zLevel).tex((u + width) * uScale, ( v           * vScale)).endVertex();
+        wr.pos(x        , y         , zLevel).tex( u          * uScale, ( v           * vScale)).endVertex();
+        tessellator.draw();
     }
 
     @Nonnull
-    private static ItemStack cachedTooltipStack = ItemStack.field_190927_a;
+    private static ItemStack cachedTooltipStack = ItemStack.EMPTY;
 
     /**
      * Must be called from {@code GuiScreen.renderToolTip} before {@code GuiScreen.drawHoveringText} is called.
@@ -229,7 +229,7 @@ public class GuiUtils
      */
     public static void postItemToolTip()
     {
-        cachedTooltipStack = ItemStack.field_190927_a;
+        cachedTooltipStack = ItemStack.EMPTY;
     }
 
     /**
@@ -272,15 +272,15 @@ public class GuiUtils
             maxTextWidth = event.getMaxWidth();
             font = event.getFontRenderer();
 
-            GlStateManager.func_179101_C();
-            RenderHelper.func_74518_a();
-            GlStateManager.func_179140_f();
-            GlStateManager.func_179097_i();
+            GlStateManager.disableRescaleNormal();
+            RenderHelper.disableStandardItemLighting();
+            GlStateManager.disableLighting();
+            GlStateManager.disableDepth();
             int tooltipTextWidth = 0;
 
             for (String textLine : textLines)
             {
-                int textLineWidth = font.func_78256_a(textLine);
+                int textLineWidth = font.getStringWidth(textLine);
 
                 if (textLineWidth > tooltipTextWidth)
                 {
@@ -322,7 +322,7 @@ public class GuiUtils
                 for (int i = 0; i < textLines.size(); i++)
                 {
                     String textLine = textLines.get(i);
-                    List<String> wrappedLine = font.func_78271_c(textLine, tooltipTextWidth);
+                    List<String> wrappedLine = font.listFormattedStringToWidth(textLine, tooltipTextWidth);
                     if (i == 0)
                     {
                         titleLinesCount = wrappedLine.size();
@@ -330,7 +330,7 @@ public class GuiUtils
 
                     for (String line : wrappedLine)
                     {
-                        int lineWidth = font.func_78256_a(line);
+                        int lineWidth = font.getStringWidth(line);
                         if (lineWidth > wrappedTooltipWidth)
                         {
                             wrappedTooltipWidth = lineWidth;
@@ -396,7 +396,7 @@ public class GuiUtils
             for (int lineNumber = 0; lineNumber < textLines.size(); ++lineNumber)
             {
                 String line = textLines.get(lineNumber);
-                font.func_175063_a(line, (float)tooltipX, (float)tooltipY, -1);
+                font.drawStringWithShadow(line, (float)tooltipX, (float)tooltipY, -1);
 
                 if (lineNumber + 1 == titleLinesCount)
                 {
@@ -408,10 +408,10 @@ public class GuiUtils
 
             MinecraftForge.EVENT_BUS.post(new RenderTooltipEvent.PostText(stack, textLines, tooltipX, tooltipTop, font, tooltipTextWidth, tooltipHeight));
 
-            GlStateManager.func_179145_e();
-            GlStateManager.func_179126_j();
-            RenderHelper.func_74519_b();
-            GlStateManager.func_179091_B();
+            GlStateManager.enableLighting();
+            GlStateManager.enableDepth();
+            RenderHelper.enableStandardItemLighting();
+            GlStateManager.enableRescaleNormal();
         }
     }
 
@@ -426,24 +426,24 @@ public class GuiUtils
         float endGreen   = (float)(endColor   >>  8 & 255) / 255.0F;
         float endBlue    = (float)(endColor         & 255) / 255.0F;
 
-        GlStateManager.func_179090_x();
-        GlStateManager.func_179147_l();
-        GlStateManager.func_179118_c();
-        GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        GlStateManager.func_179103_j(GL11.GL_SMOOTH);
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        GlStateManager.shadeModel(GL11.GL_SMOOTH);
 
-        Tessellator tessellator = Tessellator.func_178181_a();
-        BufferBuilder buffer = tessellator.func_178180_c();
-        buffer.func_181668_a(GL11.GL_QUADS, DefaultVertexFormats.field_181706_f);
-        buffer.func_181662_b(right,    top, zLevel).func_181666_a(startRed, startGreen, startBlue, startAlpha).func_181675_d();
-        buffer.func_181662_b( left,    top, zLevel).func_181666_a(startRed, startGreen, startBlue, startAlpha).func_181675_d();
-        buffer.func_181662_b( left, bottom, zLevel).func_181666_a(  endRed,   endGreen,   endBlue,   endAlpha).func_181675_d();
-        buffer.func_181662_b(right, bottom, zLevel).func_181666_a(  endRed,   endGreen,   endBlue,   endAlpha).func_181675_d();
-        tessellator.func_78381_a();
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        buffer.pos(right,    top, zLevel).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        buffer.pos( left,    top, zLevel).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        buffer.pos( left, bottom, zLevel).color(  endRed,   endGreen,   endBlue,   endAlpha).endVertex();
+        buffer.pos(right, bottom, zLevel).color(  endRed,   endGreen,   endBlue,   endAlpha).endVertex();
+        tessellator.draw();
 
-        GlStateManager.func_179103_j(GL11.GL_FLAT);
-        GlStateManager.func_179084_k();
-        GlStateManager.func_179141_d();
-        GlStateManager.func_179098_w();
+        GlStateManager.shadeModel(GL11.GL_FLAT);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
     }
 }

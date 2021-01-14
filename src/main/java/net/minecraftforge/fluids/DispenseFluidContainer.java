@@ -49,7 +49,7 @@ public class DispenseFluidContainer extends BehaviorDefaultDispenseItem
 
     @Override
     @Nonnull
-    public ItemStack func_82487_b(@Nonnull IBlockSource source, @Nonnull ItemStack stack)
+    public ItemStack dispenseStack(@Nonnull IBlockSource source, @Nonnull ItemStack stack)
     {
         if (FluidUtil.getFluidContained(stack) != null)
         {
@@ -67,29 +67,29 @@ public class DispenseFluidContainer extends BehaviorDefaultDispenseItem
     @Nonnull
     private ItemStack fillContainer(@Nonnull IBlockSource source, @Nonnull ItemStack stack)
     {
-        World world = source.func_82618_k();
-        EnumFacing dispenserFacing = source.func_189992_e().func_177229_b(BlockDispenser.field_176441_a);
-        BlockPos blockpos = source.func_180699_d().func_177972_a(dispenserFacing);
+        World world = source.getWorld();
+        EnumFacing dispenserFacing = source.getBlockState().getValue(BlockDispenser.FACING);
+        BlockPos blockpos = source.getBlockPos().offset(dispenserFacing);
 
-        FluidActionResult actionResult = FluidUtil.tryPickUpFluid(stack, null, world, blockpos, dispenserFacing.func_176734_d());
+        FluidActionResult actionResult = FluidUtil.tryPickUpFluid(stack, null, world, blockpos, dispenserFacing.getOpposite());
         ItemStack resultStack = actionResult.getResult();
 
-        if (!actionResult.isSuccess() || resultStack.func_190926_b())
+        if (!actionResult.isSuccess() || resultStack.isEmpty())
         {
-            return super.func_82487_b(source, stack);
+            return super.dispenseStack(source, stack);
         }
 
-        if (stack.func_190916_E() == 1)
+        if (stack.getCount() == 1)
         {
             return resultStack;
         }
-        else if (((TileEntityDispenser)source.func_150835_j()).func_146019_a(resultStack) < 0)
+        else if (((TileEntityDispenser)source.getBlockTileEntity()).addItemStack(resultStack) < 0)
         {
-            this.dispenseBehavior.func_82482_a(source, resultStack);
+            this.dispenseBehavior.dispense(source, resultStack);
         }
 
-        ItemStack stackCopy = stack.func_77946_l();
-        stackCopy.func_190918_g(1);
+        ItemStack stackCopy = stack.copy();
+        stackCopy.shrink(1);
         return stackCopy;
     }
 
@@ -99,39 +99,39 @@ public class DispenseFluidContainer extends BehaviorDefaultDispenseItem
     @Nonnull
     private ItemStack dumpContainer(IBlockSource source, @Nonnull ItemStack stack)
     {
-        ItemStack singleStack = stack.func_77946_l();
-        singleStack.func_190920_e(1);
+        ItemStack singleStack = stack.copy();
+        singleStack.setCount(1);
         IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(singleStack);
         if (fluidHandler == null)
         {
-            return super.func_82487_b(source, stack);
+            return super.dispenseStack(source, stack);
         }
 
         FluidStack fluidStack = fluidHandler.drain(Fluid.BUCKET_VOLUME, false);
-        EnumFacing dispenserFacing = source.func_189992_e().func_177229_b(BlockDispenser.field_176441_a);
-        BlockPos blockpos = source.func_180699_d().func_177972_a(dispenserFacing);
-        FluidActionResult result = fluidStack != null ? FluidUtil.tryPlaceFluid(null, source.func_82618_k(), blockpos, stack, fluidStack) : FluidActionResult.FAILURE;
+        EnumFacing dispenserFacing = source.getBlockState().getValue(BlockDispenser.FACING);
+        BlockPos blockpos = source.getBlockPos().offset(dispenserFacing);
+        FluidActionResult result = fluidStack != null ? FluidUtil.tryPlaceFluid(null, source.getWorld(), blockpos, stack, fluidStack) : FluidActionResult.FAILURE;
 
         if (result.isSuccess())
         {
             ItemStack drainedStack = result.getResult();
 
-            if (drainedStack.func_190916_E() == 1)
+            if (drainedStack.getCount() == 1)
             {
                 return drainedStack;
             }
-            else if (!drainedStack.func_190926_b() && ((TileEntityDispenser)source.func_150835_j()).func_146019_a(drainedStack) < 0)
+            else if (!drainedStack.isEmpty() && ((TileEntityDispenser)source.getBlockTileEntity()).addItemStack(drainedStack) < 0)
             {
-                this.dispenseBehavior.func_82482_a(source, drainedStack);
+                this.dispenseBehavior.dispense(source, drainedStack);
             }
 
-            ItemStack stackCopy = drainedStack.func_77946_l();
-            stackCopy.func_190918_g(1);
+            ItemStack stackCopy = drainedStack.copy();
+            stackCopy.shrink(1);
             return stackCopy;
         }
         else
         {
-            return this.dispenseBehavior.func_82482_a(source, stack);
+            return this.dispenseBehavior.dispense(source, stack);
         }
     }
 }

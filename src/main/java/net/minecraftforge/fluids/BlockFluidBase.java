@@ -70,47 +70,47 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
 
     static
     {
-        defaultDisplacements.put(Blocks.field_180413_ao,                       false);
-        defaultDisplacements.put(Blocks.field_180414_ap,                    false);
-        defaultDisplacements.put(Blocks.field_180412_aq,                     false);
-        defaultDisplacements.put(Blocks.field_180411_ar,                    false);
-        defaultDisplacements.put(Blocks.field_180410_as,                    false);
-        defaultDisplacements.put(Blocks.field_180409_at,                  false);
-        defaultDisplacements.put(Blocks.field_150415_aT,                       false);
-        defaultDisplacements.put(Blocks.field_180400_cw,                  false);
-        defaultDisplacements.put(Blocks.field_180407_aO,                      false);
-        defaultDisplacements.put(Blocks.field_180408_aP,                   false);
-        defaultDisplacements.put(Blocks.field_180404_aQ,                    false);
-        defaultDisplacements.put(Blocks.field_180403_aR,                   false);
-        defaultDisplacements.put(Blocks.field_180406_aS,                 false);
-        defaultDisplacements.put(Blocks.field_180405_aT,                   false);
-        defaultDisplacements.put(Blocks.field_150386_bk,             false);
-        defaultDisplacements.put(Blocks.field_180390_bo,                 false);
-        defaultDisplacements.put(Blocks.field_180391_bp,              false);
-        defaultDisplacements.put(Blocks.field_180392_bq,               false);
-        defaultDisplacements.put(Blocks.field_180386_br,              false);
-        defaultDisplacements.put(Blocks.field_180385_bs,            false);
-        defaultDisplacements.put(Blocks.field_180387_bt,              false);
-        defaultDisplacements.put(Blocks.field_150452_aw,          false);
-        defaultDisplacements.put(Blocks.field_150456_au,           false);
-        defaultDisplacements.put(Blocks.field_150445_bS,  false);
-        defaultDisplacements.put(Blocks.field_150443_bT,  false);
-        defaultDisplacements.put(Blocks.field_150468_ap,                         false);
-        defaultDisplacements.put(Blocks.field_150411_aY,                      false);
-        defaultDisplacements.put(Blocks.field_150410_aZ,                     false);
-        defaultDisplacements.put(Blocks.field_150397_co,             false);
-        defaultDisplacements.put(Blocks.field_150427_aO,                         false);
-        defaultDisplacements.put(Blocks.field_150384_bq,                     false);
-        defaultDisplacements.put(Blocks.field_150463_bK,               false);
-        defaultDisplacements.put(Blocks.field_180401_cv,                        false);
-        defaultDisplacements.put(Blocks.field_180393_cK,                false);
-        defaultDisplacements.put(Blocks.field_180394_cL,                    false);
-        defaultDisplacements.put(Blocks.field_150414_aQ,                           false);
+        defaultDisplacements.put(Blocks.OAK_DOOR,                       false);
+        defaultDisplacements.put(Blocks.SPRUCE_DOOR,                    false);
+        defaultDisplacements.put(Blocks.BIRCH_DOOR,                     false);
+        defaultDisplacements.put(Blocks.JUNGLE_DOOR,                    false);
+        defaultDisplacements.put(Blocks.ACACIA_DOOR,                    false);
+        defaultDisplacements.put(Blocks.DARK_OAK_DOOR,                  false);
+        defaultDisplacements.put(Blocks.TRAPDOOR,                       false);
+        defaultDisplacements.put(Blocks.IRON_TRAPDOOR,                  false);
+        defaultDisplacements.put(Blocks.OAK_FENCE,                      false);
+        defaultDisplacements.put(Blocks.SPRUCE_FENCE,                   false);
+        defaultDisplacements.put(Blocks.BIRCH_FENCE,                    false);
+        defaultDisplacements.put(Blocks.JUNGLE_FENCE,                   false);
+        defaultDisplacements.put(Blocks.DARK_OAK_FENCE,                 false);
+        defaultDisplacements.put(Blocks.ACACIA_FENCE,                   false);
+        defaultDisplacements.put(Blocks.NETHER_BRICK_FENCE,             false);
+        defaultDisplacements.put(Blocks.OAK_FENCE_GATE,                 false);
+        defaultDisplacements.put(Blocks.SPRUCE_FENCE_GATE,              false);
+        defaultDisplacements.put(Blocks.BIRCH_FENCE_GATE,               false);
+        defaultDisplacements.put(Blocks.JUNGLE_FENCE_GATE,              false);
+        defaultDisplacements.put(Blocks.DARK_OAK_FENCE_GATE,            false);
+        defaultDisplacements.put(Blocks.ACACIA_FENCE_GATE,              false);
+        defaultDisplacements.put(Blocks.WOODEN_PRESSURE_PLATE,          false);
+        defaultDisplacements.put(Blocks.STONE_PRESSURE_PLATE,           false);
+        defaultDisplacements.put(Blocks.LIGHT_WEIGHTED_PRESSURE_PLATE,  false);
+        defaultDisplacements.put(Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE,  false);
+        defaultDisplacements.put(Blocks.LADDER,                         false);
+        defaultDisplacements.put(Blocks.IRON_BARS,                      false);
+        defaultDisplacements.put(Blocks.GLASS_PANE,                     false);
+        defaultDisplacements.put(Blocks.STAINED_GLASS_PANE,             false);
+        defaultDisplacements.put(Blocks.PORTAL,                         false);
+        defaultDisplacements.put(Blocks.END_PORTAL,                     false);
+        defaultDisplacements.put(Blocks.COBBLESTONE_WALL,               false);
+        defaultDisplacements.put(Blocks.BARRIER,                        false);
+        defaultDisplacements.put(Blocks.STANDING_BANNER,                false);
+        defaultDisplacements.put(Blocks.WALL_BANNER,                    false);
+        defaultDisplacements.put(Blocks.CAKE,                           false);
 
-        defaultDisplacements.put(Blocks.field_150454_av,     false);
-        defaultDisplacements.put(Blocks.field_150472_an, false);
-        defaultDisplacements.put(Blocks.field_150444_as,     false);
-        defaultDisplacements.put(Blocks.field_150436_aH,         false);
+        defaultDisplacements.put(Blocks.IRON_DOOR,     false);
+        defaultDisplacements.put(Blocks.STANDING_SIGN, false);
+        defaultDisplacements.put(Blocks.WALL_SIGN,     false);
+        defaultDisplacements.put(Blocks.REEDS,         false);
     }
     protected Map<Block, Boolean> displacements = Maps.newHashMap();
 
@@ -118,11 +118,11 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     {
         public UnlistedPropertyBool(String name)
         {
-            super(PropertyBool.func_177716_a(name));
+            super(PropertyBool.create(name));
         }
     }
 
-    public static final PropertyInteger LEVEL = PropertyInteger.func_177719_a("level", 0, 15);
+    public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 15);
     public static final PropertyFloat[] LEVEL_CORNERS = new PropertyFloat[4];
     public static final PropertyFloat FLOW_DIRECTION = new PropertyFloat("flow_direction", -1000f, 1000f);
     public static final UnlistedPropertyBool[] SIDE_OVERLAYS = new UnlistedPropertyBool[4];
@@ -166,8 +166,8 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     public BlockFluidBase(Fluid fluid, Material material, MapColor mapColor)
     {
         super(material, mapColor);
-        this.func_149675_a(true);
-        this.func_149649_H();
+        this.setTickRandomly(true);
+        this.disableStats();
 
         this.fluidName = fluid.getName();
         this.density = fluid.density;
@@ -179,17 +179,17 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
 
         this.definedFluid = fluid;
         displacements.putAll(defaultDisplacements);
-        this.func_180632_j(field_176227_L.func_177621_b().func_177226_a(LEVEL, getMaxRenderHeightMeta()));
+        this.setDefaultState(blockState.getBaseState().withProperty(LEVEL, getMaxRenderHeightMeta()));
     }
 
     public BlockFluidBase(Fluid fluid, Material material)
     {
-        this(fluid, material, material.func_151565_r());
+        this(fluid, material, material.getMaterialMapColor());
     }
 
     @Override
     @Nonnull
-    protected BlockStateContainer func_180661_e()
+    protected BlockStateContainer createBlockState()
     {
         return new BlockStateContainer.Builder(this)
                 .add(LEVEL)
@@ -198,16 +198,16 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     }
 
     @Override
-    public int func_176201_c(@Nonnull IBlockState state)
+    public int getMetaFromState(@Nonnull IBlockState state)
     {
-        return state.func_177229_b(LEVEL);
+        return state.getValue(LEVEL);
     }
     @Override
     @Deprecated
     @Nonnull
-    public IBlockState func_176203_a(int meta)
+    public IBlockState getStateFromMeta(int meta)
     {
-        return this.func_176223_P().func_177226_a(LEVEL, meta);
+        return this.getDefaultState().withProperty(LEVEL, meta);
     }
 
     public BlockFluidBase setQuantaPerBlock(int quantaPerBlock)
@@ -267,8 +267,8 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
      */
     public boolean canDisplace(IBlockAccess world, BlockPos pos)
     {
-        IBlockState state = world.func_180495_p(pos);
-        Block block = state.func_177230_c();
+        IBlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
 
         if (block.isAir(state, world, pos))
         {
@@ -285,8 +285,8 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
             return displacements.get(block);
         }
 
-        Material material = state.func_185904_a();
-        if (material.func_76230_c() || material == Material.field_151567_E || material == Material.field_189963_J)
+        Material material = state.getMaterial();
+        if (material.blocksMovement() || material == Material.PORTAL || material == Material.STRUCTURE_VOID)
         {
             return false;
         }
@@ -308,13 +308,13 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         boolean canDisplace = canDisplace(world, pos);
         if (canDisplace)
         {
-            IBlockState state = world.func_180495_p(pos);
-            Block block = state.func_177230_c();
+            IBlockState state = world.getBlockState(pos);
+            Block block = state.getBlock();
 
             if (!block.isAir(state, world, pos) && !isFluid(state))
             {
                 // Forge: Vanilla has a 'bug' where snowballs don't drop like every other block. So special case because ewww...
-                if (block != Blocks.field_150431_aC) block.func_176226_b(world, pos, state, 0);
+                if (block != Blocks.SNOW_LAYER) block.dropBlockAsItem(world, pos, state, 0);
             }
         }
         return canDisplace;
@@ -323,60 +323,60 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     public abstract int getQuantaValue(IBlockAccess world, BlockPos pos);
 
     @Override
-    public abstract boolean func_176209_a(@Nonnull IBlockState state, boolean fullHit);
+    public abstract boolean canCollideCheck(@Nonnull IBlockState state, boolean fullHit);
 
     public abstract int getMaxRenderHeightMeta();
 
     /* BLOCK FUNCTIONS */
     @Override
-    public void func_176213_c(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state)
+    public void onBlockAdded(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state)
     {
-        world.func_175684_a(pos, this, tickRate);
+        world.scheduleUpdate(pos, this, tickRate);
     }
 
     @Override
-    public void func_189540_a(@Nonnull IBlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull Block neighborBlock, @Nonnull BlockPos neighbourPos)
+    public void neighborChanged(@Nonnull IBlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull Block neighborBlock, @Nonnull BlockPos neighbourPos)
     {
-        world.func_175684_a(pos, this, tickRate);
+        world.scheduleUpdate(pos, this, tickRate);
     }
 
     // Used to prevent updates on chunk generation
     @Override
-    public boolean func_149698_L()
+    public boolean requiresUpdates()
     {
         return false;
     }
 
     @Override
-    public boolean func_176205_b(@Nonnull IBlockAccess world, @Nonnull BlockPos pos)
+    public boolean isPassable(@Nonnull IBlockAccess world, @Nonnull BlockPos pos)
     {
         return true;
     }
 
     @Override
     @Nonnull
-    public Item func_180660_a(@Nonnull IBlockState state, @Nonnull Random rand, int fortune)
+    public Item getItemDropped(@Nonnull IBlockState state, @Nonnull Random rand, int fortune)
     {
-        return Items.field_190931_a;
+        return Items.AIR;
     }
 
     @Override
-    public int func_149745_a(@Nonnull Random par1Random)
+    public int quantityDropped(@Nonnull Random par1Random)
     {
         return 0;
     }
 
     @Override
-    public int func_149738_a(@Nonnull World world)
+    public int tickRate(@Nonnull World world)
     {
         return tickRate;
     }
 
     @Override
     @Nonnull
-    public Vec3d func_176197_a(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull Entity entity, @Nonnull Vec3d vec)
+    public Vec3d modifyAcceleration(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull Entity entity, @Nonnull Vec3d vec)
     {
-        return densityDir > 0 ? vec : vec.func_178787_e(getFlowVector(world, pos));
+        return densityDir > 0 ? vec : vec.add(getFlowVector(world, pos));
     }
 
     @Override
@@ -390,22 +390,22 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     }
 
     @Override
-    public boolean func_149662_c(@Nonnull IBlockState state)
+    public boolean isOpaqueCube(@Nonnull IBlockState state)
     {
         return false;
     }
 
     @Override
-    public boolean func_149686_d(@Nonnull IBlockState state)
+    public boolean isFullCube(@Nonnull IBlockState state)
     {
         return false;
     }
 
     @Override
-    public int func_185484_c(@Nonnull IBlockState state, @Nonnull IBlockAccess world, @Nonnull BlockPos pos)
+    public int getPackedLightmapCoords(@Nonnull IBlockState state, @Nonnull IBlockAccess world, @Nonnull BlockPos pos)
     {
-        int lightThis     = world.func_175626_b(pos, 0);
-        int lightUp       = world.func_175626_b(pos.func_177979_c(densityDir), 0);
+        int lightThis     = world.getCombinedLight(pos, 0);
+        int lightUp       = world.getCombinedLight(pos.down(densityDir), 0);
         int lightThisBase = lightThis & 255;
         int lightUpBase   = lightUp & 255;
         int lightThisExt  = lightThis >> 16 & 255;
@@ -417,23 +417,23 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     @Override
     @SideOnly(Side.CLIENT)
     @Nonnull
-    public BlockRenderLayer func_180664_k()
+    public BlockRenderLayer getBlockLayer()
     {
         return this.renderLayer;
     }
 
     @Override
     @Nonnull
-    public BlockFaceShape func_193383_a(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face)
+    public BlockFaceShape getBlockFaceShape(@Nonnull IBlockAccess worldIn, @Nonnull IBlockState state, @Nonnull BlockPos pos, @Nonnull EnumFacing face)
     {
         return BlockFaceShape.UNDEFINED;
     }
 
     @Override
-    public boolean func_176225_a(@Nonnull IBlockState state, @Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nonnull EnumFacing side)
+    public boolean shouldSideBeRendered(@Nonnull IBlockState state, @Nonnull IBlockAccess world, @Nonnull BlockPos pos, @Nonnull EnumFacing side)
     {
-        IBlockState neighbor = world.func_180495_p(pos.func_177972_a(side));
-        if (neighbor.func_185904_a() == state.func_185904_a())
+        IBlockState neighbor = world.getBlockState(pos.offset(side));
+        if (neighbor.getMaterial() == state.getMaterial())
         {
             return false;
         }
@@ -441,12 +441,12 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         {
             return true;
         }
-        return super.func_176225_a(state, world, pos, side);
+        return super.shouldSideBeRendered(state, world, pos, side);
     }
 
     private static boolean isFluid(@Nonnull IBlockState blockstate)
     {
-        return blockstate.func_185904_a().func_76224_d() || blockstate.func_177230_c() instanceof IFluidBlock;
+        return blockstate.getMaterial().isLiquid() || blockstate.getBlock() instanceof IFluidBlock;
     }
 
     @Override
@@ -458,7 +458,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         IBlockState[][] upBlockState = new IBlockState[3][3];
         float[][] height = new float[3][3];
         float[][] corner = new float[2][2];
-        upBlockState[1][1] = world.func_180495_p(pos.func_177979_c(densityDir));
+        upBlockState[1][1] = world.getBlockState(pos.down(densityDir));
         height[1][1] = getFluidHeightForRender(world, pos, upBlockState[1][1]);
         if (height[1][1] == 1)
         {
@@ -478,8 +478,8 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
                 {
                     if (i != 1 || j != 1)
                     {
-                        upBlockState[i][j] = world.func_180495_p(pos.func_177982_a(i - 1, 0, j - 1).func_177979_c(densityDir));
-                        height[i][j] = getFluidHeightForRender(world, pos.func_177982_a(i - 1, 0, j - 1), upBlockState[i][j]);
+                        upBlockState[i][j] = world.getBlockState(pos.add(i - 1, 0, j - 1).down(densityDir));
+                        height[i][j] = getFluidHeightForRender(world, pos.add(i - 1, 0, j - 1), upBlockState[i][j]);
                     }
                 }
             }
@@ -519,9 +519,9 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
 
         for (int i = 0; i < 4; i++)
         {
-            EnumFacing side = EnumFacing.func_176731_b(i);
-            BlockPos offset = pos.func_177972_a(side);
-            boolean useOverlay = world.func_180495_p(offset).func_193401_d(world, offset, side.func_176734_d()) == BlockFaceShape.SOLID;
+            EnumFacing side = EnumFacing.getHorizontal(i);
+            BlockPos offset = pos.offset(side);
+            boolean useOverlay = world.getBlockState(offset).getBlockFaceShape(world, offset, side.getOpposite()) == BlockFaceShape.SOLID;
             state = state.withProperty(SIDE_OVERLAYS[i], useOverlay);
         }
 
@@ -535,8 +535,8 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     /* FLUID FUNCTIONS */
     public static int getDensity(IBlockAccess world, BlockPos pos)
     {
-        IBlockState state = world.func_180495_p(pos);
-        Block block = state.func_177230_c();
+        IBlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
 
         if (block instanceof BlockFluidBase)
         {
@@ -553,8 +553,8 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
 
     public static int getTemperature(IBlockAccess world, BlockPos pos)
     {
-        IBlockState state = world.func_180495_p(pos);
-        Block block = state.func_177230_c();
+        IBlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
 
         if (block instanceof BlockFluidBase)
         {
@@ -572,7 +572,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     @Nullable
     private static Fluid getFluid(IBlockState state)
     {
-        Block block = state.func_177230_c();
+        Block block = state.getBlock();
 
         if (block instanceof IFluidBlock)
         {
@@ -580,11 +580,11 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         }
         if (block instanceof BlockLiquid)
         {
-            if (state.func_185904_a() == Material.field_151586_h)
+            if (state.getMaterial() == Material.WATER)
             {
                 return FluidRegistry.WATER;
             }
-            if (state.func_185904_a() == Material.field_151587_i)
+            if (state.getMaterial() == Material.LAVA)
             {
                 return FluidRegistry.LAVA;
             }
@@ -594,13 +594,13 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
 
     public static double getFlowDirection(IBlockAccess world, BlockPos pos)
     {
-        IBlockState state = world.func_180495_p(pos);
-        if (!state.func_185904_a().func_76224_d())
+        IBlockState state = world.getBlockState(pos);
+        if (!state.getMaterial().isLiquid())
         {
             return -1000.0;
         }
-        Vec3d vec = ((BlockFluidBase)state.func_177230_c()).getFlowVector(world, pos);
-        return vec.field_72450_a == 0.0D && vec.field_72449_c == 0.0D ? -1000.0D : MathHelper.func_181159_b(vec.field_72449_c, vec.field_72450_a) - Math.PI / 2D;
+        Vec3d vec = ((BlockFluidBase)state.getBlock()).getFlowVector(world, pos);
+        return vec.x == 0.0D && vec.z == 0.0D ? -1000.0D : MathHelper.atan2(vec.z, vec.x) - Math.PI / 2D;
     }
 
     public final int getQuantaValueBelow(IBlockAccess world, BlockPos pos, int belowThis)
@@ -654,24 +654,24 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
 
     public float getFluidHeightForRender(IBlockAccess world, BlockPos pos, @Nonnull IBlockState up)
     {
-        IBlockState here = world.func_180495_p(pos);
-        if (here.func_177230_c() == this)
+        IBlockState here = world.getBlockState(pos);
+        if (here.getBlock() == this)
         {
             if (isFluid(up))
             {
                 return 1;
             }
 
-            if (func_176201_c(here) == getMaxRenderHeightMeta())
+            if (getMetaFromState(here) == getMaxRenderHeightMeta())
             {
                 return quantaFraction;
             }
         }
-        if (here.func_177230_c() instanceof BlockLiquid)
+        if (here.getBlock() instanceof BlockLiquid)
         {
-            return Math.min(1 - BlockLiquid.func_149801_b(here.func_177229_b(BlockLiquid.field_176367_b)), quantaFraction);
+            return Math.min(1 - BlockLiquid.getLiquidHeightPercent(here.getValue(BlockLiquid.LEVEL)), quantaFraction);
         }
-        return !here.func_185904_a().func_76220_a() && up.func_177230_c() == this ? 1 : this.getQuantaPercentage(world, pos) * quantaFraction;
+        return !here.getMaterial().isSolid() && up.getBlock() == this ? 1 : this.getQuantaPercentage(world, pos) * quantaFraction;
     }
 
     public Vec3d getFlowVector(IBlockAccess world, BlockPos pos)
@@ -681,24 +681,24 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
 
         for (EnumFacing side : EnumFacing.Plane.HORIZONTAL)
         {
-            BlockPos offset = pos.func_177972_a(side);
+            BlockPos offset = pos.offset(side);
             int otherDecay = getFlowDecay(world, offset);
             if (otherDecay >= quantaPerBlock)
             {
-                if (!world.func_180495_p(offset).func_185904_a().func_76230_c())
+                if (!world.getBlockState(offset).getMaterial().blocksMovement())
                 {
-                    otherDecay = getFlowDecay(world, offset.func_177981_b(densityDir));
+                    otherDecay = getFlowDecay(world, offset.up(densityDir));
                     if (otherDecay < quantaPerBlock)
                     {
                         int power = otherDecay - (decay - quantaPerBlock);
-                        vec = vec.func_72441_c(side.func_82601_c() * power, 0, side.func_82599_e() * power);
+                        vec = vec.addVector(side.getFrontOffsetX() * power, 0, side.getFrontOffsetZ() * power);
                     }
                 }
             }
             else
             {
                 int power = otherDecay - decay;
-                vec = vec.func_72441_c(side.func_82601_c() * power, 0, side.func_82599_e() * power);
+                vec = vec.addVector(side.getFrontOffsetX() * power, 0, side.getFrontOffsetZ() * power);
             }
         }
 
@@ -706,16 +706,16 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         {
             for (EnumFacing side : EnumFacing.Plane.HORIZONTAL)
             {
-                BlockPos offset = pos.func_177972_a(side);
-                if (causesDownwardCurrent(world, offset, side) || causesDownwardCurrent(world, offset.func_177979_c(densityDir), side))
+                BlockPos offset = pos.offset(side);
+                if (causesDownwardCurrent(world, offset, side) || causesDownwardCurrent(world, offset.down(densityDir), side))
                 {
-                    vec = vec.func_72432_b().func_72441_c(0.0, 6.0 * densityDir, 0.0);
+                    vec = vec.normalize().addVector(0.0, 6.0 * densityDir, 0.0);
                     break;
                 }
             }
         }
 
-        return vec.func_72432_b();
+        return vec.normalize();
     }
 
     private int getFlowDecay(IBlockAccess world, BlockPos pos)
@@ -731,20 +731,20 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
 
     final boolean hasVerticalFlow(IBlockAccess world, BlockPos pos)
     {
-        return world.func_180495_p(pos.func_177979_c(densityDir)).func_177230_c() == this;
+        return world.getBlockState(pos.down(densityDir)).getBlock() == this;
     }
 
     protected boolean causesDownwardCurrent(IBlockAccess world, BlockPos pos, EnumFacing face)
     {
-        IBlockState state = world.func_180495_p(pos);
-        Block block = state.func_177230_c();
+        IBlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
 
         if (block == this) return false;
         if (face == (densityDir < 0 ? EnumFacing.UP : EnumFacing.DOWN)) return true;
-        if (state.func_185904_a() == Material.field_151588_w) return false;
+        if (state.getMaterial() == Material.ICE) return false;
 
-        boolean flag = func_193382_c(block) || block instanceof BlockStairs;
-        return !flag && state.func_193401_d(world, pos, face) == BlockFaceShape.SOLID;
+        boolean flag = isExceptBlockForAttachWithPiston(block) || block instanceof BlockStairs;
+        return !flag && state.getBlockFaceShape(world, pos, face) == BlockFaceShape.SOLID;
     }
 
     /* IFluidBlock */
@@ -768,20 +768,20 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     }
 
     @Override
-    public AxisAlignedBB func_180646_a(@Nonnull IBlockState blockState, @Nonnull IBlockAccess worldIn, @Nonnull BlockPos pos)
+    public AxisAlignedBB getCollisionBoundingBox(@Nonnull IBlockState blockState, @Nonnull IBlockAccess worldIn, @Nonnull BlockPos pos)
     {
-        return field_185506_k;
+        return NULL_AABB;
     }
     
     @Override
     @SideOnly (Side.CLIENT)
     public Vec3d getFogColor(World world, BlockPos pos, IBlockState state, Entity entity, Vec3d originalColor, float partialTicks)
     {
-        if (!isWithinFluid(world, pos, ActiveRenderInfo.func_178806_a(entity, partialTicks)))
+        if (!isWithinFluid(world, pos, ActiveRenderInfo.projectViewFromEntity(entity, partialTicks)))
         {
-            BlockPos otherPos = pos.func_177979_c(densityDir);
-            IBlockState otherState = world.func_180495_p(otherPos);
-            return otherState.func_177230_c().getFogColor(world, otherPos, otherState, entity, originalColor, partialTicks);
+            BlockPos otherPos = pos.down(densityDir);
+            IBlockState otherState = world.getBlockState(otherPos);
+            return otherState.getBlock().getFogColor(world, otherPos, otherState, entity, originalColor, partialTicks);
         }
 
         if (getFluid() != null)
@@ -801,7 +801,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     {
         if (!isWithinFluid(world, pos, viewpoint))
         {
-            return world.func_180495_p(pos.func_177979_c(densityDir));
+            return world.getBlockState(pos.down(densityDir));
         }
 
         return super.getStateAtViewpoint(state, world, pos, viewpoint);
@@ -810,8 +810,8 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     private boolean isWithinFluid(IBlockAccess world, BlockPos pos, Vec3d vec)
     {
         float filled = getFilledPercentage(world, pos);
-        return filled < 0 ? vec.field_72448_b > pos.func_177956_o() + filled + 1
-                          : vec.field_72448_b < pos.func_177956_o() + filled;
+        return filled < 0 ? vec.y > pos.getY() + filled + 1
+                          : vec.y < pos.getY() + filled;
     }
     
     @Override

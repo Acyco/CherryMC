@@ -47,8 +47,8 @@ public abstract class CommandTreeBase extends CommandBase
 
     public void addSubcommand(ICommand command)
     {
-        commandMap.put(command.func_71517_b(), command);
-        for (String alias : command.func_71514_a())
+        commandMap.put(command.getName(), command);
+        for (String alias : command.getAliases())
         {
             commandAliasMap.put(alias, command);
         }
@@ -95,7 +95,7 @@ public abstract class CommandTreeBase extends CommandBase
     }
 
     @Override
-    public List<String> func_184883_a(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos pos)
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos pos)
     {
         if(args.length == 1)
         {
@@ -103,35 +103,35 @@ public abstract class CommandTreeBase extends CommandBase
 
             for (ICommand c : getSubCommands())
             {
-                if(c.func_184882_a(server, sender))
+                if(c.checkPermission(server, sender))
                 {
-                    keys.add(c.func_71517_b());
+                    keys.add(c.getName());
                 }
             }
 
             keys.sort(null);
-            return func_175762_a(args, keys);
+            return getListOfStringsMatchingLastWord(args, keys);
         }
 
         ICommand cmd = getSubCommand(args[0]);
 
         if(cmd != null)
         {
-            return cmd.func_184883_a(server, sender, shiftArgs(args), pos);
+            return cmd.getTabCompletions(server, sender, shiftArgs(args), pos);
         }
 
-        return super.func_184883_a(server, sender, args, pos);
+        return super.getTabCompletions(server, sender, args, pos);
     }
 
     @Override
-    public boolean func_82358_a(String[] args, int index)
+    public boolean isUsernameIndex(String[] args, int index)
     {
         if (index > 0 && args.length > 1)
         {
             ICommand cmd = getSubCommand(args[0]);
             if (cmd != null)
             {
-                return cmd.func_82358_a(shiftArgs(args), index - 1);
+                return cmd.isUsernameIndex(shiftArgs(args), index - 1);
             }
         }
 
@@ -139,12 +139,12 @@ public abstract class CommandTreeBase extends CommandBase
     }
 
     @Override
-    public void func_184881_a(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         if (args.length < 1)
         {
             String subCommandsString = getAvailableSubCommandsString(server, sender);
-            sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, "commands.tree_base.available_subcommands", subCommandsString));
+            sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, "commands.tree_base.available_subcommands", subCommandsString));
         }
         else
         {
@@ -155,13 +155,13 @@ public abstract class CommandTreeBase extends CommandBase
                 String subCommandsString = getAvailableSubCommandsString(server, sender);
                 throw new CommandException("commands.tree_base.invalid_cmd.list_subcommands", args[0], subCommandsString);
             }
-            else if(!cmd.func_184882_a(server, sender))
+            else if(!cmd.checkPermission(server, sender))
             {
                 throw new CommandException("commands.generic.permission");
             }
             else
             {
-                cmd.func_184881_a(server, sender, shiftArgs(args));
+                cmd.execute(server, sender, shiftArgs(args));
             }
         }
     }
@@ -171,11 +171,11 @@ public abstract class CommandTreeBase extends CommandBase
         Collection<String> availableCommands = new ArrayList<>();
         for (ICommand command : getSubCommands())
         {
-            if (command.func_184882_a(server, sender))
+            if (command.checkPermission(server, sender))
             {
-                availableCommands.add(command.func_71517_b());
+                availableCommands.add(command.getName());
             }
         }
-        return CommandBase.func_96333_a(availableCommands);
+        return CommandBase.joinNiceStringFromCollection(availableCommands);
     }
 }

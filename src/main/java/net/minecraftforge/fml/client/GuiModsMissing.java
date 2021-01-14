@@ -39,13 +39,13 @@ public class GuiModsMissing extends GuiErrorBase
     }
 
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        this.func_146276_q_();
+        this.drawDefaultBackground();
         List<MissingModsException.MissingModInfo> missingModsVersions = modsMissing.getMissingModInfos();
         int offset = Math.max(85 - missingModsVersions.size() * 10, 10);
-        String modMissingDependenciesText = I18n.func_135052_a("fml.messages.mod.missing.dependencies.compatibility", TextFormatting.BOLD + modsMissing.getModName() + TextFormatting.RESET);
-        this.func_73732_a(this.field_146289_q, modMissingDependenciesText, this.field_146294_l / 2, offset, 0xFFFFFF);
+        String modMissingDependenciesText = I18n.format("fml.messages.mod.missing.dependencies.compatibility", TextFormatting.BOLD + modsMissing.getModName() + TextFormatting.RESET);
+        this.drawCenteredString(this.fontRenderer, modMissingDependenciesText, this.width / 2, offset, 0xFFFFFF);
         offset+=5;
         for (MissingModsException.MissingModInfo versionInfo : missingModsVersions)
         {
@@ -55,11 +55,11 @@ public class GuiModsMissing extends GuiErrorBase
             String missingReason;
             if (currentVersion == null)
             {
-                missingReason = I18n.func_135052_a("fml.messages.mod.missing.dependencies.missing");
+                missingReason = I18n.format("fml.messages.mod.missing.dependencies.missing");
             }
             else
             {
-                missingReason = I18n.func_135052_a("fml.messages.mod.missing.dependencies.you.have", currentVersion.getVersionString());
+                missingReason = I18n.format("fml.messages.mod.missing.dependencies.you.have", currentVersion.getVersionString());
             }
             String acceptedModVersionString = acceptedVersion.getRangeString();
             if (acceptedVersion instanceof DefaultArtifactVersion)
@@ -76,15 +76,15 @@ public class GuiModsMissing extends GuiErrorBase
             String message;
             if (versionInfo.isRequired())
             {
-                message = I18n.func_135052_a("fml.messages.mod.missing.dependencies.requires", versionInfoText);
+                message = I18n.format("fml.messages.mod.missing.dependencies.requires", versionInfoText);
             }
             else
             {
-                message = I18n.func_135052_a("fml.messages.mod.missing.dependencies.compatible.with", versionInfoText);
+                message = I18n.format("fml.messages.mod.missing.dependencies.compatible.with", versionInfoText);
             }
             offset += 10;
-            this.func_73732_a(this.field_146289_q, message, this.field_146294_l / 2, offset, 0xEEEEEE);
+            this.drawCenteredString(this.fontRenderer, message, this.width / 2, offset, 0xEEEEEE);
         }
-        super.func_73863_a(mouseX, mouseY, partialTicks);
+        super.drawScreen(mouseX, mouseY, partialTicks);
     }
 }

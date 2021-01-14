@@ -35,26 +35,26 @@ public class UnpackedBakedQuad extends BakedQuad
 
     public UnpackedBakedQuad(float[][][] unpackedData, int tint, EnumFacing orientation, TextureAtlasSprite texture, boolean applyDiffuseLighting, VertexFormat format)
     {
-        super(new int[format.func_177338_f() /* / 4 * 4 */], tint, orientation, texture, applyDiffuseLighting, format);
+        super(new int[format.getNextOffset() /* / 4 * 4 */], tint, orientation, texture, applyDiffuseLighting, format);
         this.unpackedData = unpackedData;
         this.format = format;
     }
 
     @Override
-    public int[] func_178209_a()
+    public int[] getVertexData()
     {
         if(!packed)
         {
             packed = true;
             for(int v = 0; v < 4; v++)
             {
-                for(int e = 0; e < format.func_177345_h(); e++)
+                for(int e = 0; e < format.getElementCount(); e++)
                 {
-                    LightUtil.pack(unpackedData[v][e], field_178215_a, format, v, e);
+                    LightUtil.pack(unpackedData[v][e], vertexData, format, v, e);
                 }
             }
         }
-        return field_178215_a;
+        return vertexData;
     }
 
     @Override
@@ -62,18 +62,18 @@ public class UnpackedBakedQuad extends BakedQuad
     {
         int[] eMap = LightUtil.mapFormats(consumer.getVertexFormat(), format);
 
-        if(func_178212_b())
+        if(hasTintIndex())
         {
-            consumer.setQuadTint(func_178211_c());
+            consumer.setQuadTint(getTintIndex());
         }
-        consumer.setTexture(field_187509_d);
+        consumer.setTexture(sprite);
         consumer.setApplyDiffuseLighting(applyDiffuseLighting);
-        consumer.setQuadOrientation(func_178210_d());
+        consumer.setQuadOrientation(getFace());
         for(int v = 0; v < 4; v++)
         {
-            for(int e = 0; e < consumer.getVertexFormat().func_177345_h(); e++)
+            for(int e = 0; e < consumer.getVertexFormat().getElementCount(); e++)
             {
-                if(eMap[e] != format.func_177345_h())
+                if(eMap[e] != format.getElementCount())
                 {
                     consumer.put(e, unpackedData[v][eMap[e]]);
                 }
@@ -102,7 +102,7 @@ public class UnpackedBakedQuad extends BakedQuad
         public Builder(VertexFormat format)
         {
             this.format = format;
-            unpackedData = new float[4][format.func_177345_h()][4];
+            unpackedData = new float[4][format.getElementCount()][4];
         }
 
         @Override
@@ -155,7 +155,7 @@ public class UnpackedBakedQuad extends BakedQuad
                 }
             }
             elements++;
-            if(elements == format.func_177345_h())
+            if(elements == format.getElementCount())
             {
                 vertices++;
                 elements = 0;
@@ -180,21 +180,21 @@ public class UnpackedBakedQuad extends BakedQuad
             }
             if(contractUVs)
             {
-                float tX = texture.func_94211_a() / (texture.func_94212_f() - texture.func_94209_e());
-                float tY = texture.func_94216_b() / (texture.func_94210_h() - texture.func_94206_g());
+                float tX = texture.getIconWidth() / (texture.getMaxU() - texture.getMinU());
+                float tY = texture.getIconHeight() / (texture.getMaxV() - texture.getMinV());
                 float tS = tX > tY ? tX : tY;
                 float ep = 1f / (tS * 0x100);
                 int uve = 0;
-                while(uve < format.func_177345_h())
+                while(uve < format.getElementCount())
                 {
-                    VertexFormatElement e = format.func_177348_c(uve);
-                    if(e.func_177375_c() == VertexFormatElement.EnumUsage.UV && e.func_177369_e() == 0)
+                    VertexFormatElement e = format.getElement(uve);
+                    if(e.getUsage() == VertexFormatElement.EnumUsage.UV && e.getIndex() == 0)
                     {
                         break;
                     }
                     uve++;
                 }
-                if(uve == format.func_177345_h())
+                if(uve == format.getElementCount())
                 {
                     throw new IllegalStateException("Can't contract UVs: format doesn't contain UVs");
                 }

@@ -39,8 +39,6 @@ import javax.annotation.Nullable;
 import static net.minecraftforge.fml.common.eventhandler.Event.Result.DEFAULT;
 import static net.minecraftforge.fml.common.eventhandler.Event.Result.DENY;
 
-import net.minecraftforge.fml.common.eventhandler.Event.Result;
-
 /**
  * PlayerInteractEvent is fired when a player interacts in some way.
  * All subclasses are fired on {@link MinecraftForge#EVENT_BUS}.
@@ -337,7 +335,7 @@ public class PlayerInteractEvent extends PlayerEvent
     @Nonnull
     public ItemStack getItemStack()
     {
-        return getEntityPlayer().func_184586_b(hand);
+        return getEntityPlayer().getHeldItem(hand);
     }
 
     /**
@@ -367,7 +365,7 @@ public class PlayerInteractEvent extends PlayerEvent
      */
     public World getWorld()
     {
-        return getEntityPlayer().func_130014_f_();
+        return getEntityPlayer().getEntityWorld();
     }
 
     /**
@@ -375,7 +373,7 @@ public class PlayerInteractEvent extends PlayerEvent
      */
     public Side getSide()
     {
-        return getWorld().field_72995_K ? Side.CLIENT : Side.SERVER;
+        return getWorld().isRemote ? Side.CLIENT : Side.SERVER;
     }
 
     /**

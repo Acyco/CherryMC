@@ -62,8 +62,8 @@ public class FarmlandWaterManager
     @SuppressWarnings("unchecked")
     public static<T extends SimpleTicket<Vec3d>> T addCustomTicket(World world, T ticket, ChunkPos masterChunk, ChunkPos... additionalChunks)
     {
-        Preconditions.checkArgument(!world.field_72995_K, "Water region is only determined server-side");
-        Map<ChunkPos, ChunkTicketManager<Vec3d>> ticketMap = customWaterHandler.computeIfAbsent(world.field_73011_w.getDimension(), id -> new MapMaker().weakValues().makeMap());
+        Preconditions.checkArgument(!world.isRemote, "Water region is only determined server-side");
+        Map<ChunkPos, ChunkTicketManager<Vec3d>> ticketMap = customWaterHandler.computeIfAbsent(world.provider.getDimension(), id -> new MapMaker().weakValues().makeMap());
         ChunkTicketManager<Vec3d>[] additionalTickets = new ChunkTicketManager[additionalChunks.length];
         for (int i = 0; i < additionalChunks.length; i++)
             additionalTickets[i] = ticketMap.computeIfAbsent(additionalChunks[i], ChunkTicketManager::new);
@@ -88,12 +88,12 @@ public class FarmlandWaterManager
         if (DEBUG)
             FMLLog.log.info("FarmlandWaterManager: New AABBTicket, aabb={}", aabb);
         //First calculate all chunks the aabb is in
-        ChunkPos leftUp = new ChunkPos(((int) aabb.field_72340_a) >> 4, ((int) aabb.field_72339_c) >> 4);
-        ChunkPos rightDown = new ChunkPos(((int) aabb.field_72336_d) >> 4, ((int) aabb.field_72334_f) >> 4);
+        ChunkPos leftUp = new ChunkPos(((int) aabb.minX) >> 4, ((int) aabb.minZ) >> 4);
+        ChunkPos rightDown = new ChunkPos(((int) aabb.maxX) >> 4, ((int) aabb.maxZ) >> 4);
         Set<ChunkPos> posSet = new HashSet<>();
-        for (int x = leftUp.field_77276_a; x <= rightDown.field_77276_a; x++)
+        for (int x = leftUp.x; x <= rightDown.x; x++)
         {
-            for (int z = leftUp.field_77275_b; z <= rightDown.field_77275_b; z++)
+            for (int z = leftUp.z; z <= rightDown.z; z++)
             {
                 posSet.add(new ChunkPos(x, z));
             }
@@ -103,7 +103,7 @@ public class FarmlandWaterManager
         for (ChunkPos pos : posSet) //Find the chunkPos with the lowest distance to the center and choose it as the master pos
         {
             //basically pos.getCenter but it is Client Side Only in 1.12
-            Vec3d center = new Vec3d(aabb.field_72340_a + (aabb.field_72336_d - aabb.field_72340_a) * 0.5D, aabb.field_72338_b + (aabb.field_72337_e - aabb.field_72338_b) * 0.5D, aabb.field_72339_c + (aabb.field_72334_f - aabb.field_72339_c) * 0.5D);
+            Vec3d center = new Vec3d(aabb.minX + (aabb.maxX - aabb.minX) * 0.5D, aabb.minY + (aabb.maxY - aabb.minY) * 0.5D, aabb.minZ + (aabb.maxZ - aabb.minZ) * 0.5D);
             double distToCenter = getDistanceSq(pos, center);
             if (distToCenter < masterDistance)
             {
@@ -122,10 +122,10 @@ public class FarmlandWaterManager
     private static double getDistanceSq(ChunkPos pos, Vec3d vec3d)
     {
         //See ChunkPos#getDistanceSq
-        double d0 = (double)(pos.field_77276_a * 16 + 8);
-        double d1 = (double)(pos.field_77275_b * 16 + 8);
-        double d2 = d0 - vec3d.field_72450_a;
-        double d3 = d1 - vec3d.field_72449_c;
+        double d0 = (double)(pos.x * 16 + 8);
+        double d1 = (double)(pos.z * 16 + 8);
+        double d2 = d0 - vec3d.x;
+        double d3 = d1 - vec3d.z;
         return  d2 * d2 + d3 * d3;
     }
 
@@ -135,11 +135,11 @@ public class FarmlandWaterManager
      */
     public static boolean hasBlockWaterTicket(World world, BlockPos pos)
     {
-        ChunkTicketManager<Vec3d> ticketManager = getTicketManager(new ChunkPos(pos.func_177958_n() >> 4, pos.func_177952_p() >> 4), world);
+        ChunkTicketManager<Vec3d> ticketManager = getTicketManager(new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4), world);
         if (ticketManager != null)
         {
             //make the vec3d originate in the center of the block
-            Vec3d posAsVec3d = new Vec3d(pos.func_177958_n() + 0.5, pos.func_177956_o() + 0.5, pos.func_177952_p() + 0.5);
+            Vec3d posAsVec3d = new Vec3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
             for (SimpleTicket<Vec3d> ticket : ticketManager.getTickets()) {
                 if (ticket.matches(posAsVec3d))
                     return true;
@@ -150,7 +150,7 @@ public class FarmlandWaterManager
 
     static void removeTickets(Chunk chunk)
     {
-        ChunkTicketManager<Vec3d> ticketManager = getTicketManager(chunk.func_76632_l(), chunk.func_177412_p());
+        ChunkTicketManager<Vec3d> ticketManager = getTicketManager(chunk.getPos(), chunk.getWorld());
         if (ticketManager != null)
         {
             if (DEBUG)
@@ -163,8 +163,8 @@ public class FarmlandWaterManager
 
     private static ChunkTicketManager<Vec3d> getTicketManager(ChunkPos pos, World world)
     {
-        Preconditions.checkArgument(!world.field_72995_K, "Water region is only determined server-side");
-        Map<ChunkPos, ChunkTicketManager<Vec3d>> ticketMap = customWaterHandler.get(world.field_73011_w.getDimension());
+        Preconditions.checkArgument(!world.isRemote, "Water region is only determined server-side");
+        Map<ChunkPos, ChunkTicketManager<Vec3d>> ticketMap = customWaterHandler.get(world.provider.getDimension());
         if (ticketMap == null)
         {
             return null;

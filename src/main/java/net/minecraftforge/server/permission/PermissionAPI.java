@@ -92,6 +92,6 @@ public class PermissionAPI
     public static boolean hasPermission(EntityPlayer player, String node)
     {
         Preconditions.checkNotNull(player, "Player can't be null!");
-        return hasPermission(player.func_146103_bH(), node, new PlayerContext(player));
+        return hasPermission(player.getGameProfile(), node, new PlayerContext(player));
     }
 }

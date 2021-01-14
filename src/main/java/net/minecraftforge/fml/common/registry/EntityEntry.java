@@ -60,7 +60,7 @@ public class EntityEntry extends Impl<EntityEntry>
     {
         this.egg = egg;
         if (this.getRegistryName() != null)
-            EntityList.field_75627_a.put(this.getRegistryName(), egg);
+            EntityList.ENTITY_EGGS.put(this.getRegistryName(), egg);
     }
 
     public Entity newInstance(World world)

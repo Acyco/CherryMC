@@ -31,8 +31,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
-import net.minecraftforge.fml.common.eventhandler.Event.HasResult;
-
 /**
  * DecorateBiomeEvent is fired when a BiomeDecorator is created.
  * <br>
@@ -62,7 +60,7 @@ public class DecorateBiomeEvent extends Event
     {
         this.world = world;
         this.rand = rand;
-        this.pos = chunkPos.func_180331_a(0, 0, 0);
+        this.pos = chunkPos.getBlock(0, 0, 0);
         this.chunkPos = chunkPos;
     }
 

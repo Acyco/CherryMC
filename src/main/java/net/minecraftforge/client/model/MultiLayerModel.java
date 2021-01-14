@@ -141,7 +141,7 @@ public final class MultiLayerModel implements IModel
         }
 
         @Override
-        public List<BakedQuad> func_188616_a(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
+        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
         {
             BlockRenderLayer layer = MinecraftForgeClient.getRenderLayer();
             if (layer == null)
@@ -149,18 +149,18 @@ public final class MultiLayerModel implements IModel
                 ImmutableList.Builder<BakedQuad> builder = ImmutableList.builder();
                 for (IBakedModel model : models.values())
                 {
-                    builder.addAll(model.func_188616_a(state, side, rand));
+                    builder.addAll(model.getQuads(state, side, rand));
                 }
                 return builder.build();
             }
             // assumes that child model will handle this state properly. FIXME?
-            return models.getOrDefault(Optional.of(layer), missing).func_188616_a(state, side, rand);
+            return models.getOrDefault(Optional.of(layer), missing).getQuads(state, side, rand);
         }
 
         @Override
-        public boolean func_177555_b()
+        public boolean isAmbientOcclusion()
         {
-            return base.func_177555_b();
+            return base.isAmbientOcclusion();
         }
 
         @Override
@@ -170,21 +170,21 @@ public final class MultiLayerModel implements IModel
         }
 
         @Override
-        public boolean func_177556_c()
+        public boolean isGui3d()
         {
-            return base.func_177556_c();
+            return base.isGui3d();
         }
 
         @Override
-        public boolean func_188618_c()
+        public boolean isBuiltInRenderer()
         {
-            return base.func_188618_c();
+            return base.isBuiltInRenderer();
         }
 
         @Override
-        public TextureAtlasSprite func_177554_e()
+        public TextureAtlasSprite getParticleTexture()
         {
-            return base.func_177554_e();
+            return base.getParticleTexture();
         }
 
         @Override
@@ -194,9 +194,9 @@ public final class MultiLayerModel implements IModel
         }
 
         @Override
-        public ItemOverrideList func_188617_f()
+        public ItemOverrideList getOverrides()
         {
-            return ItemOverrideList.field_188022_a;
+            return ItemOverrideList.NONE;
         }
     }
 
@@ -205,15 +205,15 @@ public final class MultiLayerModel implements IModel
         INSTANCE;
 
         @Override
-        public void func_110549_a(IResourceManager resourceManager) {}
+        public void onResourceManagerReload(IResourceManager resourceManager) {}
 
         @Override
         public boolean accepts(ResourceLocation modelLocation)
         {
-            return modelLocation.func_110624_b().equals(ForgeVersion.MOD_ID) && (
-                modelLocation.func_110623_a().equals("multi-layer") ||
-                modelLocation.func_110623_a().equals("models/block/multi-layer") ||
-                modelLocation.func_110623_a().equals("models/item/multi-layer"));
+            return modelLocation.getResourceDomain().equals(ForgeVersion.MOD_ID) && (
+                modelLocation.getResourcePath().equals("multi-layer") ||
+                modelLocation.getResourcePath().equals("models/block/multi-layer") ||
+                modelLocation.getResourcePath().equals("models/item/multi-layer"));
         }
 
         @Override

@@ -79,11 +79,11 @@ public final class ItemTextureQuadConverter
      */
     public static List<UnpackedBakedQuad> convertTextureHorizontal(VertexFormat format, TRSRTransformation transform, TextureAtlasSprite template, TextureAtlasSprite sprite, float z, EnumFacing facing, int color, int tint)
     {
-        int w = template.func_94211_a();
-        int h = template.func_94216_b();
+        int w = template.getIconWidth();
+        int h = template.getIconHeight();
         float wScale = 16f / (float)w;
         float hScale = 16f / (float)h;
-        int[] data = template.func_147965_a(0)[0];
+        int[] data = template.getFrameTextureData(0)[0];
         List<UnpackedBakedQuad> quads = Lists.newArrayList();
 
         // the upper left x-position of the current quad
@@ -160,11 +160,11 @@ public final class ItemTextureQuadConverter
      */
     public static List<UnpackedBakedQuad> convertTextureVertical(VertexFormat format, TRSRTransformation transform, TextureAtlasSprite template, TextureAtlasSprite sprite, float z, EnumFacing facing, int color, int tint)
     {
-        int w = template.func_94211_a();
-        int h = template.func_94216_b();
+        int w = template.getIconWidth();
+        int h = template.getIconHeight();
         float wScale = 16f / (float)w;
         float hScale = 16f / (float)h;
-        int[] data = template.func_147965_a(0)[0];
+        int[] data = template.getFrameTextureData(0)[0];
         List<UnpackedBakedQuad> quads = Lists.newArrayList();
 
         // the upper left y-position of the current quad
@@ -246,10 +246,10 @@ public final class ItemTextureQuadConverter
      */
     public static UnpackedBakedQuad genQuad(VertexFormat format, TRSRTransformation transform, float x1, float y1, float x2, float y2, float z, TextureAtlasSprite sprite, EnumFacing facing, int color, int tint)
     {
-        float u1 = sprite.func_94214_a(x1);
-        float v1 = sprite.func_94207_b(y1);
-        float u2 = sprite.func_94214_a(x2);
-        float v2 = sprite.func_94207_b(y2);
+        float u1 = sprite.getInterpolatedU(x1);
+        float v1 = sprite.getInterpolatedV(y1);
+        float u2 = sprite.getInterpolatedU(x2);
+        float v2 = sprite.getInterpolatedV(y2);
 
         x1 /= 16f;
         y1 /= 16f;
@@ -297,9 +297,9 @@ public final class ItemTextureQuadConverter
     private static void putVertex(IVertexConsumer consumer, VertexFormat format, EnumFacing side,
                                   float x, float y, float z, float u, float v, int color)
     {
-        for (int e = 0; e < format.func_177345_h(); e++)
+        for (int e = 0; e < format.getElementCount(); e++)
         {
-            switch (format.func_177348_c(e).func_177375_c())
+            switch (format.getElement(e).getUsage())
             {
                 case POSITION:
                     consumer.put(e, x, y, z, 1f);
@@ -312,13 +312,13 @@ public final class ItemTextureQuadConverter
                     consumer.put(e, r, g, b, a);
                     break;
                 case NORMAL:
-                    float offX = (float) side.func_82601_c();
-                    float offY = (float) side.func_96559_d();
-                    float offZ = (float) side.func_82599_e();
+                    float offX = (float) side.getFrontOffsetX();
+                    float offY = (float) side.getFrontOffsetY();
+                    float offZ = (float) side.getFrontOffsetZ();
                     consumer.put(e, offX, offY, offZ, 0f);
                     break;
                 case UV:
-                    if (format.func_177348_c(e).func_177369_e() == 0)
+                    if (format.getElement(e).getIndex() == 0)
                     {
                         consumer.put(e, u, v, 0f, 1f);
                         break;

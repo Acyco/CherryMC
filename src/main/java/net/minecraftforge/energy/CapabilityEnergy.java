@@ -47,7 +47,7 @@ public class CapabilityEnergy
             {
                 if (!(instance instanceof EnergyStorage))
                     throw new IllegalArgumentException("Can not deserialize to an instance that isn't the default implementation");
-                ((EnergyStorage)instance).energy = ((NBTTagInt)nbt).func_150287_d();
+                ((EnergyStorage)instance).energy = ((NBTTagInt)nbt).getInt();
             }
         },
         () -> new EnergyStorage(1000));

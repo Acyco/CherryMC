@@ -52,20 +52,20 @@ public class AnimationTESR<T extends TileEntity> extends FastTESR<T> implements 
         {
             return;
         }
-        if(blockRenderer == null) blockRenderer = Minecraft.func_71410_x().func_175602_ab();
-        BlockPos pos = te.func_174877_v();
-        IBlockAccess world = MinecraftForgeClient.getRegionRenderCache(te.func_145831_w(), pos);
-        IBlockState state = world.func_180495_p(pos);
-        if(state.func_177227_a().contains(Properties.StaticProperty))
+        if(blockRenderer == null) blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
+        BlockPos pos = te.getPos();
+        IBlockAccess world = MinecraftForgeClient.getRegionRenderCache(te.getWorld(), pos);
+        IBlockState state = world.getBlockState(pos);
+        if(state.getPropertyKeys().contains(Properties.StaticProperty))
         {
-            state = state.func_177226_a(Properties.StaticProperty, false);
+            state = state.withProperty(Properties.StaticProperty, false);
         }
         if(state instanceof IExtendedBlockState)
         {
             IExtendedBlockState exState = (IExtendedBlockState)state;
             if(exState.getUnlistedNames().contains(Properties.AnimationProperty))
             {
-                float time = Animation.getWorldTime(func_178459_a(), partialTick);
+                float time = Animation.getWorldTime(getWorld(), partialTick);
                 IAnimationStateMachine capability = te.getCapability(CapabilityAnimation.ANIMATION_CAPABILITY, null);
                 if (capability != null)
                 {
@@ -73,12 +73,12 @@ public class AnimationTESR<T extends TileEntity> extends FastTESR<T> implements 
                     handleEvents(te, time, pair.getRight());
 
                     // TODO: caching?
-                    IBakedModel model = blockRenderer.func_175023_a().func_178125_b(exState.getClean());
+                    IBakedModel model = blockRenderer.getBlockModelShapes().getModelForState(exState.getClean());
                     exState = exState.withProperty(Properties.AnimationProperty, pair.getLeft());
 
-                    renderer.func_178969_c(x - pos.func_177958_n(), y - pos.func_177956_o(), z - pos.func_177952_p());
+                    renderer.setTranslation(x - pos.getX(), y - pos.getY(), z - pos.getZ());
 
-                    blockRenderer.func_175019_b().func_178267_a(world, model, exState, pos, renderer, false);
+                    blockRenderer.getBlockModelRenderer().renderModel(world, model, exState, pos, renderer, false);
                 }
             }
         }

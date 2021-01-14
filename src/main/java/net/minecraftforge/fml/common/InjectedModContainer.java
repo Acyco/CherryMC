@@ -33,8 +33,6 @@ import com.google.common.eventbus.EventBus;
 
 import javax.annotation.Nullable;
 
-import net.minecraftforge.fml.common.ModContainer.Disableable;
-
 public class InjectedModContainer implements ModContainer
 {
     private File source;

@@ -44,7 +44,7 @@ public class CapabilityFluidHandler
     {
         CapabilityManager.INSTANCE.register(IFluidHandler.class, new DefaultFluidHandlerStorage<>(), () -> new FluidTank(Fluid.BUCKET_VOLUME));
 
-        CapabilityManager.INSTANCE.register(IFluidHandlerItem.class, new DefaultFluidHandlerStorage<>(), () -> new FluidHandlerItemStack(new ItemStack(Items.field_151133_ar), Fluid.BUCKET_VOLUME));
+        CapabilityManager.INSTANCE.register(IFluidHandlerItem.class, new DefaultFluidHandlerStorage<>(), () -> new FluidHandlerItemStack(new ItemStack(Items.BUCKET), Fluid.BUCKET_VOLUME));
     }
 
     private static class DefaultFluidHandlerStorage<T extends IFluidHandler> implements Capability.IStorage<T> {
@@ -62,9 +62,9 @@ public class CapabilityFluidHandler
 			}
 			else
 			{
-				nbt.func_74778_a("Empty", "");
+				nbt.setString("Empty", "");
 			}
-			nbt.func_74768_a("Capacity", tank.getCapacity());
+			nbt.setInteger("Capacity", tank.getCapacity());
 			return nbt;
 		}
 
@@ -75,7 +75,7 @@ public class CapabilityFluidHandler
 				throw new RuntimeException("IFluidHandler instance is not instance of FluidTank");
 			NBTTagCompound tags = (NBTTagCompound) nbt;
 			FluidTank tank = (FluidTank) instance;
-			tank.setCapacity(tags.func_74762_e("Capacity"));
+			tank.setCapacity(tags.getInteger("Capacity"));
 			tank.readFromNBT(tags);
 		}
     }

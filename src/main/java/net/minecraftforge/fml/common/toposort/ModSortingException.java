@@ -29,8 +29,6 @@ import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import net.minecraftforge.fml.common.EnhancedRuntimeException.WrappedPrintStream;
-
 public class ModSortingException extends EnhancedRuntimeException implements IDisplayableError
 {
     private static final long serialVersionUID = 1L;

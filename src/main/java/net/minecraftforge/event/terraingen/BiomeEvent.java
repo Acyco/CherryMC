@@ -26,8 +26,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.world.biome.BiomeDecorator;
 import net.minecraft.world.biome.Biome;
 
-import net.minecraftforge.fml.common.eventhandler.Event.HasResult;
-
 /**
  * BiomeEvent is fired whenever an event involving biomes occurs.<br>
  * If a method utilizes this {@link Event} as its parameter, the method will

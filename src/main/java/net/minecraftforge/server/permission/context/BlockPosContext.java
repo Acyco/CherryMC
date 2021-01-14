@@ -44,7 +44,7 @@ public class BlockPosContext extends PlayerContext
 
     public BlockPosContext(EntityPlayer ep, ChunkPos pos)
     {
-        this(ep, new BlockPos(pos.func_180334_c() + 8, 0, pos.func_180333_d() + 8), null, null);
+        this(ep, new BlockPos(pos.getXStart() + 8, 0, pos.getZStart() + 8), null, null);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class BlockPosContext extends PlayerContext
         {
             if(blockState == null)
             {
-                blockState = getWorld().func_180495_p(blockPos);
+                blockState = getWorld().getBlockState(blockPos);
             }
 
             return (T) blockState;

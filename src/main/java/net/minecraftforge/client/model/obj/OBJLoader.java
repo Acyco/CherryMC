@@ -54,7 +54,7 @@ public enum OBJLoader implements ICustomModelLoader {
     }
 
     @Override
-    public void func_110549_a(IResourceManager resourceManager)
+    public void onResourceManagerReload(IResourceManager resourceManager)
     {
         this.manager = resourceManager;
     }
@@ -62,26 +62,26 @@ public enum OBJLoader implements ICustomModelLoader {
     @Override
     public boolean accepts(ResourceLocation modelLocation)
     {
-        return enabledDomains.contains(modelLocation.func_110624_b()) && modelLocation.func_110623_a().endsWith(".obj");
+        return enabledDomains.contains(modelLocation.getResourceDomain()) && modelLocation.getResourcePath().endsWith(".obj");
     }
 
     @Override
     public IModel loadModel(ResourceLocation modelLocation) throws Exception
     {
-        ResourceLocation file = new ResourceLocation(modelLocation.func_110624_b(), modelLocation.func_110623_a());
+        ResourceLocation file = new ResourceLocation(modelLocation.getResourceDomain(), modelLocation.getResourcePath());
         IResource resource = null;
         try
         {
             try
             {
-                resource = manager.func_110536_a(file);
+                resource = manager.getResource(file);
             }
             catch (FileNotFoundException e)
             {
-                if (modelLocation.func_110623_a().startsWith("models/block/"))
-                    resource = manager.func_110536_a(new ResourceLocation(file.func_110624_b(), "models/item/" + file.func_110623_a().substring("models/block/".length())));
-                else if (modelLocation.func_110623_a().startsWith("models/item/"))
-                    resource = manager.func_110536_a(new ResourceLocation(file.func_110624_b(), "models/block/" + file.func_110623_a().substring("models/item/".length())));
+                if (modelLocation.getResourcePath().startsWith("models/block/"))
+                    resource = manager.getResource(new ResourceLocation(file.getResourceDomain(), "models/item/" + file.getResourcePath().substring("models/block/".length())));
+                else if (modelLocation.getResourcePath().startsWith("models/item/"))
+                    resource = manager.getResource(new ResourceLocation(file.getResourceDomain(), "models/block/" + file.getResourcePath().substring("models/item/".length())));
                 else throw e;
             }
             OBJModel.Parser parser = new OBJModel.Parser(resource, manager);

@@ -59,7 +59,7 @@ public final class ItemLayerModel implements IModel
 
     public ItemLayerModel(ImmutableList<ResourceLocation> textures)
     {
-        this(textures, ItemOverrideList.field_188022_a);
+        this(textures, ItemOverrideList.NONE);
     }
 
     public ItemLayerModel(ImmutableList<ResourceLocation> textures, ItemOverrideList overrides)
@@ -70,15 +70,15 @@ public final class ItemLayerModel implements IModel
 
     public ItemLayerModel(ModelBlock model)
     {
-        this(getTextures(model), model.func_187967_g());
+        this(getTextures(model), model.createOverrides());
     }
 
     private static ImmutableList<ResourceLocation> getTextures(ModelBlock model)
     {
         ImmutableList.Builder<ResourceLocation> builder = ImmutableList.builder();
-        for(int i = 0; model.func_178300_b("layer" + i); i++)
+        for(int i = 0; model.isTexturePresent("layer" + i); i++)
         {
-            builder.add(new ResourceLocation(model.func_178308_c("layer" + i)));
+            builder.add(new ResourceLocation(model.resolveTextureName("layer" + i)));
         }
         return builder.build();
     }
@@ -125,15 +125,15 @@ public final class ItemLayerModel implements IModel
     {
         ImmutableList.Builder<BakedQuad> builder = ImmutableList.builder();
 
-        int uMax = sprite.func_94211_a();
-        int vMax = sprite.func_94216_b();
+        int uMax = sprite.getIconWidth();
+        int vMax = sprite.getIconHeight();
 
         FaceData faceData = new FaceData(uMax, vMax);
         boolean translucent = false;
 
-        for(int f = 0; f < sprite.func_110970_k(); f++)
+        for(int f = 0; f < sprite.getFrameCount(); f++)
         {
-            int[] pixels = sprite.func_147965_a(f)[0];
+            int[] pixels = sprite.getFrameTextureData(f)[0];
             boolean ptu;
             boolean[] ptv = new boolean[uMax];
             Arrays.fill(ptv, true);
@@ -281,17 +281,17 @@ public final class ItemLayerModel implements IModel
 
         // front
         builder.add(buildQuad(format, transform, EnumFacing.NORTH, sprite, tint,
-            0, 0, 7.5f / 16f, sprite.func_94209_e(), sprite.func_94210_h(),
-            0, 1, 7.5f / 16f, sprite.func_94209_e(), sprite.func_94206_g(),
-            1, 1, 7.5f / 16f, sprite.func_94212_f(), sprite.func_94206_g(),
-            1, 0, 7.5f / 16f, sprite.func_94212_f(), sprite.func_94210_h()
+            0, 0, 7.5f / 16f, sprite.getMinU(), sprite.getMaxV(),
+            0, 1, 7.5f / 16f, sprite.getMinU(), sprite.getMinV(),
+            1, 1, 7.5f / 16f, sprite.getMaxU(), sprite.getMinV(),
+            1, 0, 7.5f / 16f, sprite.getMaxU(), sprite.getMaxV()
         ));
         // back
         builder.add(buildQuad(format, transform, EnumFacing.SOUTH, sprite, tint,
-            0, 0, 8.5f / 16f, sprite.func_94209_e(), sprite.func_94210_h(),
-            1, 0, 8.5f / 16f, sprite.func_94212_f(), sprite.func_94210_h(),
-            1, 1, 8.5f / 16f, sprite.func_94212_f(), sprite.func_94206_g(),
-            0, 1, 8.5f / 16f, sprite.func_94209_e(), sprite.func_94206_g()
+            0, 0, 8.5f / 16f, sprite.getMinU(), sprite.getMaxV(),
+            1, 0, 8.5f / 16f, sprite.getMaxU(), sprite.getMaxV(),
+            1, 1, 8.5f / 16f, sprite.getMaxU(), sprite.getMinV(),
+            0, 1, 8.5f / 16f, sprite.getMinU(), sprite.getMinV()
         ));
 
         return builder.build();
@@ -338,8 +338,8 @@ public final class ItemLayerModel implements IModel
     {
         final float eps = 1e-2f;
 
-        int width = sprite.func_94211_a();
-        int height = sprite.func_94216_b();
+        int width = sprite.getIconWidth();
+        int height = sprite.getIconHeight();
 
         float x0 = (float) u / width;
         float y0 = (float) v / height;
@@ -364,8 +364,8 @@ public final class ItemLayerModel implements IModel
             throw new IllegalArgumentException("can't handle z-oriented side");
         }
 
-        float dx = side.func_176730_m().func_177958_n() * eps / width;
-        float dy = side.func_176730_m().func_177956_o() * eps / height;
+        float dx = side.getDirectionVec().getX() * eps / width;
+        float dy = side.getDirectionVec().getY() * eps / height;
 
         float u0 = 16f * (x0 - dx);
         float u1 = 16f * (x1 - dx);
@@ -374,17 +374,17 @@ public final class ItemLayerModel implements IModel
 
         return buildQuad(
             format, transform, remap(side), sprite, tint,
-            x0, y0, z0, sprite.func_94214_a(u0), sprite.func_94207_b(v0),
-            x1, y1, z0, sprite.func_94214_a(u1), sprite.func_94207_b(v1),
-            x1, y1, z1, sprite.func_94214_a(u1), sprite.func_94207_b(v1),
-            x0, y0, z1, sprite.func_94214_a(u0), sprite.func_94207_b(v0)
+            x0, y0, z0, sprite.getInterpolatedU(u0), sprite.getInterpolatedV(v0),
+            x1, y1, z0, sprite.getInterpolatedU(u1), sprite.getInterpolatedV(v1),
+            x1, y1, z1, sprite.getInterpolatedU(u1), sprite.getInterpolatedV(v1),
+            x0, y0, z1, sprite.getInterpolatedU(u0), sprite.getInterpolatedV(v0)
         );
     }
 
     private static EnumFacing remap(EnumFacing side)
     {
         // getOpposite is related to the swapping of V direction
-        return side.func_176740_k() == EnumFacing.Axis.Y ? side.func_176734_d() : side;
+        return side.getAxis() == EnumFacing.Axis.Y ? side.getOpposite() : side;
     }
 
     private static BakedQuad buildQuad(
@@ -413,9 +413,9 @@ public final class ItemLayerModel implements IModel
 
     private static void putVertex(IVertexConsumer consumer, VertexFormat format, EnumFacing side, float x, float y, float z, float u, float v)
     {
-        for(int e = 0; e < format.func_177345_h(); e++)
+        for(int e = 0; e < format.getElementCount(); e++)
         {
-            switch(format.func_177348_c(e).func_177375_c())
+            switch(format.getElement(e).getUsage())
             {
             case POSITION:
                 consumer.put(e, x, y, z, 1f);
@@ -424,13 +424,13 @@ public final class ItemLayerModel implements IModel
                 consumer.put(e, 1f, 1f, 1f, 1f);
                 break;
             case NORMAL:
-                float offX = (float) side.func_82601_c();
-                float offY = (float) side.func_96559_d();
-                float offZ = (float) side.func_82599_e();
+                float offX = (float) side.getFrontOffsetX();
+                float offY = (float) side.getFrontOffsetY();
+                float offZ = (float) side.getFrontOffsetZ();
                 consumer.put(e, offX, offY, offZ, 0f);
                 break;
             case UV:
-                if(format.func_177348_c(e).func_177369_e() == 0)
+                if(format.getElement(e).getIndex() == 0)
                 {
                     consumer.put(e, u, v, 0f, 1f);
                     break;
@@ -448,15 +448,15 @@ public final class ItemLayerModel implements IModel
         INSTANCE;
 
         @Override
-        public void func_110549_a(IResourceManager resourceManager) {}
+        public void onResourceManagerReload(IResourceManager resourceManager) {}
 
         @Override
         public boolean accepts(ResourceLocation modelLocation)
         {
-            return modelLocation.func_110624_b().equals(ForgeVersion.MOD_ID) && (
-                modelLocation.func_110623_a().equals("item-layer") ||
-                modelLocation.func_110623_a().equals("models/block/item-layer") ||
-                modelLocation.func_110623_a().equals("models/item/item-layer"));
+            return modelLocation.getResourceDomain().equals(ForgeVersion.MOD_ID) && (
+                modelLocation.getResourcePath().equals("item-layer") ||
+                modelLocation.getResourcePath().equals("models/block/item-layer") ||
+                modelLocation.getResourcePath().equals("models/item/item-layer"));
         }
 
         @Override

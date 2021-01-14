@@ -42,7 +42,7 @@ public class WorldCapabilityData extends WorldSavedData
     }
 
     @Override
-    public void func_76184_a(NBTTagCompound nbt)
+    public void readFromNBT(NBTTagCompound nbt)
     {
         this.capNBT = nbt;
         if (serializable != null)
@@ -53,7 +53,7 @@ public class WorldCapabilityData extends WorldSavedData
     }
 
     @Override
-    public NBTTagCompound func_189551_b(NBTTagCompound nbt)
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
     {
         if (serializable != null)
             nbt = serializable.serializeNBT();
@@ -61,7 +61,7 @@ public class WorldCapabilityData extends WorldSavedData
     }
 
     @Override
-    public boolean func_76188_b()
+    public boolean isDirty()
     {
         return true;
     }

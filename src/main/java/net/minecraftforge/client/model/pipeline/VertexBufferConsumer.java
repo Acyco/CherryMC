@@ -36,7 +36,7 @@ public class VertexBufferConsumer implements IVertexConsumer
     private BufferBuilder renderer;
     private int[] quadData;
     private int v = 0;
-    private BlockPos offset = BlockPos.field_177992_a;
+    private BlockPos offset = BlockPos.ORIGIN;
 
     public VertexBufferConsumer() {}
 
@@ -48,25 +48,25 @@ public class VertexBufferConsumer implements IVertexConsumer
     @Override
     public VertexFormat getVertexFormat()
     {
-        return renderer.func_178973_g();
+        return renderer.getVertexFormat();
     }
 
     @Override
     public void put(int e, float... data)
     {
         VertexFormat format = getVertexFormat();
-        if(renderer.isColorDisabled() && format.func_177348_c(e).func_177375_c() == EnumUsage.COLOR)
+        if(renderer.isColorDisabled() && format.getElement(e).getUsage() == EnumUsage.COLOR)
         {
             data = dummyColor;
         }
         LightUtil.pack(data, quadData, format, v, e);
-        if(e == format.func_177345_h() - 1)
+        if(e == format.getElementCount() - 1)
         {
             v++;
             if(v == 4)
             {
-                renderer.func_178981_a(quadData);
-                renderer.func_178987_a(offset.func_177958_n(), offset.func_177956_o(), offset.func_177952_p());
+                renderer.addVertexData(quadData);
+                renderer.putPosition(offset.getX(), offset.getY(), offset.getZ());
                 //Arrays.fill(quadData, 0);
                 v = 0;
             }
@@ -75,9 +75,9 @@ public class VertexBufferConsumer implements IVertexConsumer
 
     private void checkVertexFormat()
     {
-        if (quadData == null || renderer.func_178973_g().func_177338_f() != quadData.length)
+        if (quadData == null || renderer.getVertexFormat().getNextOffset() != quadData.length)
         {
-            quadData = new int[renderer.func_178973_g().func_177338_f()];
+            quadData = new int[renderer.getVertexFormat().getNextOffset()];
         }
     }
 

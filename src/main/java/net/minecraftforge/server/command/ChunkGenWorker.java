@@ -69,16 +69,16 @@ public class ChunkGenWorker implements IWorker
         while (ret.size() < total)
         {
             for (int q = -radius + 1; q <= radius && ret.size() < total; q++)
-                ret.add(start.func_177982_a(radius, 0, q));
+                ret.add(start.add(radius, 0, q));
 
             for (int q = radius - 1; q >= -radius && ret.size() < total; q--)
-                ret.add(start.func_177982_a(q, 0, radius));
+                ret.add(start.add(q, 0, radius));
 
             for (int q = radius - 1; q >= -radius && ret.size() < total; q--)
-                ret.add(start.func_177982_a(-radius, 0, q));
+                ret.add(start.add(-radius, 0, q));
 
             for (int q = -radius + 1; q <= radius && ret.size() < total; q++)
-                ret.add(start.func_177982_a(q, 0, -radius));
+                ret.add(start.add(q, 0, -radius));
 
             radius++;
         }
@@ -88,12 +88,12 @@ public class ChunkGenWorker implements IWorker
     @Deprecated // TODO remove in 1.13
     public TextComponentTranslation getStartMessage()
     {
-        return new TextComponentTranslation("commands.forge.gen.start", total, start.func_177958_n(), start.func_177952_p(), dim);
+        return new TextComponentTranslation("commands.forge.gen.start", total, start.getX(), start.getZ(), dim);
     }
 
     public TextComponentBase getStartMessage(ICommandSender sender)
     {
-        return TextComponentHelper.createComponentTranslation(sender, "commands.forge.gen.start", total, start.func_177958_n(), start.func_177952_p(), dim);
+        return TextComponentHelper.createComponentTranslation(sender, "commands.forge.gen.start", total, start.getX(), start.getZ(), dim);
     }
 
     @Override
@@ -112,19 +112,19 @@ public class ChunkGenWorker implements IWorker
             world = DimensionManager.getWorld(dim);
             if (world == null)
             {
-                listener.func_145747_a(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.dim_fail", dim));
+                listener.sendMessage(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.dim_fail", dim));
                 queue.clear();
                 return false;
             }
         }
 
-        AnvilChunkLoader loader = world.func_72863_F().field_73247_e instanceof AnvilChunkLoader ? (AnvilChunkLoader)world.func_72863_F().field_73247_e : null;
+        AnvilChunkLoader loader = world.getChunkProvider().chunkLoader instanceof AnvilChunkLoader ? (AnvilChunkLoader)world.getChunkProvider().chunkLoader : null;
         if (loader != null && loader.getPendingSaveCount() > 100)
         {
 
             if (lastNotifcationTime < System.currentTimeMillis() - 10*1000)
             {
-                listener.func_145747_a(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.progress", total - queue.size(), total));
+                listener.sendMessage(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.progress", total - queue.size(), total));
                 lastNotifcationTime = System.currentTimeMillis();
             }
             return false;
@@ -142,50 +142,50 @@ public class ChunkGenWorker implements IWorker
 
             if (++lastNotification >= notificationFrequency || lastNotifcationTime < System.currentTimeMillis() - 60*1000)
             {
-                listener.func_145747_a(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.progress", total - queue.size(), total));
+                listener.sendMessage(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.progress", total - queue.size(), total));
                 lastNotification = 0;
                 lastNotifcationTime = System.currentTimeMillis();
             }
 
-            int x = next.func_177958_n();
-            int z = next.func_177952_p();
+            int x = next.getX();
+            int z = next.getZ();
 
-            Chunk target = world.func_72964_e(x, z);
+            Chunk target = world.getChunkFromChunkCoords(x, z);
             Chunk[] chunks = { target };
 
-            if (!target.func_177419_t())
+            if (!target.isTerrainPopulated())
             {
                 // In order for a chunk to populate, The chunks around its bottom right corner need to be loaded.
                 // So lets load those chunks, but this needs to be done in a certain order to make this trigger.
                 // So this does load more chunks then it should, and is a hack, but lets go!.
                 chunks = new Chunk[] {
                     target,
-                    world.func_72964_e(x + 1, z),
-                    world.func_72964_e(x + 1, z + 1),
-                    world.func_72964_e(x,     z + 1),
+                    world.getChunkFromChunkCoords(x + 1, z),
+                    world.getChunkFromChunkCoords(x + 1, z + 1),
+                    world.getChunkFromChunkCoords(x,     z + 1),
                 };
                 try
                 {
-                    world.func_72863_F().field_73247_e.func_75816_a(world, target);
+                    world.getChunkProvider().chunkLoader.saveChunk(world, target);
                 }
                 catch (IOException | MinecraftException e)
                 {
-                    listener.func_145747_a(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.saveerror", e.getMessage()));
+                    listener.sendMessage(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.saveerror", e.getMessage()));
                 }
                 genned++;
             }
 
             for (Chunk chunk : chunks) //Now lets unload them. Note: Saving is done off thread so there may be cache hits, but this should still unload everything.
             {
-                PlayerChunkMapEntry watchers = world.func_184164_w().func_187301_b(chunk.field_76635_g, chunk.field_76647_h);
+                PlayerChunkMapEntry watchers = world.getPlayerChunkMap().getEntry(chunk.x, chunk.z);
                 if (watchers == null) //If there are no players watching this, this will be null, so we can unload.
-                    world.func_72863_F().func_189549_a(chunk);
+                    world.getChunkProvider().queueUnload(chunk);
             }
         }
 
         if (queue.size() == 0)
         {
-            listener.func_145747_a(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.complete", genned, total, dim));
+            listener.sendMessage(TextComponentHelper.createComponentTranslation(listener, "commands.forge.gen.complete", genned, total, dim));
             if (keepingLoaded != null && keepingLoaded)
             {
                 DimensionManager.keepDimensionLoaded(dim, false);

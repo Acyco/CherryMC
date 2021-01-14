@@ -42,33 +42,33 @@ public class GuiOldSaveLoadConfirm extends GuiYesNo implements GuiYesNoCallback 
         this.parent = parent;
         this.dirName = dirName;
         this.saveName = saveName;
-        this.zip = new File(FMLClientHandler.instance().getClient().field_71412_D,String.format("%s-%2$td%2$tm%2$ty%2$tH%2$tM%2$tS.zip", dirName, System.currentTimeMillis()));
+        this.zip = new File(FMLClientHandler.instance().getClient().mcDataDir,String.format("%s-%2$td%2$tm%2$ty%2$tH%2$tM%2$tS.zip", dirName, System.currentTimeMillis()));
     }
 
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        this.func_146276_q_();
-        this.func_73732_a(this.field_146289_q, String.format("The world %s contains pre-update modding data", saveName), this.field_146294_l / 2, 50, 16777215);
-        this.func_73732_a(this.field_146289_q, String.format("There may be problems updating it to this version"), this.field_146294_l / 2, 70, 16777215);
-        this.func_73732_a(this.field_146289_q, String.format("FML will save a zip to %s", zip.getName()), this.field_146294_l / 2, 90, 16777215);
-        this.func_73732_a(this.field_146289_q, String.format("Do you wish to continue loading?"), this.field_146294_l / 2, 110, 16777215);
+        this.drawDefaultBackground();
+        this.drawCenteredString(this.fontRenderer, String.format("The world %s contains pre-update modding data", saveName), this.width / 2, 50, 16777215);
+        this.drawCenteredString(this.fontRenderer, String.format("There may be problems updating it to this version"), this.width / 2, 70, 16777215);
+        this.drawCenteredString(this.fontRenderer, String.format("FML will save a zip to %s", zip.getName()), this.width / 2, 90, 16777215);
+        this.drawCenteredString(this.fontRenderer, String.format("Do you wish to continue loading?"), this.width / 2, 110, 16777215);
         int k;
 
-        for (k = 0; k < this.field_146292_n.size(); ++k)
+        for (k = 0; k < this.buttonList.size(); ++k)
         {
-            this.field_146292_n.get(k).func_191745_a(this.field_146297_k, mouseX, mouseY, partialTicks);
+            this.buttonList.get(k).drawButton(this.mc, mouseX, mouseY, partialTicks);
         }
 
-        for (k = 0; k < this.field_146293_o.size(); ++k)
+        for (k = 0; k < this.labelList.size(); ++k)
         {
-            this.field_146293_o.get(k).func_146159_a(this.field_146297_k, mouseX, mouseY);
+            this.labelList.get(k).drawLabel(this.mc, mouseX, mouseY);
         }
     }
     @Override
-    protected void func_146284_a(GuiButton button)
+    protected void actionPerformed(GuiButton button)
     {
-        if (button.field_146127_k == 1)
+        if (button.id == 1)
         {
             FMLClientHandler.instance().showGuiScreen(parent);
         }
@@ -97,7 +97,7 @@ public class GuiOldSaveLoadConfirm extends GuiYesNo implements GuiYesNoCallback 
 
             try
             {
-                field_146297_k.func_71371_a(dirName, saveName, null);
+                mc.launchIntegratedServer(dirName, saveName, null);
             }
             catch (StartupQuery.AbortedException e)
             {

@@ -125,14 +125,14 @@ public class VillagerRegistry
     public static Village getVillageComponent(PieceWeight villagePiece, StructureVillagePieces.Start startPiece, List<StructureComponent> pieces, Random random,
                                               int p1, int p2, int p3, EnumFacing facing, int p5)
     {
-        return instance().villageCreationHandlers.get(villagePiece.field_75090_a).buildComponent(villagePiece, startPiece, pieces, random, p1, p2, p3, facing, p5);
+        return instance().villageCreationHandlers.get(villagePiece.villagePieceClass).buildComponent(villagePiece, startPiece, pieces, random, p1, p2, p3, facing, p5);
     }
 
     RegistryNamespaced<ResourceLocation, VillagerProfession> REGISTRY = GameData.getWrapper(VillagerProfession.class);
 
     private void register(VillagerProfession prof, int id)
     {
-        REGISTRY.func_177775_a(id, prof.name, prof);
+        REGISTRY.register(id, prof.name, prof);
     }
 
     private boolean hasInit = false;
@@ -315,19 +315,19 @@ public class VillagerRegistry
      */
     public static void setRandomProfession(EntityVillager entity, Random rand)
     {
-        entity.setProfession(INSTANCE.REGISTRY.func_186801_a(rand));
+        entity.setProfession(INSTANCE.REGISTRY.getRandomObject(rand));
     }
 
     public static void setRandomProfession(EntityZombieVillager entity, Random rand)
     {
-        entity.setForgeProfession(INSTANCE.REGISTRY.func_186801_a(rand));
+        entity.setForgeProfession(INSTANCE.REGISTRY.getRandomObject(rand));
     }
 
     //Below this is INTERNAL USE ONLY DO NOT USE MODDERS
     public static void onSetProfession(EntityVillager entity, int network)
     {
-        VillagerProfession prof = INSTANCE.REGISTRY.func_148754_a(network);
-        if (prof == null || INSTANCE.REGISTRY.func_148757_b(prof) != network)
+        VillagerProfession prof = INSTANCE.REGISTRY.getObjectById(network);
+        if (prof == null || INSTANCE.REGISTRY.getIDForObject(prof) != network)
         {
             throw new RuntimeException("Attempted to set villager profession to unregistered profession: " + network + " " + prof);
         }
@@ -338,8 +338,8 @@ public class VillagerRegistry
 
     public static void onSetProfession(EntityZombieVillager entity, int network)
     {
-        VillagerProfession prof = INSTANCE.REGISTRY.func_148754_a(network);
-        if (prof == null && network != -1 || INSTANCE.REGISTRY.func_148757_b(prof) != network)
+        VillagerProfession prof = INSTANCE.REGISTRY.getObjectById(network);
+        if (prof == null && network != -1 || INSTANCE.REGISTRY.getIDForObject(prof) != network)
         {
             throw new RuntimeException("Attempted to set villager profession to unregistered profession: " + network + " " + prof);
         }
@@ -348,8 +348,8 @@ public class VillagerRegistry
             entity.setForgeProfession(prof);
     }
 
-    @Deprecated public static VillagerProfession getById(int network){ return INSTANCE.REGISTRY.func_148754_a(network); }
-    @Deprecated public static int getId(@Nullable VillagerProfession prof){ return INSTANCE.REGISTRY.func_148757_b(prof); }
+    @Deprecated public static VillagerProfession getById(int network){ return INSTANCE.REGISTRY.getObjectById(network); }
+    @Deprecated public static int getId(@Nullable VillagerProfession prof){ return INSTANCE.REGISTRY.getIDForObject(prof); }
 
     //TODO: Figure out a good generic system for this. Put on hold for Patches.
 

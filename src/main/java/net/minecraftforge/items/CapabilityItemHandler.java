@@ -47,12 +47,12 @@ public class CapabilityItemHandler
                 for (int i = 0; i < size; i++)
                 {
                     ItemStack stack = instance.getStackInSlot(i);
-                    if (!stack.func_190926_b())
+                    if (!stack.isEmpty())
                     {
                         NBTTagCompound itemTag = new NBTTagCompound();
-                        itemTag.func_74768_a("Slot", i);
-                        stack.func_77955_b(itemTag);
-                        nbtTagList.func_74742_a(itemTag);
+                        itemTag.setInteger("Slot", i);
+                        stack.writeToNBT(itemTag);
+                        nbtTagList.appendTag(itemTag);
                     }
                 }
                 return nbtTagList;
@@ -65,10 +65,10 @@ public class CapabilityItemHandler
                     throw new RuntimeException("IItemHandler instance does not implement IItemHandlerModifiable");
                 IItemHandlerModifiable itemHandlerModifiable = (IItemHandlerModifiable) instance;
                 NBTTagList tagList = (NBTTagList) base;
-                for (int i = 0; i < tagList.func_74745_c(); i++)
+                for (int i = 0; i < tagList.tagCount(); i++)
                 {
-                    NBTTagCompound itemTags = tagList.func_150305_b(i);
-                    int j = itemTags.func_74762_e("Slot");
+                    NBTTagCompound itemTags = tagList.getCompoundTagAt(i);
+                    int j = itemTags.getInteger("Slot");
 
                     if (j >= 0 && j < instance.getSlots())
                     {

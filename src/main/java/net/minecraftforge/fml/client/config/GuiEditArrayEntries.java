@@ -54,19 +54,19 @@ public class GuiEditArrayEntries extends GuiListExtended
 
     public GuiEditArrayEntries(GuiEditArray parent, Minecraft mc, IConfigElement configElement, Object[] beforeValues, Object[] currentValues)
     {
-        super(mc, parent.field_146294_l, parent.field_146295_m, parent.titleLine2 != null ? (parent.titleLine3 != null ? 43 : 33) : 23, parent.field_146295_m - 32, 20);
+        super(mc, parent.width, parent.height, parent.titleLine2 != null ? (parent.titleLine3 != null ? 43 : 33) : 23, parent.height - 32, 20);
         this.owningGui = parent;
         this.configElement = configElement;
         this.beforeValues = beforeValues;
         this.currentValues = currentValues;
-        this.func_193651_b(false);
+        this.setShowSelectionBox(false);
         this.isChanged = !Arrays.deepEquals(beforeValues, currentValues);
         this.isDefault = Arrays.deepEquals(currentValues, configElement.getDefaults());
         this.canAddMoreEntries = !configElement.isListLengthFixed() && (configElement.getMaxListLength() == -1 || currentValues.length < configElement.getMaxListLength());
 
         listEntries = new ArrayList<IArrayEntry>();
 
-        controlWidth = (parent.field_146294_l / 2) - (configElement.isListLengthFixed() ? 0 : 48);
+        controlWidth = (parent.width / 2) - (configElement.isListLengthFixed() ? 0 : 48);
 
         if (configElement.isList() && configElement.getArrayEntryClass() != null)
         {
@@ -103,28 +103,28 @@ public class GuiEditArrayEntries extends GuiListExtended
     }
 
     @Override
-    protected int func_148137_d()
+    protected int getScrollBarX()
     {
-        return field_148155_a - (field_148155_a / 4);
+        return width - (width / 4);
     }
 
     /**
      * Gets the width of the list
      */
     @Override
-    public int func_148139_c()
+    public int getListWidth()
     {
-        return owningGui.field_146294_l;
+        return owningGui.width;
     }
 
     @Override
-    public IArrayEntry func_148180_b(int index)
+    public IArrayEntry getListEntry(int index)
     {
         return listEntries.get(index);
     }
 
     @Override
-    protected int func_148127_b()
+    protected int getSize()
     {
         return listEntries.size();
     }
@@ -252,9 +252,9 @@ public class GuiEditArrayEntries extends GuiListExtended
 
         if (owningGui.slotIndex != -1 && owningGui.parentScreen != null
                 && owningGui.parentScreen instanceof GuiConfig
-                && ((GuiConfig) owningGui.parentScreen).entryList.func_148180_b(owningGui.slotIndex) instanceof ArrayEntry)
+                && ((GuiConfig) owningGui.parentScreen).entryList.getListEntry(owningGui.slotIndex) instanceof ArrayEntry)
         {
-            ArrayEntry entry = (ArrayEntry) ((GuiConfig) owningGui.parentScreen).entryList.func_148180_b(owningGui.slotIndex);
+            ArrayEntry entry = (ArrayEntry) ((GuiConfig) owningGui.parentScreen).entryList.getListEntry(owningGui.slotIndex);
 
             Object[] ao = new Object[listLength];
             for (int i = 0; i < listLength; i++)
@@ -307,7 +307,7 @@ public class GuiEditArrayEntries extends GuiListExtended
 
     public Minecraft getMC()
     {
-        return this.field_148161_k;
+        return this.mc;
     }
 
     /**
@@ -329,19 +329,19 @@ public class GuiEditArrayEntries extends GuiListExtended
                     || eventKey == Keyboard.KEY_HOME || eventKey == Keyboard.KEY_END)
             {
                 String validChars = "0123456789";
-                String before = this.textFieldValue.func_146179_b();
+                String before = this.textFieldValue.getText();
                 if (validChars.contains(String.valueOf(eventChar)) ||
-                        (!before.startsWith("-") && this.textFieldValue.func_146198_h() == 0 && eventChar == '-')
+                        (!before.startsWith("-") && this.textFieldValue.getCursorPosition() == 0 && eventChar == '-')
                         || (!before.contains(".") && eventChar == '.')
                         || eventKey == Keyboard.KEY_BACK || eventKey == Keyboard.KEY_DELETE || eventKey == Keyboard.KEY_LEFT || eventKey == Keyboard.KEY_RIGHT
                         || eventKey == Keyboard.KEY_HOME || eventKey == Keyboard.KEY_END)
-                    this.textFieldValue.func_146201_a((owningScreen.enabled ? eventChar : Keyboard.CHAR_NONE), eventKey);
+                    this.textFieldValue.textboxKeyTyped((owningScreen.enabled ? eventChar : Keyboard.CHAR_NONE), eventKey);
 
-                if (!textFieldValue.func_146179_b().trim().isEmpty() && !textFieldValue.func_146179_b().trim().equals("-"))
+                if (!textFieldValue.getText().trim().isEmpty() && !textFieldValue.getText().trim().equals("-"))
                 {
                     try
                     {
-                        double value = Double.parseDouble(textFieldValue.func_146179_b().trim());
+                        double value = Double.parseDouble(textFieldValue.getText().trim());
                         if (value < Double.valueOf(configElement.getMinValue().toString()) || value > Double.valueOf(configElement.getMaxValue().toString()))
                             this.isValidValue = false;
                         else
@@ -362,7 +362,7 @@ public class GuiEditArrayEntries extends GuiListExtended
         {
             try
             {
-                return Double.valueOf(this.textFieldValue.func_146179_b().trim());
+                return Double.valueOf(this.textFieldValue.getText().trim());
             }
             catch (Throwable e)
             {
@@ -386,18 +386,18 @@ public class GuiEditArrayEntries extends GuiListExtended
                     || eventKey == Keyboard.KEY_HOME || eventKey == Keyboard.KEY_END)
             {
                 String validChars = "0123456789";
-                String before = this.textFieldValue.func_146179_b();
+                String before = this.textFieldValue.getText();
                 if (validChars.contains(String.valueOf(eventChar))
-                        || (!before.startsWith("-") && this.textFieldValue.func_146198_h() == 0 && eventChar == '-')
+                        || (!before.startsWith("-") && this.textFieldValue.getCursorPosition() == 0 && eventChar == '-')
                         || eventKey == Keyboard.KEY_BACK || eventKey == Keyboard.KEY_DELETE
                         || eventKey == Keyboard.KEY_LEFT || eventKey == Keyboard.KEY_RIGHT || eventKey == Keyboard.KEY_HOME || eventKey == Keyboard.KEY_END)
-                    this.textFieldValue.func_146201_a((owningScreen.enabled ? eventChar : Keyboard.CHAR_NONE), eventKey);
+                    this.textFieldValue.textboxKeyTyped((owningScreen.enabled ? eventChar : Keyboard.CHAR_NONE), eventKey);
 
-                if (!textFieldValue.func_146179_b().trim().isEmpty() && !textFieldValue.func_146179_b().trim().equals("-"))
+                if (!textFieldValue.getText().trim().isEmpty() && !textFieldValue.getText().trim().equals("-"))
                 {
                     try
                     {
-                        long value = Long.parseLong(textFieldValue.func_146179_b().trim());
+                        long value = Long.parseLong(textFieldValue.getText().trim());
                         if (value < Integer.valueOf(configElement.getMinValue().toString()) || value > Integer.valueOf(configElement.getMaxValue().toString()))
                             this.isValidValue = false;
                         else
@@ -418,7 +418,7 @@ public class GuiEditArrayEntries extends GuiListExtended
         {
             try
             {
-                return Integer.valueOf(this.textFieldValue.func_146179_b().trim());
+                return Integer.valueOf(this.textFieldValue.getText().trim());
             }
             catch (Throwable e)
             {
@@ -434,14 +434,14 @@ public class GuiEditArrayEntries extends GuiListExtended
         public StringEntry(GuiEditArray owningScreen, GuiEditArrayEntries owningEntryList, IConfigElement configElement, Object value)
         {
             super(owningScreen, owningEntryList, configElement);
-            this.textFieldValue = new GuiTextField(0, owningEntryList.getMC().field_71466_p, owningEntryList.field_148155_a / 4 + 1, 0, owningEntryList.controlWidth - 3, 16);
-            this.textFieldValue.func_146203_f(10000);
-            this.textFieldValue.func_146180_a(value.toString());
+            this.textFieldValue = new GuiTextField(0, owningEntryList.getMC().fontRenderer, owningEntryList.width / 4 + 1, 0, owningEntryList.controlWidth - 3, 16);
+            this.textFieldValue.setMaxStringLength(10000);
+            this.textFieldValue.setText(value.toString());
             this.isValidated = configElement.getValidationPattern() != null;
 
             if (configElement.getValidationPattern() != null)
             {
-                if (configElement.getValidationPattern().matcher(this.textFieldValue.func_146179_b().trim()).matches())
+                if (configElement.getValidationPattern().matcher(this.textFieldValue.getText().trim()).matches())
                     isValidValue = true;
                 else
                     isValidValue = false;
@@ -449,17 +449,17 @@ public class GuiEditArrayEntries extends GuiListExtended
         }
 
         @Override
-        public void func_192634_a(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
         {
-            super.func_192634_a(slotIndex, x, y, listWidth, slotHeight, mouseX, mouseY, isSelected, partial);
+            super.drawEntry(slotIndex, x, y, listWidth, slotHeight, mouseX, mouseY, isSelected, partial);
             if (configElement.isListLengthFixed() || slotIndex != owningEntryList.listEntries.size() - 1)
             {
-                this.textFieldValue.func_146189_e(true);
-                this.textFieldValue.field_146210_g = y + 1;
-                this.textFieldValue.func_146194_f();
+                this.textFieldValue.setVisible(true);
+                this.textFieldValue.y = y + 1;
+                this.textFieldValue.drawTextBox();
             }
             else
-                this.textFieldValue.func_146189_e(false);
+                this.textFieldValue.setVisible(false);
         }
 
         @Override
@@ -468,11 +468,11 @@ public class GuiEditArrayEntries extends GuiListExtended
             if (owningScreen.enabled || eventKey == Keyboard.KEY_LEFT || eventKey == Keyboard.KEY_RIGHT
                     || eventKey == Keyboard.KEY_HOME || eventKey == Keyboard.KEY_END)
             {
-                this.textFieldValue.func_146201_a((owningScreen.enabled ? eventChar : Keyboard.CHAR_NONE), eventKey);
+                this.textFieldValue.textboxKeyTyped((owningScreen.enabled ? eventChar : Keyboard.CHAR_NONE), eventKey);
 
                 if (configElement.getValidationPattern() != null)
                 {
-                    if (configElement.getValidationPattern().matcher(this.textFieldValue.func_146179_b().trim()).matches())
+                    if (configElement.getValidationPattern().matcher(this.textFieldValue.getText().trim()).matches())
                         isValidValue = true;
                     else
                         isValidValue = false;
@@ -483,19 +483,19 @@ public class GuiEditArrayEntries extends GuiListExtended
         @Override
         public void updateCursorCounter()
         {
-            this.textFieldValue.func_146178_a();
+            this.textFieldValue.updateCursorCounter();
         }
 
         @Override
         public void mouseClicked(int x, int y, int mouseEvent)
         {
-            this.textFieldValue.func_146192_a(x, y, mouseEvent);
+            this.textFieldValue.mouseClicked(x, y, mouseEvent);
         }
 
         @Override
         public Object getValue()
         {
-            return this.textFieldValue.func_146179_b().trim();
+            return this.textFieldValue.getText().trim();
         }
 
     }
@@ -509,47 +509,47 @@ public class GuiEditArrayEntries extends GuiListExtended
         {
             super(owningScreen, owningEntryList, configElement);
             this.value = value;
-            this.btnValue = new GuiButtonExt(0, 0, 0, owningEntryList.controlWidth, 18, I18n.func_135052_a(String.valueOf(value)));
-            this.btnValue.field_146124_l = owningScreen.enabled;
+            this.btnValue = new GuiButtonExt(0, 0, 0, owningEntryList.controlWidth, 18, I18n.format(String.valueOf(value)));
+            this.btnValue.enabled = owningScreen.enabled;
             this.isValidated = false;
         }
 
         @Override
-        public void func_192634_a(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
         {
-            super.func_192634_a(slotIndex, x, y, listWidth, slotHeight, mouseX, mouseY, isSelected, partial);
-            this.btnValue.field_146128_h = listWidth / 4;
-            this.btnValue.field_146129_i = y;
+            super.drawEntry(slotIndex, x, y, listWidth, slotHeight, mouseX, mouseY, isSelected, partial);
+            this.btnValue.x = listWidth / 4;
+            this.btnValue.y = y;
 
-            String trans = I18n.func_135052_a(String.valueOf(value));
+            String trans = I18n.format(String.valueOf(value));
             if (!trans.equals(String.valueOf(value)))
-                this.btnValue.field_146126_j = trans;
+                this.btnValue.displayString = trans;
             else
-                this.btnValue.field_146126_j = String.valueOf(value);
+                this.btnValue.displayString = String.valueOf(value);
             btnValue.packedFGColour = value ? GuiUtils.getColorCode('2', true) : GuiUtils.getColorCode('4', true);
 
-            this.btnValue.func_191745_a(owningEntryList.getMC(), mouseX, mouseY, partial);
+            this.btnValue.drawButton(owningEntryList.getMC(), mouseX, mouseY, partial);
         }
 
         @Override
-        public boolean func_148278_a(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
+        public boolean mousePressed(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
         {
-            if (this.btnValue.func_146116_c(owningEntryList.getMC(), x, y))
+            if (this.btnValue.mousePressed(owningEntryList.getMC(), x, y))
             {
-                btnValue.func_146113_a(owningEntryList.getMC().func_147118_V());
+                btnValue.playPressSound(owningEntryList.getMC().getSoundHandler());
                 value = !value;
                 owningEntryList.recalculateState();
                 return true;
             }
 
-            return super.func_148278_a(index, x, y, mouseEvent, relativeX, relativeY);
+            return super.mousePressed(index, x, y, mouseEvent, relativeX, relativeY);
         }
 
         @Override
-        public void func_148277_b(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
+        public void mouseReleased(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
         {
-            this.btnValue.func_146118_a(x, y);
-            super.func_148277_b(index, x, y, mouseEvent, relativeX, relativeY);
+            this.btnValue.mouseReleased(x, y);
+            super.mouseReleased(index, x, y, mouseEvent, relativeX, relativeY);
         }
 
         @Override
@@ -579,73 +579,73 @@ public class GuiEditArrayEntries extends GuiListExtended
             this.configElement = configElement;
             this.btnAddNewEntryAbove = new GuiButtonExt(0, 0, 0, 18, 18, "+");
             this.btnAddNewEntryAbove.packedFGColour = GuiUtils.getColorCode('2', true);
-            this.btnAddNewEntryAbove.field_146124_l = owningScreen.enabled;
+            this.btnAddNewEntryAbove.enabled = owningScreen.enabled;
             this.btnRemoveEntry = new GuiButtonExt(0, 0, 0, 18, 18, "x");
             this.btnRemoveEntry.packedFGColour = GuiUtils.getColorCode('c', true);
-            this.btnRemoveEntry.field_146124_l = owningScreen.enabled;
+            this.btnRemoveEntry.enabled = owningScreen.enabled;
             this.addNewEntryAboveHoverChecker = new HoverChecker(this.btnAddNewEntryAbove, 800);
             this.removeEntryHoverChecker = new HoverChecker(this.btnRemoveEntry, 800);
             this.addNewToolTip = new ArrayList<String>();
             this.removeToolTip = new ArrayList<String>();
-            addNewToolTip.add(I18n.func_135052_a("fml.configgui.tooltip.addNewEntryAbove"));
-            removeToolTip.add(I18n.func_135052_a("fml.configgui.tooltip.removeEntry"));
+            addNewToolTip.add(I18n.format("fml.configgui.tooltip.addNewEntryAbove"));
+            removeToolTip.add(I18n.format("fml.configgui.tooltip.removeEntry"));
         }
 
         @Override
-        public void func_192634_a(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partial)
         {
             if (this.getValue() != null && this.isValidated)
-                owningEntryList.getMC().field_71466_p.func_78276_b(
+                owningEntryList.getMC().fontRenderer.drawString(
                         isValidValue ? TextFormatting.GREEN + VALID : TextFormatting.RED + INVALID,
-                        listWidth / 4 - owningEntryList.getMC().field_71466_p.func_78256_a(VALID) - 2,
-                        y + slotHeight / 2 - owningEntryList.getMC().field_71466_p.field_78288_b / 2,
+                        listWidth / 4 - owningEntryList.getMC().fontRenderer.getStringWidth(VALID) - 2,
+                        y + slotHeight / 2 - owningEntryList.getMC().fontRenderer.FONT_HEIGHT / 2,
                         16777215);
 
             int half = listWidth / 2;
             if (owningEntryList.canAddMoreEntries)
             {
-                this.btnAddNewEntryAbove.field_146125_m = true;
-                this.btnAddNewEntryAbove.field_146128_h = half + ((half / 2) - 44);
-                this.btnAddNewEntryAbove.field_146129_i = y;
-                this.btnAddNewEntryAbove.func_191745_a(owningEntryList.getMC(), mouseX, mouseY, partial);
+                this.btnAddNewEntryAbove.visible = true;
+                this.btnAddNewEntryAbove.x = half + ((half / 2) - 44);
+                this.btnAddNewEntryAbove.y = y;
+                this.btnAddNewEntryAbove.drawButton(owningEntryList.getMC(), mouseX, mouseY, partial);
             }
             else
-                this.btnAddNewEntryAbove.field_146125_m = false;
+                this.btnAddNewEntryAbove.visible = false;
 
             if (!configElement.isListLengthFixed() && slotIndex != owningEntryList.listEntries.size() - 1)
             {
-                this.btnRemoveEntry.field_146125_m = true;
-                this.btnRemoveEntry.field_146128_h = half + ((half / 2) - 22);
-                this.btnRemoveEntry.field_146129_i = y;
-                this.btnRemoveEntry.func_191745_a(owningEntryList.getMC(), mouseX, mouseY, partial);
+                this.btnRemoveEntry.visible = true;
+                this.btnRemoveEntry.x = half + ((half / 2) - 22);
+                this.btnRemoveEntry.y = y;
+                this.btnRemoveEntry.drawButton(owningEntryList.getMC(), mouseX, mouseY, partial);
             }
             else
-                this.btnRemoveEntry.field_146125_m = false;
+                this.btnRemoveEntry.visible = false;
         }
 
         @Override
         public void drawToolTip(int mouseX, int mouseY)
         {
-            boolean canHover = mouseY < owningEntryList.field_148154_c && mouseY > owningEntryList.field_148153_b;
-            if (this.btnAddNewEntryAbove.field_146125_m && this.addNewEntryAboveHoverChecker.checkHover(mouseX, mouseY, canHover))
+            boolean canHover = mouseY < owningEntryList.bottom && mouseY > owningEntryList.top;
+            if (this.btnAddNewEntryAbove.visible && this.addNewEntryAboveHoverChecker.checkHover(mouseX, mouseY, canHover))
                 owningScreen.drawToolTip(this.addNewToolTip, mouseX, mouseY);
-            if (this.btnRemoveEntry.field_146125_m && this.removeEntryHoverChecker.checkHover(mouseX, mouseY, canHover))
+            if (this.btnRemoveEntry.visible && this.removeEntryHoverChecker.checkHover(mouseX, mouseY, canHover))
                 owningScreen.drawToolTip(this.removeToolTip, mouseX, mouseY);
         }
 
         @Override
-        public boolean func_148278_a(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
+        public boolean mousePressed(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
         {
-            if (this.btnAddNewEntryAbove.func_146116_c(owningEntryList.getMC(), x, y))
+            if (this.btnAddNewEntryAbove.mousePressed(owningEntryList.getMC(), x, y))
             {
-                btnAddNewEntryAbove.func_146113_a(owningEntryList.getMC().func_147118_V());
+                btnAddNewEntryAbove.playPressSound(owningEntryList.getMC().getSoundHandler());
                 owningEntryList.addNewEntry(index);
                 owningEntryList.recalculateState();
                 return true;
             }
-            else if (this.btnRemoveEntry.func_146116_c(owningEntryList.getMC(), x, y))
+            else if (this.btnRemoveEntry.mousePressed(owningEntryList.getMC(), x, y))
             {
-                btnRemoveEntry.func_146113_a(owningEntryList.getMC().func_147118_V());
+                btnRemoveEntry.playPressSound(owningEntryList.getMC().getSoundHandler());
                 owningEntryList.removeEntry(index);
                 owningEntryList.recalculateState();
                 return true;
@@ -655,10 +655,10 @@ public class GuiEditArrayEntries extends GuiListExtended
         }
 
         @Override
-        public void func_148277_b(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
+        public void mouseReleased(int index, int x, int y, int mouseEvent, int relativeX, int relativeY)
         {
-            this.btnAddNewEntryAbove.func_146118_a(x, y);
-            this.btnRemoveEntry.func_146118_a(x, y);
+            this.btnAddNewEntryAbove.mouseReleased(x, y);
+            this.btnRemoveEntry.mouseReleased(x, y);
         }
 
         @Override
@@ -686,7 +686,7 @@ public class GuiEditArrayEntries extends GuiListExtended
         }
 
         @Override
-        public void func_192633_a(int p_178011_1_, int p_178011_2_, int p_178011_3_, float partial){}
+        public void updatePosition(int p_178011_1_, int p_178011_2_, int p_178011_3_, float partial){}
     }
 
     public static interface IArrayEntry extends IGuiListEntry

@@ -60,7 +60,7 @@ final class ConsoleCommandCompleter implements Completer
         }
 
         final String input = buffer;
-        Future<List<String>> tabComplete = this.server.func_175586_a(() -> this.server.func_184104_a(this.server, input, this.server.func_180425_c(), false));
+        Future<List<String>> tabComplete = this.server.callFromMainThread(() -> this.server.getTabCompletions(this.server, input, this.server.getPosition(), false));
 
         try
         {

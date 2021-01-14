@@ -127,7 +127,7 @@ public class GuiConfig extends GuiScreen
                 toReturn.add(ConfigElement.from(clazz));
             }
         }
-        toReturn.sort(Comparator.comparing(e -> I18n.func_135052_a(e.getLanguageKey())));
+        toReturn.sort(Comparator.comparing(e -> I18n.format(e.getLanguageKey())));
         return toReturn;
     }
 
@@ -211,10 +211,10 @@ public class GuiConfig extends GuiScreen
     public GuiConfig(GuiScreen parentScreen, List<IConfigElement> configElements, String modID, @Nullable String configID,
             boolean allRequireWorldRestart, boolean allRequireMcRestart, String title, @Nullable String titleLine2)
     {
-        this.field_146297_k = Minecraft.func_71410_x();
+        this.mc = Minecraft.getMinecraft();
         this.parentScreen = parentScreen;
         this.configElements = configElements;
-        this.entryList = new GuiConfigEntries(this, field_146297_k);
+        this.entryList = new GuiConfigEntries(this, mc);
         this.initEntries = new ArrayList<IConfigEntry>(entryList.listEntries);
         this.allRequireWorldRestart = allRequireWorldRestart;
         IF:if (!allRequireWorldRestart)
@@ -238,7 +238,7 @@ public class GuiConfig extends GuiScreen
         }
         this.modID = modID;
         this.configID = configID;
-        this.isWorldRunning = field_146297_k.field_71441_e != null;
+        this.isWorldRunning = mc.world != null;
         if (title != null)
             this.title = title;
         this.titleLine2 = titleLine2;
@@ -248,38 +248,38 @@ public class GuiConfig extends GuiScreen
 
     public static String getAbridgedConfigPath(String path)
     {
-        Minecraft mc = Minecraft.func_71410_x();
-        if (mc.field_71412_D.getAbsolutePath().endsWith("."))
-            return path.replace("\\", "/").replace(mc.field_71412_D.getAbsolutePath().replace("\\", "/").substring(0, mc.field_71412_D.getAbsolutePath().length() - 1), "/.minecraft/");
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.mcDataDir.getAbsolutePath().endsWith("."))
+            return path.replace("\\", "/").replace(mc.mcDataDir.getAbsolutePath().replace("\\", "/").substring(0, mc.mcDataDir.getAbsolutePath().length() - 1), "/.minecraft/");
         else
-            return path.replace("\\", "/").replace(mc.field_71412_D.getAbsolutePath().replace("\\", "/"), "/.minecraft");
+            return path.replace("\\", "/").replace(mc.mcDataDir.getAbsolutePath().replace("\\", "/"), "/.minecraft");
     }
 
     @Override
-    public void func_73866_w_()
+    public void initGui()
     {
         Keyboard.enableRepeatEvents(true);
 
         if (this.entryList == null || this.needsRefresh)
         {
-            this.entryList = new GuiConfigEntries(this, field_146297_k);
+            this.entryList = new GuiConfigEntries(this, mc);
             this.needsRefresh = false;
         }
 
-        int undoGlyphWidth = field_146297_k.field_71466_p.func_78256_a(UNDO_CHAR) * 2;
-        int resetGlyphWidth = field_146297_k.field_71466_p.func_78256_a(RESET_CHAR) * 2;
-        int doneWidth = Math.max(field_146297_k.field_71466_p.func_78256_a(I18n.func_135052_a("gui.done")) + 20, 100);
-        int undoWidth = field_146297_k.field_71466_p.func_78256_a(" " + I18n.func_135052_a("fml.configgui.tooltip.undoChanges")) + undoGlyphWidth + 20;
-        int resetWidth = field_146297_k.field_71466_p.func_78256_a(" " + I18n.func_135052_a("fml.configgui.tooltip.resetToDefault")) + resetGlyphWidth + 20;
-        int checkWidth = field_146297_k.field_71466_p.func_78256_a(I18n.func_135052_a("fml.configgui.applyGlobally")) + 13;
+        int undoGlyphWidth = mc.fontRenderer.getStringWidth(UNDO_CHAR) * 2;
+        int resetGlyphWidth = mc.fontRenderer.getStringWidth(RESET_CHAR) * 2;
+        int doneWidth = Math.max(mc.fontRenderer.getStringWidth(I18n.format("gui.done")) + 20, 100);
+        int undoWidth = mc.fontRenderer.getStringWidth(" " + I18n.format("fml.configgui.tooltip.undoChanges")) + undoGlyphWidth + 20;
+        int resetWidth = mc.fontRenderer.getStringWidth(" " + I18n.format("fml.configgui.tooltip.resetToDefault")) + resetGlyphWidth + 20;
+        int checkWidth = mc.fontRenderer.getStringWidth(I18n.format("fml.configgui.applyGlobally")) + 13;
         int buttonWidthHalf = (doneWidth + 5 + undoWidth + 5 + resetWidth + 5 + checkWidth) / 2;
-        this.field_146292_n.add(new GuiButtonExt(2000, this.field_146294_l / 2 - buttonWidthHalf, this.field_146295_m - 29, doneWidth, 20, I18n.func_135052_a("gui.done")));
-        this.field_146292_n.add(this.btnDefaultAll = new GuiUnicodeGlyphButton(2001, this.field_146294_l / 2 - buttonWidthHalf + doneWidth + 5 + undoWidth + 5,
-                this.field_146295_m - 29, resetWidth, 20, " " + I18n.func_135052_a("fml.configgui.tooltip.resetToDefault"), RESET_CHAR, 2.0F));
-        this.field_146292_n.add(btnUndoAll = new GuiUnicodeGlyphButton(2002, this.field_146294_l / 2 - buttonWidthHalf + doneWidth + 5,
-                this.field_146295_m - 29, undoWidth, 20, " " + I18n.func_135052_a("fml.configgui.tooltip.undoChanges"), UNDO_CHAR, 2.0F));
-        this.field_146292_n.add(chkApplyGlobally = new GuiCheckBox(2003, this.field_146294_l / 2 - buttonWidthHalf + doneWidth + 5 + undoWidth + 5 + resetWidth + 5,
-                this.field_146295_m - 24, I18n.func_135052_a("fml.configgui.applyGlobally"), false));
+        this.buttonList.add(new GuiButtonExt(2000, this.width / 2 - buttonWidthHalf, this.height - 29, doneWidth, 20, I18n.format("gui.done")));
+        this.buttonList.add(this.btnDefaultAll = new GuiUnicodeGlyphButton(2001, this.width / 2 - buttonWidthHalf + doneWidth + 5 + undoWidth + 5,
+                this.height - 29, resetWidth, 20, " " + I18n.format("fml.configgui.tooltip.resetToDefault"), RESET_CHAR, 2.0F));
+        this.buttonList.add(btnUndoAll = new GuiUnicodeGlyphButton(2002, this.width / 2 - buttonWidthHalf + doneWidth + 5,
+                this.height - 29, undoWidth, 20, " " + I18n.format("fml.configgui.tooltip.undoChanges"), UNDO_CHAR, 2.0F));
+        this.buttonList.add(chkApplyGlobally = new GuiCheckBox(2003, this.width / 2 - buttonWidthHalf + doneWidth + 5 + undoWidth + 5 + resetWidth + 5,
+                this.height - 24, I18n.format("fml.configgui.applyGlobally"), false));
 
         this.undoHoverChecker = new HoverChecker(this.btnUndoAll, 800);
         this.resetHoverChecker = new HoverChecker(this.btnDefaultAll, 800);
@@ -288,7 +288,7 @@ public class GuiConfig extends GuiScreen
     }
 
     @Override
-    public void func_146281_b()
+    public void onGuiClosed()
     {
         this.entryList.onGuiClosed();
 
@@ -296,7 +296,7 @@ public class GuiConfig extends GuiScreen
         {
             GuiConfig parentGuiConfig = (GuiConfig) this.parentScreen;
             parentGuiConfig.needsRefresh = true;
-            parentGuiConfig.func_73866_w_();
+            parentGuiConfig.initGui();
         }
 
         if (!(this.parentScreen instanceof GuiConfig))
@@ -304,9 +304,9 @@ public class GuiConfig extends GuiScreen
     }
 
     @Override
-    protected void func_146284_a(GuiButton button)
+    protected void actionPerformed(GuiButton button)
     {
-        if (button.field_146127_k == 2000)
+        if (button.id == 2000)
         {
             boolean flag = true;
             try
@@ -326,8 +326,8 @@ public class GuiConfig extends GuiScreen
                         if (requiresMcRestart)
                         {
                             flag = false;
-                            field_146297_k.func_147108_a(new GuiMessageDialog(parentScreen, "fml.configgui.gameRestartTitle",
-                                    new TextComponentString(I18n.func_135052_a("fml.configgui.gameRestartRequired")), "fml.configgui.confirmRestartMessage"));
+                            mc.displayGuiScreen(new GuiMessageDialog(parentScreen, "fml.configgui.gameRestartTitle",
+                                    new TextComponentString(I18n.format("fml.configgui.gameRestartRequired")), "fml.configgui.confirmRestartMessage"));
                         }
 
                         if (this.parentScreen instanceof GuiConfig)
@@ -341,91 +341,91 @@ public class GuiConfig extends GuiScreen
             }
 
             if (flag)
-                this.field_146297_k.func_147108_a(this.parentScreen);
+                this.mc.displayGuiScreen(this.parentScreen);
         }
-        else if (button.field_146127_k == 2001)
+        else if (button.id == 2001)
         {
             this.entryList.setAllToDefault(this.chkApplyGlobally.isChecked());
         }
-        else if (button.field_146127_k == 2002)
+        else if (button.id == 2002)
         {
             this.entryList.undoAllChanges(this.chkApplyGlobally.isChecked());
         }
     }
 
     @Override
-    public void func_146274_d() throws IOException
+    public void handleMouseInput() throws IOException
     {
-        super.func_146274_d();
-        this.entryList.func_178039_p();
+        super.handleMouseInput();
+        this.entryList.handleMouseInput();
     }
 
     @Override
-    protected void func_73864_a(int x, int y, int mouseEvent) throws IOException
+    protected void mouseClicked(int x, int y, int mouseEvent) throws IOException
     {
-        if (mouseEvent != 0 || !this.entryList.func_148179_a(x, y, mouseEvent))
+        if (mouseEvent != 0 || !this.entryList.mouseClicked(x, y, mouseEvent))
         {
             this.entryList.mouseClickedPassThru(x, y, mouseEvent);
-            super.func_73864_a(x, y, mouseEvent);
+            super.mouseClicked(x, y, mouseEvent);
         }
     }
 
     @Override
-    protected void func_146286_b(int x, int y, int mouseEvent)
+    protected void mouseReleased(int x, int y, int mouseEvent)
     {
-        if (mouseEvent != 0 || !this.entryList.func_148181_b(x, y, mouseEvent))
+        if (mouseEvent != 0 || !this.entryList.mouseReleased(x, y, mouseEvent))
         {
-            super.func_146286_b(x, y, mouseEvent);
+            super.mouseReleased(x, y, mouseEvent);
         }
     }
 
     @Override
-    protected void func_73869_a(char eventChar, int eventKey)
+    protected void keyTyped(char eventChar, int eventKey)
     {
         if (eventKey == Keyboard.KEY_ESCAPE)
-            this.field_146297_k.func_147108_a(parentScreen);
+            this.mc.displayGuiScreen(parentScreen);
         else
             this.entryList.keyTyped(eventChar, eventKey);
     }
 
     @Override
-    public void func_73876_c()
+    public void updateScreen()
     {
-        super.func_73876_c();
+        super.updateScreen();
         this.entryList.updateScreen();
     }
 
     @Override
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        this.func_146276_q_();
-        this.entryList.func_148128_a(mouseX, mouseY, partialTicks);
-        this.func_73732_a(this.field_146289_q, this.title, this.field_146294_l / 2, 8, 16777215);
+        this.drawDefaultBackground();
+        this.entryList.drawScreen(mouseX, mouseY, partialTicks);
+        this.drawCenteredString(this.fontRenderer, this.title, this.width / 2, 8, 16777215);
         String title2 = this.titleLine2;
 
         if (title2 != null)
         {
-            int strWidth = field_146297_k.field_71466_p.func_78256_a(title2);
-            int ellipsisWidth = field_146297_k.field_71466_p.func_78256_a("...");
-            if (strWidth > field_146294_l - 6 && strWidth > ellipsisWidth)
-                title2 = field_146297_k.field_71466_p.func_78269_a(title2, field_146294_l - 6 - ellipsisWidth).trim() + "...";
-            this.func_73732_a(this.field_146289_q, title2, this.field_146294_l / 2, 18, 16777215);
+            int strWidth = mc.fontRenderer.getStringWidth(title2);
+            int ellipsisWidth = mc.fontRenderer.getStringWidth("...");
+            if (strWidth > width - 6 && strWidth > ellipsisWidth)
+                title2 = mc.fontRenderer.trimStringToWidth(title2, width - 6 - ellipsisWidth).trim() + "...";
+            this.drawCenteredString(this.fontRenderer, title2, this.width / 2, 18, 16777215);
         }
 
-        this.btnUndoAll.field_146124_l = this.entryList.areAnyEntriesEnabled(this.chkApplyGlobally.isChecked()) && this.entryList.hasChangedEntry(this.chkApplyGlobally.isChecked());
-        this.btnDefaultAll.field_146124_l = this.entryList.areAnyEntriesEnabled(this.chkApplyGlobally.isChecked()) && !this.entryList.areAllEntriesDefault(this.chkApplyGlobally.isChecked());
-        super.func_73863_a(mouseX, mouseY, partialTicks);
+        this.btnUndoAll.enabled = this.entryList.areAnyEntriesEnabled(this.chkApplyGlobally.isChecked()) && this.entryList.hasChangedEntry(this.chkApplyGlobally.isChecked());
+        this.btnDefaultAll.enabled = this.entryList.areAnyEntriesEnabled(this.chkApplyGlobally.isChecked()) && !this.entryList.areAllEntriesDefault(this.chkApplyGlobally.isChecked());
+        super.drawScreen(mouseX, mouseY, partialTicks);
         this.entryList.drawScreenPost(mouseX, mouseY, partialTicks);
         if (this.undoHoverChecker.checkHover(mouseX, mouseY))
-            this.drawToolTip(Arrays.asList(I18n.func_135052_a("fml.configgui.tooltip.undoAll").split("\n")), mouseX, mouseY);
+            this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.tooltip.undoAll").split("\n")), mouseX, mouseY);
         if (this.resetHoverChecker.checkHover(mouseX, mouseY))
-            this.drawToolTip(Arrays.asList(I18n.func_135052_a("fml.configgui.tooltip.resetAll").split("\n")), mouseX, mouseY);
+            this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.tooltip.resetAll").split("\n")), mouseX, mouseY);
         if (this.checkBoxHoverChecker.checkHover(mouseX, mouseY))
-            this.drawToolTip(Arrays.asList(I18n.func_135052_a("fml.configgui.tooltip.applyGlobally").split("\n")), mouseX, mouseY);
+            this.drawToolTip(Arrays.asList(I18n.format("fml.configgui.tooltip.applyGlobally").split("\n")), mouseX, mouseY);
     }
 
     public void drawToolTip(List<String> stringList, int x, int y)
     {
-        GuiUtils.drawHoveringText(stringList, x, y, field_146294_l, field_146295_m, 300, field_146289_q);
+        GuiUtils.drawHoveringText(stringList, x, y, width, height, 300, fontRenderer);
     }
 }

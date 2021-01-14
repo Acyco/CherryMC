@@ -42,7 +42,7 @@ public class TextComponentHelper
     {
         if (isVanillaClient(sender))
         {
-            return new TextComponentString(I18n.func_74837_a(translation, args));
+            return new TextComponentString(I18n.translateToLocalFormatted(translation, args));
         }
         return new TextComponentTranslation(translation, args);
     }
@@ -52,10 +52,10 @@ public class TextComponentHelper
         if (sender instanceof EntityPlayerMP)
         {
             EntityPlayerMP playerMP = (EntityPlayerMP) sender;
-            NetHandlerPlayServer connection = playerMP.field_71135_a;
+            NetHandlerPlayServer connection = playerMP.connection;
             if (connection != null)
             {
-                NetworkManager netManager = connection.field_147371_a;
+                NetworkManager netManager = connection.netManager;
                 Channel channel = netManager.channel();
                 return !channel.attr(NetworkRegistry.FML_MARKER).get();
             }

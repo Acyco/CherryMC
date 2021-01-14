@@ -120,7 +120,7 @@ public final class CapabilityDispatcher implements INBTSerializable<NBTTagCompou
         NBTTagCompound nbt = new NBTTagCompound();
         for (int x = 0; x < writers.length; x++)
         {
-            nbt.func_74782_a(names[x], writers[x].serializeNBT());
+            nbt.setTag(names[x], writers[x].serializeNBT());
         }
         return nbt;
     }
@@ -130,9 +130,9 @@ public final class CapabilityDispatcher implements INBTSerializable<NBTTagCompou
     {
         for (int x = 0; x < writers.length; x++)
         {
-            if (nbt.func_74764_b(names[x]))
+            if (nbt.hasKey(names[x]))
             {
-                writers[x].deserializeNBT(nbt.func_74781_a(names[x]));
+                writers[x].deserializeNBT(nbt.getTag(names[x]));
             }
         }
     }

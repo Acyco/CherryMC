@@ -67,24 +67,24 @@ public class FluidHandlerItemStackSimple implements IFluidHandlerItem, ICapabili
     @Nullable
     public FluidStack getFluid()
     {
-        NBTTagCompound tagCompound = container.func_77978_p();
-        if (tagCompound == null || !tagCompound.func_74764_b(FLUID_NBT_KEY))
+        NBTTagCompound tagCompound = container.getTagCompound();
+        if (tagCompound == null || !tagCompound.hasKey(FLUID_NBT_KEY))
         {
             return null;
         }
-        return FluidStack.loadFluidStackFromNBT(tagCompound.func_74775_l(FLUID_NBT_KEY));
+        return FluidStack.loadFluidStackFromNBT(tagCompound.getCompoundTag(FLUID_NBT_KEY));
     }
 
     protected void setFluid(FluidStack fluid)
     {
-        if (!container.func_77942_o())
+        if (!container.hasTagCompound())
         {
-            container.func_77982_d(new NBTTagCompound());
+            container.setTagCompound(new NBTTagCompound());
         }
 
         NBTTagCompound fluidTag = new NBTTagCompound();
         fluid.writeToNBT(fluidTag);
-        container.func_77978_p().func_74782_a(FLUID_NBT_KEY, fluidTag);
+        container.getTagCompound().setTag(FLUID_NBT_KEY, fluidTag);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class FluidHandlerItemStackSimple implements IFluidHandlerItem, ICapabili
     @Override
     public int fill(FluidStack resource, boolean doFill)
     {
-        if (container.func_190916_E() != 1 || resource == null || resource.amount <= 0 || !canFillFluidType(resource))
+        if (container.getCount() != 1 || resource == null || resource.amount <= 0 || !canFillFluidType(resource))
         {
             return 0;
         }
@@ -122,7 +122,7 @@ public class FluidHandlerItemStackSimple implements IFluidHandlerItem, ICapabili
     @Override
     public FluidStack drain(FluidStack resource, boolean doDrain)
     {
-        if (container.func_190916_E() != 1 || resource == null || resource.amount <= 0 || !resource.isFluidEqual(getFluid()))
+        if (container.getCount() != 1 || resource == null || resource.amount <= 0 || !resource.isFluidEqual(getFluid()))
         {
             return null;
         }
@@ -132,7 +132,7 @@ public class FluidHandlerItemStackSimple implements IFluidHandlerItem, ICapabili
     @Override
     public FluidStack drain(int maxDrain, boolean doDrain)
     {
-        if (container.func_190916_E() != 1 || maxDrain <= 0)
+        if (container.getCount() != 1 || maxDrain <= 0)
         {
             return null;
         }
@@ -174,7 +174,7 @@ public class FluidHandlerItemStackSimple implements IFluidHandlerItem, ICapabili
      */
     protected void setContainerToEmpty()
     {
-        container.func_77978_p().func_82580_o(FLUID_NBT_KEY);
+        container.getTagCompound().removeTag(FLUID_NBT_KEY);
     }
 
     @Override
@@ -205,7 +205,7 @@ public class FluidHandlerItemStackSimple implements IFluidHandlerItem, ICapabili
         protected void setContainerToEmpty()
         {
             super.setContainerToEmpty();
-            container.func_190918_g(1);
+            container.shrink(1);
         }
     }
 

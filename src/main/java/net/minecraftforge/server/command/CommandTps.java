@@ -33,37 +33,37 @@ class CommandTps extends CommandBase
     private static final DecimalFormat TIME_FORMATTER = new DecimalFormat("########0.000");
 
     @Override
-    public String func_71517_b()
+    public String getName()
     {
         return "tps";
     }
 
     @Override
-    public String func_71518_a(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
         return "commands.forge.tps.usage";
     }
 
     @Override
-    public int func_82362_a()
+    public int getRequiredPermissionLevel()
     {
         return 0;
     }
 
     @Override
-    public boolean func_184882_a(MinecraftServer server, ICommandSender sender)
+    public boolean checkPermission(MinecraftServer server, ICommandSender sender)
     {
         return true;
     }
 
     @Override
-    public void func_184881_a(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         int dim = 0;
         boolean summary = true;
         if (args.length > 0)
         {
-            dim = func_175755_a(args[0]);
+            dim = parseInt(args[0]);
             summary = false;
         }
 
@@ -73,17 +73,17 @@ class CommandTps extends CommandBase
             {
                 double worldTickTime = mean(server.worldTickTimes.get(dimId)) * 1.0E-6D;
                 double worldTPS = Math.min(1000.0/worldTickTime, 20);
-                sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, "commands.forge.tps.summary", getDimensionPrefix(dimId), TIME_FORMATTER.format(worldTickTime), TIME_FORMATTER.format(worldTPS)));
+                sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, "commands.forge.tps.summary", getDimensionPrefix(dimId), TIME_FORMATTER.format(worldTickTime), TIME_FORMATTER.format(worldTPS)));
             }
-            double meanTickTime = mean(server.field_71311_j) * 1.0E-6D;
+            double meanTickTime = mean(server.tickTimeArray) * 1.0E-6D;
             double meanTPS = Math.min(1000.0/meanTickTime, 20);
-            sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, "commands.forge.tps.summary","Overall", TIME_FORMATTER.format(meanTickTime), TIME_FORMATTER.format(meanTPS)));
+            sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, "commands.forge.tps.summary","Overall", TIME_FORMATTER.format(meanTickTime), TIME_FORMATTER.format(meanTPS)));
         }
         else
         {
             double worldTickTime = mean(server.worldTickTimes.get(dim)) * 1.0E-6D;
             double worldTPS = Math.min(1000.0/worldTickTime, 20);
-            sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, "commands.forge.tps.summary", getDimensionPrefix(dim), TIME_FORMATTER.format(worldTickTime), TIME_FORMATTER.format(worldTPS)));
+            sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, "commands.forge.tps.summary", getDimensionPrefix(dim), TIME_FORMATTER.format(worldTickTime), TIME_FORMATTER.format(worldTPS)));
         }
     }
 
@@ -96,7 +96,7 @@ class CommandTps extends CommandBase
         }
         else
         {
-            return String.format("Dim %2d (%s)", dimId, providerType.func_186065_b());
+            return String.format("Dim %2d (%s)", dimId, providerType.getName());
         }
     }
 

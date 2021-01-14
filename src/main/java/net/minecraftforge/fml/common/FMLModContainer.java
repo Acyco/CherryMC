@@ -77,8 +77,6 @@ import org.apache.logging.log4j.message.FormattedMessage;
 
 import javax.annotation.Nullable;
 
-import net.minecraftforge.fml.common.ModContainer.Disableable;
-
 public class FMLModContainer implements ModContainer
 {
     private Object modInstance;

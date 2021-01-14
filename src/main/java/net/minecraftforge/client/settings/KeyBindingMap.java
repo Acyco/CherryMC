@@ -57,7 +57,7 @@ public class KeyBindingMap
     @Nullable
     private KeyBinding getBinding(int keyCode, KeyModifier keyModifier)
     {
-        Collection<KeyBinding> bindings = map.get(keyModifier).func_76041_a(keyCode);
+        Collection<KeyBinding> bindings = map.get(keyModifier).lookup(keyCode);
         if (bindings != null)
         {
             for (KeyBinding binding : bindings)
@@ -76,7 +76,7 @@ public class KeyBindingMap
         List<KeyBinding> matchingBindings = new ArrayList<KeyBinding>();
         for (IntHashMap<Collection<KeyBinding>> bindingsMap : map.values())
         {
-            Collection<KeyBinding> bindings = bindingsMap.func_76041_a(keyCode);
+            Collection<KeyBinding> bindings = bindingsMap.lookup(keyCode);
             if (bindings != null)
             {
                 matchingBindings.addAll(bindings);
@@ -89,11 +89,11 @@ public class KeyBindingMap
     {
         KeyModifier keyModifier = keyBinding.getKeyModifier();
         IntHashMap<Collection<KeyBinding>> bindingsMap = map.get(keyModifier);
-        Collection<KeyBinding> bindingsForKey = bindingsMap.func_76041_a(keyCode);
+        Collection<KeyBinding> bindingsForKey = bindingsMap.lookup(keyCode);
         if (bindingsForKey == null)
         {
             bindingsForKey = new ArrayList<KeyBinding>();
-            bindingsMap.func_76038_a(keyCode, bindingsForKey);
+            bindingsMap.addKey(keyCode, bindingsForKey);
         }
         bindingsForKey.add(keyBinding);
     }
@@ -101,15 +101,15 @@ public class KeyBindingMap
     public void removeKey(KeyBinding keyBinding)
     {
         KeyModifier keyModifier = keyBinding.getKeyModifier();
-        int keyCode = keyBinding.func_151463_i();
+        int keyCode = keyBinding.getKeyCode();
         IntHashMap<Collection<KeyBinding>> bindingsMap = map.get(keyModifier);
-        Collection<KeyBinding> bindingsForKey = bindingsMap.func_76041_a(keyCode);
+        Collection<KeyBinding> bindingsForKey = bindingsMap.lookup(keyCode);
         if (bindingsForKey != null)
         {
             bindingsForKey.remove(keyBinding);
             if (bindingsForKey.isEmpty())
             {
-                bindingsMap.func_76049_d(keyCode);
+                bindingsMap.removeObject(keyCode);
             }
         }
     }
@@ -118,7 +118,7 @@ public class KeyBindingMap
     {
         for (IntHashMap<Collection<KeyBinding>> bindings : map.values())
         {
-            bindings.func_76046_c();
+            bindings.clearMap();
         }
     }
 }

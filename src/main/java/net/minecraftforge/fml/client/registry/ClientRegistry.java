@@ -53,13 +53,13 @@ public class ClientRegistry
 
     public static <T extends TileEntity> void bindTileEntitySpecialRenderer(Class<T> tileEntityClass, TileEntitySpecialRenderer<? super T> specialRenderer)
     {
-        TileEntityRendererDispatcher.field_147556_a.field_147559_m.put(tileEntityClass, specialRenderer);
-        specialRenderer.func_147497_a(TileEntityRendererDispatcher.field_147556_a);
+        TileEntityRendererDispatcher.instance.renderers.put(tileEntityClass, specialRenderer);
+        specialRenderer.setRendererDispatcher(TileEntityRendererDispatcher.instance);
     }
 
     public static void registerKeyBinding(KeyBinding key)
     {
-        Minecraft.func_71410_x().field_71474_y.field_74324_K = ArrayUtils.add(Minecraft.func_71410_x().field_71474_y.field_74324_K, key);
+        Minecraft.getMinecraft().gameSettings.keyBindings = ArrayUtils.add(Minecraft.getMinecraft().gameSettings.keyBindings, key);
     }
 
     /**

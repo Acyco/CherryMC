@@ -35,31 +35,31 @@ public class DeferredBiomeDecorator extends BiomeDecorator {
     }
 
     @Override
-    public void func_180292_a(World par1World, Random par2Random, Biome biome, BlockPos pos)
+    public void decorate(World par1World, Random par2Random, Biome biome, BlockPos pos)
     {
         fireCreateEventAndReplace(biome);
         // On first call to decorate, we fire and substitute ourselves, if we haven't already done so
-        biome.field_76760_I.func_180292_a(par1World, par2Random, biome, pos);
+        biome.decorator.decorate(par1World, par2Random, biome, pos);
     }
     public void fireCreateEventAndReplace(Biome biome)
     {
         // Copy any configuration from us to the real instance.
-        wrapped.field_76807_J = field_76807_J;
-        wrapped.field_76800_F = field_76800_F;
-        wrapped.field_76806_I = field_76806_I;
-        wrapped.field_76804_C = field_76804_C;
-        wrapped.field_76802_A = field_76802_A;
-        wrapped.field_76808_K = field_76808_K;
-        wrapped.field_76803_B = field_76803_B;
-        wrapped.field_76798_D = field_76798_D;
-        wrapped.field_76799_E = field_76799_E;
-        wrapped.field_76801_G = field_76801_G;
-        wrapped.field_76805_H = field_76805_H;
-        wrapped.field_76832_z = field_76832_z;
-        wrapped.field_76833_y = field_76833_y;
+        wrapped.bigMushroomsPerChunk = bigMushroomsPerChunk;
+        wrapped.cactiPerChunk = cactiPerChunk;
+        wrapped.clayPerChunk = clayPerChunk;
+        wrapped.deadBushPerChunk = deadBushPerChunk;
+        wrapped.flowersPerChunk = flowersPerChunk;
+        wrapped.generateFalls = generateFalls;
+        wrapped.grassPerChunk = grassPerChunk;
+        wrapped.mushroomsPerChunk = mushroomsPerChunk;
+        wrapped.reedsPerChunk = reedsPerChunk;
+        wrapped.gravelPatchesPerChunk = gravelPatchesPerChunk;
+        wrapped.sandPatchesPerChunk = sandPatchesPerChunk;
+        wrapped.treesPerChunk = treesPerChunk;
+        wrapped.waterlilyPerChunk = waterlilyPerChunk;
 
         BiomeEvent.CreateDecorator event = new BiomeEvent.CreateDecorator(biome, wrapped);
         MinecraftForge.TERRAIN_GEN_BUS.post(event);
-        biome.field_76760_I = event.getNewBiomeDecorator();
+        biome.decorator = event.getNewBiomeDecorator();
     }
 }

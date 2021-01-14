@@ -118,9 +118,9 @@ public class OBJModel implements IModel
         TextureAtlasSprite missing = bakedTextureGetter.apply(new ResourceLocation("missingno"));
         for (Map.Entry<String, Material> e : matLib.materials.entrySet())
         {
-            if (e.getValue().getTexture().getTextureLocation().func_110623_a().startsWith("#"))
+            if (e.getValue().getTexture().getTextureLocation().getResourcePath().startsWith("#"))
             {
-                FMLLog.log.fatal("OBJLoader: Unresolved texture '{}' for obj model '{}'", e.getValue().getTexture().getTextureLocation().func_110623_a(), modelLocation);
+                FMLLog.log.fatal("OBJLoader: Unresolved texture '{}' for obj model '{}'", e.getValue().getTexture().getTextureLocation().getResourcePath(), modelLocation);
                 builder.put(e.getKey(), missing);
             }
             else
@@ -203,8 +203,8 @@ public class OBJModel implements IModel
         public Parser(IResource from, IResourceManager manager) throws IOException
         {
             this.manager = manager;
-            this.objFrom = from.func_177241_a();
-            this.objStream = new InputStreamReader(from.func_110527_b(), StandardCharsets.UTF_8);
+            this.objFrom = from.getResourceLocation();
+            this.objStream = new InputStreamReader(from.getInputStream(), StandardCharsets.UTF_8);
             this.objReader = new BufferedReader(objStream);
         }
 
@@ -496,14 +496,14 @@ public class OBJModel implements IModel
             this.materials.clear();
             boolean hasSetTexture = false;
             boolean hasSetColor = false;
-            String domain = from.func_110624_b();
+            String domain = from.getResourceDomain();
             if (!path.contains("/"))
-                path = from.func_110623_a().substring(0, from.func_110623_a().lastIndexOf("/") + 1) + path;
+                path = from.getResourcePath().substring(0, from.getResourcePath().lastIndexOf("/") + 1) + path;
 
             ResourceLocation mtlLocation = new ResourceLocation(domain, path);
-            try (IResource resource = manager.func_110536_a(mtlLocation))
+            try (IResource resource = manager.getResource(mtlLocation))
             {
-                BufferedReader mtlReader = new BufferedReader(new InputStreamReader(resource.func_110527_b(), StandardCharsets.UTF_8));
+                BufferedReader mtlReader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8));
 
                 Material material = new Material();
                 material.setName(Material.WHITE_NAME);
@@ -1289,7 +1289,7 @@ public class OBJModel implements IModel
 
         // FIXME: merge with getQuads
         @Override
-        public List<BakedQuad> func_188616_a(IBlockState blockState, EnumFacing side, long rand)
+        public List<BakedQuad> getQuads(IBlockState blockState, EnumFacing side, long rand)
         {
             if (side != null) return ImmutableList.of();
             if (quads == null)
@@ -1391,7 +1391,7 @@ public class OBJModel implements IModel
                 else sprite = this.textures.get(f.getMaterialName());
                 UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(format);
                 builder.setContractUVs(true);
-                builder.setQuadOrientation(EnumFacing.func_176737_a(f.getNormal().x, f.getNormal().y, f.getNormal().z));
+                builder.setQuadOrientation(EnumFacing.getFacingFromVector(f.getNormal().x, f.getNormal().y, f.getNormal().z));
                 builder.setTexture(sprite);
                 Normal faceNormal = f.getNormal();
                 putVertexData(builder, f.verts[0], faceNormal, TextureCoordinate.getDefaultUVs()[0], sprite);
@@ -1405,9 +1405,9 @@ public class OBJModel implements IModel
 
         private final void putVertexData(UnpackedBakedQuad.Builder builder, Vertex v, Normal faceNormal, TextureCoordinate defUV, TextureAtlasSprite sprite)
         {
-            for (int e = 0; e < format.func_177345_h(); e++)
+            for (int e = 0; e < format.getElementCount(); e++)
             {
-                switch (format.func_177348_c(e).func_177375_c())
+                switch (format.getElement(e).getUsage())
                 {
                     case POSITION:
                         builder.put(e, v.getPos().x, v.getPos().y, v.getPos().z, v.getPos().w);
@@ -1425,13 +1425,13 @@ public class OBJModel implements IModel
                     case UV:
                         if (!v.hasTextureCoordinate())
                             builder.put(e,
-                                    sprite.func_94214_a(defUV.u * 16),
-                                    sprite.func_94207_b((model.customData.flipV ? 1 - defUV.v: defUV.v) * 16),
+                                    sprite.getInterpolatedU(defUV.u * 16),
+                                    sprite.getInterpolatedV((model.customData.flipV ? 1 - defUV.v: defUV.v) * 16),
                                     0, 1);
                         else
                             builder.put(e,
-                                    sprite.func_94214_a(v.getTextureCoordinate().u * 16),
-                                    sprite.func_94207_b((model.customData.flipV ? 1 - v.getTextureCoordinate().v : v.getTextureCoordinate().v) * 16),
+                                    sprite.getInterpolatedU(v.getTextureCoordinate().u * 16),
+                                    sprite.getInterpolatedV((model.customData.flipV ? 1 - v.getTextureCoordinate().v : v.getTextureCoordinate().v) * 16),
                                     0, 1);
                         break;
                     case NORMAL:
@@ -1447,25 +1447,25 @@ public class OBJModel implements IModel
         }
 
         @Override
-        public boolean func_177555_b()
+        public boolean isAmbientOcclusion()
         {
             return model != null ? model.customData.ambientOcclusion : true;
         }
 
         @Override
-        public boolean func_177556_c()
+        public boolean isGui3d()
         {
             return model != null ? model.customData.gui3d : true;
         }
 
         @Override
-        public boolean func_188618_c()
+        public boolean isBuiltInRenderer()
         {
             return false;
         }
 
         @Override
-        public TextureAtlasSprite func_177554_e()
+        public TextureAtlasSprite getParticleTexture()
         {
             return this.sprite;
         }
@@ -1567,9 +1567,9 @@ public class OBJModel implements IModel
         }
 
         @Override
-        public ItemOverrideList func_188617_f()
+        public ItemOverrideList getOverrides()
         {
-            return ItemOverrideList.field_188022_a;
+            return ItemOverrideList.NONE;
         }
     }
 

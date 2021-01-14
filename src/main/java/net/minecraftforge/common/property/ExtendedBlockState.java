@@ -33,8 +33,6 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 
-import net.minecraft.block.state.BlockStateContainer.StateImplementation;
-
 public class ExtendedBlockState extends BlockStateContainer
 {
     private final ImmutableSet<IUnlistedProperty<?>> unlistedProperties;
@@ -87,9 +85,9 @@ public class ExtendedBlockState extends BlockStateContainer
 
         @Override
         @Nonnull
-        public <T extends Comparable<T>, V extends T> IBlockState func_177226_a(@Nonnull IProperty<T> property, @Nonnull V value)
+        public <T extends Comparable<T>, V extends T> IBlockState withProperty(@Nonnull IProperty<T> property, @Nonnull V value)
         {
-            IBlockState clean = super.func_177226_a(property, value);
+            IBlockState clean = super.withProperty(property, value);
             if (clean == this.cleanState) {
                 return this;
             }
@@ -99,7 +97,7 @@ public class ExtendedBlockState extends BlockStateContainer
                 return clean;
             }
 
-            return new ExtendedStateImplementation(func_177230_c(), clean.func_177228_b(), unlistedProperties, ((StateImplementation)clean).getPropertyValueTable(), this.cleanState);
+            return new ExtendedStateImplementation(getBlock(), clean.getProperties(), unlistedProperties, ((StateImplementation)clean).getPropertyValueTable(), this.cleanState);
         }
 
         @Override
@@ -108,7 +106,7 @@ public class ExtendedBlockState extends BlockStateContainer
             Optional<?> oldValue = unlistedProperties.get(property);
             if (oldValue == null)
             {
-                throw new IllegalArgumentException("Cannot set unlisted property " + property + " as it does not exist in " + func_177230_c().func_176194_O());
+                throw new IllegalArgumentException("Cannot set unlisted property " + property + " as it does not exist in " + getBlock().getBlockState());
             }
             if (Objects.equals(oldValue.orElse(null), value))
             {
@@ -116,7 +114,7 @@ public class ExtendedBlockState extends BlockStateContainer
             }
             if (!property.isValid(value))
             {
-                throw new IllegalArgumentException("Cannot set unlisted property " + property + " to " + value + " on block " + Block.field_149771_c.func_177774_c(func_177230_c()) + ", it is not an allowed value");
+                throw new IllegalArgumentException("Cannot set unlisted property " + property + " to " + value + " on block " + Block.REGISTRY.getNameForObject(getBlock()) + ", it is not an allowed value");
             }
             boolean clean = true;
             ImmutableMap.Builder<IUnlistedProperty<?>, Optional<?>> builder = ImmutableMap.builder();
@@ -131,7 +129,7 @@ public class ExtendedBlockState extends BlockStateContainer
             { // no dynamic properties, lookup normal state
                 return (IExtendedBlockState) cleanState;
             }
-            return new ExtendedStateImplementation(func_177230_c(), func_177228_b(), builder.build(), field_177238_c, this.cleanState);
+            return new ExtendedStateImplementation(getBlock(), getProperties(), builder.build(), propertyValueTable, this.cleanState);
         }
 
         @Override
@@ -147,7 +145,7 @@ public class ExtendedBlockState extends BlockStateContainer
             Optional<?> value = unlistedProperties.get(property);
             if (value == null)
             {
-                throw new IllegalArgumentException("Cannot get unlisted property " + property + " as it does not exist in " + func_177230_c().func_176194_O());
+                throw new IllegalArgumentException("Cannot get unlisted property " + property + " as it does not exist in " + getBlock().getBlockState());
             }
             return property.getType().cast(value.orElse(null));
         }

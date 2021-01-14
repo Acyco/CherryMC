@@ -33,36 +33,36 @@ import java.util.Map;
 public class CommandDimensions extends CommandBase
 {
     @Override
-    public String func_71517_b()
+    public String getName()
     {
         return "dimensions";
     }
 
     @Override
-    public String func_71518_a(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
         return "commands.forge.dimensions.usage";
     }
 
     @Override
-    public int func_82362_a()
+    public int getRequiredPermissionLevel()
     {
         return 0;
     }
 
     @Override
-    public boolean func_184882_a(MinecraftServer server, ICommandSender sender)
+    public boolean checkPermission(MinecraftServer server, ICommandSender sender)
     {
         return true;
     }
 
     @Override
-    public void func_184881_a(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
-        sender.func_145747_a(TextComponentHelper.createComponentTranslation(sender, "commands.forge.dimensions.list"));
+        sender.sendMessage(TextComponentHelper.createComponentTranslation(sender, "commands.forge.dimensions.list"));
         for (Map.Entry<DimensionType, IntSortedSet> entry : DimensionManager.getRegisteredDimensions().entrySet())
         {
-            sender.func_145747_a(new TextComponentString(entry.getKey().func_186065_b() + ": " + entry.getValue()));
+            sender.sendMessage(new TextComponentString(entry.getKey().getName() + ": " + entry.getValue()));
         }
     }
 }

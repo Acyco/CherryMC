@@ -65,7 +65,7 @@ public class BlockFluidClassic extends BlockFluidBase
 
     public BlockFluidClassic(Fluid fluid, Material material)
     {
-        this(fluid, material, material.func_151565_r());
+        this(fluid, material, material.getMaterialMapColor());
     }
 
     public BlockFluidClassic setFluidStack(FluidStack stack)
@@ -83,24 +83,24 @@ public class BlockFluidClassic extends BlockFluidBase
     @Override
     public int getQuantaValue(IBlockAccess world, BlockPos pos)
     {
-        IBlockState state = world.func_180495_p(pos);
-        if (state.func_177230_c().isAir(state, world, pos))
+        IBlockState state = world.getBlockState(pos);
+        if (state.getBlock().isAir(state, world, pos))
         {
             return 0;
         }
 
-        if (state.func_177230_c() != this)
+        if (state.getBlock() != this)
         {
             return -1;
         }
 
-        return quantaPerBlock - state.func_177229_b(LEVEL);
+        return quantaPerBlock - state.getValue(LEVEL);
     }
 
     @Override
-    public boolean func_176209_a(@Nonnull IBlockState state, boolean fullHit)
+    public boolean canCollideCheck(@Nonnull IBlockState state, boolean fullHit)
     {
-        return fullHit && state.func_177229_b(LEVEL) == 0;
+        return fullHit && state.getValue(LEVEL) == 0;
     }
 
     @Override
@@ -110,9 +110,9 @@ public class BlockFluidClassic extends BlockFluidBase
     }
 
     @Override
-    public void func_180650_b(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand)
+    public void updateTick(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull Random rand)
     {
-        int quantaRemaining = quantaPerBlock - state.func_177229_b(LEVEL);
+        int quantaRemaining = quantaPerBlock - state.getValue(LEVEL);
         int expQuanta = -101;
 
         // check adjacent block levels if non-source
@@ -124,12 +124,12 @@ public class BlockFluidClassic extends BlockFluidBase
             {
                 for (EnumFacing side : EnumFacing.Plane.HORIZONTAL)
                 {
-                    if (isSourceBlock(world, pos.func_177972_a(side))) adjacentSourceBlocks++;
+                    if (isSourceBlock(world, pos.offset(side))) adjacentSourceBlocks++;
                 }
             }
 
             // new source block
-            if (adjacentSourceBlocks >= 2 && (world.func_180495_p(pos.func_177981_b(densityDir)).func_185904_a().func_76220_a() || isSourceBlock(world, pos.func_177981_b(densityDir))))
+            if (adjacentSourceBlocks >= 2 && (world.getBlockState(pos.up(densityDir)).getMaterial().isSolid() || isSourceBlock(world, pos.up(densityDir))))
             {
                 expQuanta = quantaPerBlock;
             }
@@ -143,7 +143,7 @@ public class BlockFluidClassic extends BlockFluidBase
                 int maxQuanta = -100;
                 for (EnumFacing side : EnumFacing.Plane.HORIZONTAL)
                 {
-                    maxQuanta = getLargerQuanta(world, pos.func_177972_a(side), maxQuanta);
+                    maxQuanta = getLargerQuanta(world, pos.offset(side), maxQuanta);
                 }
                 expQuanta = maxQuanta - 1;
             }
@@ -155,21 +155,21 @@ public class BlockFluidClassic extends BlockFluidBase
 
                 if (expQuanta <= 0)
                 {
-                    world.func_175698_g(pos);
+                    world.setBlockToAir(pos);
                 }
                 else
                 {
-                    world.func_180501_a(pos, state.func_177226_a(LEVEL, quantaPerBlock - expQuanta), Constants.BlockFlags.SEND_TO_CLIENTS);
-                    world.func_175684_a(pos, this, tickRate);
-                    world.func_175685_c(pos, this, false);
+                    world.setBlockState(pos, state.withProperty(LEVEL, quantaPerBlock - expQuanta), Constants.BlockFlags.SEND_TO_CLIENTS);
+                    world.scheduleUpdate(pos, this, tickRate);
+                    world.notifyNeighborsOfStateChange(pos, this, false);
                 }
             }
         }
 
         // Flow vertically if possible
-        if (canDisplace(world, pos.func_177981_b(densityDir)))
+        if (canDisplace(world, pos.up(densityDir)))
         {
-            flowIntoBlock(world, pos.func_177981_b(densityDir), 1);
+            flowIntoBlock(world, pos.up(densityDir), 1);
             return;
         }
 
@@ -189,28 +189,28 @@ public class BlockFluidClassic extends BlockFluidBase
             boolean flowTo[] = getOptimalFlowDirections(world, pos);
             for (int i = 0; i < 4; i++)
             {
-                if (flowTo[i]) flowIntoBlock(world, pos.func_177972_a(SIDES.get(i)), flowMeta);
+                if (flowTo[i]) flowIntoBlock(world, pos.offset(SIDES.get(i)), flowMeta);
             }
         }
     }
 
     protected final boolean hasDownhillFlow(IBlockAccess world, BlockPos pos, EnumFacing direction)
     {
-        return world.func_180495_p(pos.func_177972_a(direction).func_177979_c(densityDir)).func_177230_c() == this
-                && (canFlowInto(world, pos.func_177972_a(direction))
-                ||  canFlowInto(world, pos.func_177979_c(densityDir)));
+        return world.getBlockState(pos.offset(direction).down(densityDir)).getBlock() == this
+                && (canFlowInto(world, pos.offset(direction))
+                ||  canFlowInto(world, pos.down(densityDir)));
     }
 
     public boolean isFlowingVertically(IBlockAccess world, BlockPos pos)
     {
-        return world.func_180495_p(pos.func_177981_b(densityDir)).func_177230_c() == this ||
-            (world.func_180495_p(pos).func_177230_c() == this && canFlowInto(world, pos.func_177981_b(densityDir)));
+        return world.getBlockState(pos.up(densityDir)).getBlock() == this ||
+            (world.getBlockState(pos).getBlock() == this && canFlowInto(world, pos.up(densityDir)));
     }
 
     public boolean isSourceBlock(IBlockAccess world, BlockPos pos)
     {
-        IBlockState state = world.func_180495_p(pos);
-        return state.func_177230_c() == this && state.func_177229_b(LEVEL) == 0;
+        IBlockState state = world.getBlockState(pos);
+        return state.getBlock() == this && state.getValue(LEVEL) == 0;
     }
 
     protected boolean[] getOptimalFlowDirections(World world, BlockPos pos)
@@ -219,14 +219,14 @@ public class BlockFluidClassic extends BlockFluidBase
         {
             flowCost[side] = 1000;
 
-            BlockPos pos2 = pos.func_177972_a(SIDES.get(side));
+            BlockPos pos2 = pos.offset(SIDES.get(side));
 
             if (!canFlowInto(world, pos2) || isSourceBlock(world, pos2))
             {
                 continue;
             }
 
-            if (canFlowInto(world, pos2.func_177981_b(densityDir)))
+            if (canFlowInto(world, pos2.up(densityDir)))
             {
                 flowCost[side] = 0;
             }
@@ -249,19 +249,19 @@ public class BlockFluidClassic extends BlockFluidBase
         int cost = 1000;
         for (int adjSide = 0; adjSide < 4; adjSide++)
         {
-            if (SIDES.get(adjSide) == SIDES.get(side).func_176734_d())
+            if (SIDES.get(adjSide) == SIDES.get(side).getOpposite())
             {
                 continue;
             }
 
-            BlockPos pos2 = pos.func_177972_a(SIDES.get(adjSide));
+            BlockPos pos2 = pos.offset(SIDES.get(adjSide));
 
             if (!canFlowInto(world, pos2) || isSourceBlock(world, pos2))
             {
                 continue;
             }
 
-            if (canFlowInto(world, pos2.func_177981_b(densityDir)))
+            if (canFlowInto(world, pos2.up(densityDir)))
             {
                 return recurseDepth;
             }
@@ -281,13 +281,13 @@ public class BlockFluidClassic extends BlockFluidBase
         if (meta < 0) return;
         if (displaceIfPossible(world, pos))
         {
-            world.func_175656_a(pos, this.func_176223_P().func_177226_a(LEVEL, meta));
+            world.setBlockState(pos, this.getDefaultState().withProperty(LEVEL, meta));
         }
     }
 
     protected boolean canFlowInto(IBlockAccess world, BlockPos pos)
     {
-        return world.func_180495_p(pos).func_177230_c() == this || canDisplace(world, pos);
+        return world.getBlockState(pos).getBlock() == this || canDisplace(world, pos);
     }
 
     protected int getLargerQuanta(IBlockAccess world, BlockPos pos, int compare)
@@ -311,7 +311,7 @@ public class BlockFluidClassic extends BlockFluidBase
         if (doPlace)
         {
             FluidUtil.destroyBlockOnFluidPlacement(world, pos);
-            world.func_180501_a(pos, this.func_176223_P(), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+            world.setBlockState(pos, this.getDefaultState(), Constants.BlockFlags.DEFAULT_AND_RERENDER);
         }
         return Fluid.BUCKET_VOLUME;
     }
@@ -327,7 +327,7 @@ public class BlockFluidClassic extends BlockFluidBase
 
         if (doDrain)
         {
-            world.func_175698_g(pos);
+            world.setBlockToAir(pos);
         }
 
         return stack.copy();

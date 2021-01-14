@@ -55,7 +55,7 @@ public class FMLServerStartingEvent extends FMLStateEvent
 
     public void registerServerCommand(ICommand command)
     {
-        CommandHandler ch = (CommandHandler) getServer().func_71187_D();
-        ch.func_71560_a(command);
+        CommandHandler ch = (CommandHandler) getServer().getCommandManager();
+        ch.registerCommand(command);
     }
 }

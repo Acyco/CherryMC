@@ -35,7 +35,7 @@ public class PlayerContext extends Context
     @Override
     public World getWorld()
     {
-        return player.func_130014_f_();
+        return player.getEntityWorld();
     }
 
     @Override
