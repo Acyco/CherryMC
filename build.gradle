@@ -162,16 +162,7 @@ project(':Cherry') {
                 srcDirs = ["$rootDir/src/test/resources"]
             }
         }
-        userdev {
-            compileClasspath += sourceSets.main.runtimeClasspath
-            runtimeClasspath += sourceSets.main.runtimeClasspath
-            java {
-                srcDirs = ["$rootDir/src/userdev/java"]
-            }
-            resources {
-                srcDirs = ["$rootDir/src/userdev/resources"]
-            }
-        }
+      
     }
     //Eclipse adds the sourcesets twice, once where we tell it to, once in the projects folder. No idea why. So delete them
 //    eclipse.classpath.file.whenMerged { cls -> cls.entries.removeIf { e -> e instanceof SourceFolder && e.path.startsWith('src/') && !e.path.startsWith('src/main/') } }
@@ -182,7 +173,7 @@ project(':Cherry') {
     }
 
     ext {
-        LEGACY_MAJOR = 2020 //Legacy versions have a API change prefix
+        LEGACY_MAJOR = 14 //Legacy versions have a API change prefix
         LEGACY_BUILD = 2856 //Base build number to not conflict with existing build numbers
         BUILD_NUMBER = 0 // LEGACY_BUILD + commit offset, used to mimic unique build from old versions
 
@@ -193,22 +184,17 @@ project(':Cherry') {
         BINPATCH_TOOL = 'net.minecraftforge:binarypatcher:1.1.1:fatjar'
     }
 
-    def getVersion = {
-        //TAG-offset-hash
-        def raw = grgit.describe(longDescr: true, tags:true)
-        def desc = (raw == null ? '0.0-0-unknown' : grgit.describe(longDescr: true, tags:true)).split('-') as List
-        def hash = desc.remove(desc.size() - 1)
-        def offset = desc.remove(desc.size() - 1)
-        def tag = desc.join('-')
-        def branch = grgit.branch.current().name
-        if (branch in ['master', 'HEAD', MC_VERSION, MC_VERSION + '.0'])
-            branch = null
-        if (branch != null && branch.endsWith('.x') && MC_VERSION.startsWith(branch.substring(0, branch.length() - 2))) //1.13.x
-            branch = null
-        SPEC_VERSION = tag
-        BUILD_NUMBER = LEGACY_BUILD + offset.toInteger()
-        return "${MC_VERSION}-${LEGACY_MAJOR}.${tag}.${BUILD_NUMBER}${t -> if (branch != null) t << '-' + branch}".toString() //Bake the response instead of making it dynamic
+    def today = {
+        String str = ""
+        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd_HHmm")
+        Calendar lastDate = Calendar.getInstance()
+        str = sdf.format(lastDate.getTime())
+        return str
+
     }
+    def getVersion = {
+            return "1.12.2-"+today()
+       }
 
     version = getVersion() 
 
@@ -224,37 +210,6 @@ project(':Cherry') {
         processor = POST_PROCESSOR
 
         runs {
-            
-            forge_client {
-                taskName 'forge_client'
-                main 'net.minecraftforge.legacydev.MainClient'
-
-                environment 'tweakClass',       'net.minecraftforge.fml.common.launcher.FMLTweaker'
-                environment 'mainClass',        'net.minecraft.launchwrapper.Launch'
-                environment 'assetIndex',       '{asset_index}'
-                environment 'assetDirectory',   '{assets_root}'
-                environment 'nativesDirectory', '{natives}'
-                environment 'MC_VERSION',       '${MC_VERSION}'
-                environment 'MCP_MAPPINGS',     '{mcp_mappings}'
-                environment 'MCP_TO_SRG',       '{mcp_to_srg}'
-                environment 'FORGE_GROUP',      "${project.group}"
-                environment 'FORGE_VERSION',    "${project.version.substring(MC_VERSION.length() + 1)}"
-            }
-
-            forge_server {
-                taskName 'forge_server'
-                main 'net.minecraftforge.legacydev.MainServer'
-
-                environment 'tweakClass',       'net.minecraftforge.fml.common.launcher.FMLServerTweaker'
-                environment 'mainClass',        'net.minecraft.launchwrapper.Launch'
-                environment 'MC_VERSION',       '${MC_VERSION}'
-                environment 'MCP_MAPPINGS',     '{mcp_mappings}'
-                environment 'MCP_TO_SRG',       '{mcp_to_srg}'
-                environment 'FORGE_GROUP',      "${project.group}"
-                environment 'FORGE_VERSION',    "${project.version.substring(MC_VERSION.length() + 1)}"
-            }
-
-
             cherry_dev_client {
                 //group ct
                 taskName 'cherry_dev_client'
@@ -300,17 +255,17 @@ project(':Cherry') {
                         'GitCommit': grgit.head().abbreviatedId,
                         'Git-Branch': grgit.branch.current().getName()
                 ] as LinkedHashMap,
-                'net/minecraftforge/common/': [
-                        'Specification-Title':      'Forge',
-                        'Specification-Vendor':     'Forge Development LLC',
+                'net/cherrymc': [
+                        'Specification-Title':      'Cherry',
+                        'Specification-Vendor':     'Cherry Development LLC',
                         'Specification-Version':    SPEC_VERSION,
                         'Implementation-Title':     project.group,
                         'Implementation-Version':   project.version.substring(MC_VERSION.length() + 1),
-                        'Implementation-Vendor':    'Forge Development LLC'
+                        'Implementation-Vendor':    'Cherry Development LLC'
                 ] as LinkedHashMap
         ]
     }
-
+    
     applyPatches {
         canonicalizeAccess true
         canonicalizeWhitespace true
@@ -415,6 +370,19 @@ project(':Cherry') {
         //inputs.file project(':Base').mcp.config
         output file('build/createSrgToMcp/output.srg')
     }
+    
+   
+    compileJava <<{
+        //由于在开发环境，并没有打包成jar， 所以MC找assets默认是去clesses那个目录去找（个人认为的）
+      copy {
+          //  group ct
+            //println project.file("build/classes/java/main/assets").mkdirs()
+            from rootProject.file("src/main/resources/assets")
+            into project.file("build/classes/java/main/assets")
+
+        }
+    }
+    
     task downloadLibraries(dependsOn: ':Base:setupMCP') {
         inputs.file VERSION_JSON
         doLast {
@@ -813,30 +781,7 @@ project(':Cherry') {
         }
     }
 
-    task userdevExtras(type:Jar) {
-        dependsOn classes
-        from sourceSets.userdev.output
-        classifier 'userdev-temp'
-    }
-
-    task userdevExtrasReobf(type:TaskReobfuscateJar) {
-        dependsOn userdevExtras, createMcp2Srg
-        input = tasks.userdevExtras.archivePath
-        classpath = project.configurations.compile
-        srg = tasks.createMcp2Srg.output
-    }
-
-    userdevJar {
-        dependsOn userdevExtrasReobf
-        from (zipTree(tasks.userdevExtrasReobf.output)) {
-            into '/inject/'
-        }
-        from (sourceSets.userdev.output.resourcesDir) {
-            into '/inject/'
-        }
-        classifier 'userdev3'
-    }
-
+  
     /*
     extractRangeMap {
         addDependencies jar.archivePath
@@ -859,61 +804,7 @@ project(':Cherry') {
         sourceSets.test.java.srcDirs.each { extractMappedNew.addTarget it }
     }
 
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                artifact universalJar
-                if (changelog.exists()) {
-                    artifact(changelog) {
-                        classifier = 'changelog'
-                    }
-                }
-                artifact installerJar
-                //TODO: installer-win
-           /*     artifact makeMdk*/
-                artifact userdevJar
-                artifact sourcesJar
-
-                pom {
-                    name = 'forge'
-                    description = 'Modifactions to Minecraft to enable mod developers.'
-                    url = 'https://github.com/MinecraftForge/MinecraftForge'
-
-                    scm {
-                        url = 'https://github.com/MinecraftForge/MinecraftForge'
-                        connection = 'scm:git:git://github.com/MinecraftForge/MinecraftForge.git'
-                        developerConnection = 'scm:git:git@github.com:MinecraftForge/MinecraftForge.git'
-                    }
-
-                    issueManagement {
-                        system = 'github'
-                        url = 'https://github.com/MinecraftForge/MinecraftForge/issues'
-                    }
-
-                    licenses {
-                        license {
-                            name = 'LGPL 2.1'
-                            url = 'https://github.com/MinecraftForge/MinecraftForge/blob/1.12.x/LICENSE.txt'
-                            distribution = 'repo'
-                        }
-                    }
-                }
-            }
-        }
-        repositories {
-            maven {
-                if (project.hasProperty('forgeMavenPassword')) {
-                    credentials {
-                        username project.properties.forgeMavenUser
-                        password project.properties.forgeMavenPassword
-                    }
-                    url 'https://files.minecraftforge.net/maven/manage/upload'
-                } else {
-                    url 'file://' + rootProject.file('repo').getAbsolutePath()
-                }
-            }
-        }
-    }
+  
 }
 
 def dateToIso8601(date) {
