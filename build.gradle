@@ -377,7 +377,8 @@ project(':Cherry') {
       copy {
           //  group ct
             //println project.file("build/classes/java/main/assets").mkdirs()
-            from rootProject.file("src/main/resources/assets")
+//            from rootProject.file("src/main/resources/assets")
+            from project.file("build/resources/main/assets")
             into project.file("build/classes/java/main/assets")
 
         }

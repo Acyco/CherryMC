@@ -46,7 +46,7 @@
 +        //cherry add begin
 +        int i = p_145839_1_.func_74762_e("RecipesUsedSize");
 +        for (int j = 0; j < i; j++) {
-+            recipesUsed.put(p_145839_1_.func_74779_i("RecipeLocation" + i), p_145839_1_.func_74762_e("RecipeAmount" + i));
++            recipesUsed.put(p_145839_1_.func_74779_i("RecipeLocation" + j), p_145839_1_.func_74762_e("RecipeAmount" + j));
 +        }
 +        //cherry add end 
 +
@@ -121,7 +121,7 @@
 +                itemstack2.func_190917_f(itemstack1.func_190916_E());
              }
 +            //cherry begin
-+            if (field_145850_b.field_72995_K) {
++            if (!field_145850_b.field_72995_K) {
 +                recipesUsed.compute(Objects.requireNonNull(itemstack1.func_77973_b().getRegistryName()).toString(), 
 +                        (s, i) -> 1 + (i == null ? 0 : i));
 +            }

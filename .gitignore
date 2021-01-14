@@ -20,6 +20,9 @@
 /resources/
 /server/
 
+# Patch rejects
+/patches-/
+*.patch.rej
 
 # Projects
 /Base/
