@@ -105,7 +105,7 @@ project(':Clean'){
         mappings channel: MAPPING_CHANNEL, version: MAPPING_VERSION
         processor = POST_PROCESSOR
 
-        runs {
+        runs {e
             clean_client {
                 taskName 'clean_client_test'
 
@@ -182,19 +182,18 @@ project(':Cherry') {
         SPECIAL_SOURCE = 'net.md-5:SpecialSource:1.8.5'
         VERSION_JSON = project(':Base').file('build/mcp/downloadJson/version.json')
         BINPATCH_TOOL = 'net.minecraftforge:binarypatcher:1.1.1:fatjar'
+        FORVGE_VERSION = '14.23.5.2855'
     }
 
-    def today = {
-        String str = ""
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd_HHmm")
-        Calendar lastDate = Calendar.getInstance()
-        str = sdf.format(lastDate.getTime())
-        return str
+    def time = {
+        return (new SimpleDateFormat("YYYYMMddHHmm")).format((Calendar.getInstance()).getTime())
 
     }
     def getVersion = {
-            return "1.12.2-"+today()
-       }
+        // format: MCversion-CherryVersion-time
+        //     mc version                        cherry version                         time  
+        return "1.12.2-" + rootProject.file("src/main/resources/version").text + "-" + time()
+    }
 
     version = getVersion() 
 
@@ -224,12 +223,12 @@ project(':Cherry') {
                 environment 'MCP_MAPPINGS',     '{mcp_mappings}'
                 environment 'MCP_TO_SRG',       project.file("build/createSrgToMcp/output.srg")
                 environment 'FORGE_GROUP',      "${project.group}"
-                environment 'FORGE_VERSION',    "${project.version.substring(MC_VERSION.length() + 1)}"
+                environment 'FORGE_VERSION',    FORVGE_VERSION
                 // Recommended logging data for a userdev environment
-                property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+                //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
 
                 // Recommended logging level for the console
-                property 'forge.logging.console.level', 'debug'
+                property 'cherry.logging.console.level', 'debug'
             }
 
             cherry_dev_server {
@@ -242,7 +241,7 @@ project(':Cherry') {
                 environment 'MCP_MAPPINGS',     '{mcp_mappings}'
                 environment 'MCP_TO_SRG',        project.file("build/createSrgToMcp/output.srg")
                 environment 'FORGE_GROUP',      "${project.group}"
-                environment 'FORGE_VERSION',    "${project.version.substring(MC_VERSION.length() + 1)}"
+                environment 'FORGE_VERSION',    FORVGE_VERSION
             }
 
         }
