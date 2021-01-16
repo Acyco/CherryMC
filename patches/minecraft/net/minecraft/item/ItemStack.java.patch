@@ -249,11 +249,24 @@
          }
  
          return itextcomponent;
-@@ -1130,4 +1156,128 @@
+@@ -1130,4 +1156,141 @@
      {
          this.func_190917_f(-p_190918_1_);
      }
 +
++
++    /**
++     * Cherry add :  get item register name. PS:like forge getRegisterName() 
++     * @return String itemName 
++     */
++    public String getRegName() {
++        ResourceLocation resourcelocation = Item.field_150901_e.func_177774_c(this.func_77973_b());
++        return  resourcelocation == null ? "minecraft:air" : resourcelocation.toString();
++
++    }
++
++
++    // 下面全是forge 添加的
 +    @Override
 +    public boolean hasCapability(net.minecraftforge.common.capabilities.Capability<?> capability, @Nullable net.minecraft.util.EnumFacing facing)
 +    {
