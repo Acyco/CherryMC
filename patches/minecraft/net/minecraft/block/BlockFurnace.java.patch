@@ -1,0 +1,12 @@
+--- ../src-base/minecraft/net/minecraft/block/BlockFurnace.java
++++ ../src-work/minecraft/net/minecraft/block/BlockFurnace.java
+@@ -201,7 +201,9 @@
+ 
+             if (tileentity instanceof TileEntityFurnace)
+             {
++                ((TileEntityFurnace) tileentity).getExp(p_180663_1_, p_180663_2_);
+                 InventoryHelper.func_180175_a(p_180663_1_, p_180663_2_, (TileEntityFurnace)tileentity);
++
+                 p_180663_1_.func_175666_e(p_180663_2_, this);
+             }
+         }
