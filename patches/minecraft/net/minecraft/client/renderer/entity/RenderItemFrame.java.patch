@@ -1,6 +1,33 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/entity/RenderItemFrame.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/entity/RenderItemFrame.java
-@@ -49,7 +49,7 @@
+@@ -14,6 +14,7 @@
+ import net.minecraft.entity.item.EntityItemFrame;
+ import net.minecraft.init.Items;
+ import net.minecraft.item.ItemStack;
++import net.minecraft.util.EnumFacing;
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraft.util.math.BlockPos;
+ import net.minecraft.world.storage.MapData;
+@@ -38,18 +39,25 @@
+     public void func_76986_a(EntityItemFrame p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
+     {
+         GlStateManager.func_179094_E();
++        EnumFacing facing = p_76986_1_.field_174860_b;//cherry add 
+         BlockPos blockpos = p_76986_1_.func_174857_n();
++
+         double d0 = (double)blockpos.func_177958_n() - p_76986_1_.field_70165_t + p_76986_2_;
+         double d1 = (double)blockpos.func_177956_o() - p_76986_1_.field_70163_u + p_76986_4_;
+         double d2 = (double)blockpos.func_177952_p() - p_76986_1_.field_70161_v + p_76986_6_;
+         GlStateManager.func_179137_b(d0 + 0.5D, d1 + 0.5D, d2 + 0.5D);
+-        GlStateManager.func_179114_b(180.0F - p_76986_1_.field_70177_z, 0.0F, 1.0F, 0.0F);
++        // cherry modified rotate
++        if (facing.func_176740_k().func_176722_c()) {
++            GlStateManager.func_179114_b(180.0F - p_76986_1_.field_70177_z, 0.0F, 1.0F, 0.0F);//mc
++        }else{
++            GlStateManager.func_179114_b(p_76986_1_.field_70125_A, 1.0F, 0.0F, 0.0F);
++        }
+         this.field_76990_c.field_78724_e.func_110577_a(TextureMap.field_110575_b);
+         BlockRendererDispatcher blockrendererdispatcher = this.field_147917_g.func_175602_ab();
          ModelManager modelmanager = blockrendererdispatcher.func_175023_a().func_178126_b();
          IBakedModel ibakedmodel;
  
@@ -9,7 +36,7 @@
          {
              ibakedmodel = modelmanager.func_174953_a(this.field_177073_g);
          }
-@@ -96,10 +96,13 @@
+@@ -96,10 +104,13 @@
          {
              GlStateManager.func_179094_E();
              GlStateManager.func_179140_f();
@@ -24,7 +51,7 @@
              if (flag)
              {
                  this.field_76990_c.field_78724_e.func_110577_a(field_110789_a);
-@@ -107,7 +110,7 @@
+@@ -107,7 +118,7 @@
                  float f = 0.0078125F;
                  GlStateManager.func_179152_a(0.0078125F, 0.0078125F, 0.0078125F);
                  GlStateManager.func_179109_b(-64.0F, -64.0F, 0.0F);
@@ -33,7 +60,7 @@
                  GlStateManager.func_179109_b(0.0F, 0.0F, -1.0F);
  
                  if (mapdata != null)
-@@ -124,6 +127,7 @@
+@@ -124,6 +135,7 @@
                  RenderHelper.func_74518_a();
                  GlStateManager.func_179099_b();
              }

@@ -43,8 +43,8 @@
             <filters>
                 <MarkerFilter marker="NETWORK_PACKETS" onMatch="DENY" onMismatch="NEUTRAL"/>
             </filters>
-            <AppenderRef ref="Console" level="${sys:forge.logging.console.level:-info}"/>
-            <AppenderRef ref="ServerGuiConsole" level="${sys:forge.logging.console.level:-info}"/>
+            <AppenderRef ref="Console" level="${sys:cherry.logging.console.level:-info}"/>
+            <AppenderRef ref="ServerGuiConsole" level="${sys:cherry.logging.console.level:-info}"/>
             <AppenderRef ref="File" level="${sys:forge.logging.file.level:-info}"/>
             <AppenderRef ref="DebugFile" level="${sys:forge.logging.debugFile.level:-trace}"/>
         </Root>

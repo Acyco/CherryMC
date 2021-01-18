@@ -42,3 +42,12 @@
          if (this.field_73132_a instanceof EntityPlayerMP)
          {
              return new SPacketSpawnPlayer((EntityPlayer)this.field_73132_a);
+@@ -638,7 +643,7 @@
+         else if (this.field_73132_a instanceof EntityItemFrame)
+         {
+             EntityItemFrame entityitemframe = (EntityItemFrame)this.field_73132_a;
+-            return new SPacketSpawnObject(this.field_73132_a, 71, entityitemframe.field_174860_b.func_176736_b(), entityitemframe.func_174857_n());
++            return new SPacketSpawnObject(this.field_73132_a, 71, entityitemframe.field_174860_b.func_176745_a(), entityitemframe.func_174857_n());
+         }
+         else if (this.field_73132_a instanceof EntityLeashKnot)
+         {
