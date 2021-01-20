@@ -25,7 +25,7 @@
          p_174943_2_.func_177059_a(this);
          this.func_110569_e();
          this.func_147631_c();
-@@ -88,29 +99,74 @@
+@@ -88,29 +99,76 @@
          this.field_94258_i.clear();
          int j = Integer.MAX_VALUE;
          int k = 1 << this.field_147636_j;
@@ -41,11 +41,13 @@
 -            IResource iresource = null;
 +            final ResourceLocation location = new ResourceLocation(entry.getKey());
 +            bar.step(location.toString());
++            net.minecraftforge.fml.common.FMLLog.log.debug("Texture location: {}",location.toString());
+ 
 +            j = loadTexture(stitcher, p_110571_1_, location, entry.getValue(), bar, j, k);
 +        }
 +        finishLoading(stitcher, bar, j, k);
 +    }
- 
++
 +    private int loadTexture(Stitcher stitcher, IResourceManager p_110571_1_, ResourceLocation location, TextureAtlasSprite textureatlassprite, net.minecraftforge.fml.common.ProgressManager.ProgressBar bar, int j, int k)
 +    {
 +        if (loadedSprites.contains(location)) {
@@ -108,7 +110,7 @@
              }
              finally
              {
-@@ -122,16 +178,28 @@
+@@ -122,16 +180,28 @@
  
              if (j1 < k)
              {
@@ -139,7 +141,7 @@
          if (i1 < this.field_147636_j)
          {
              field_147635_d.warn("{}: dropping miplevel from {} to {}, because of minimum power of two: {}", this.field_94254_c, Integer.valueOf(this.field_147636_j), Integer.valueOf(i1), Integer.valueOf(l));
-@@ -140,9 +208,11 @@
+@@ -140,9 +210,11 @@
  
          this.field_94249_f.func_147963_d(this.field_147636_j);
          stitcher.func_110934_a(this.field_94249_f);
@@ -151,7 +153,7 @@
              stitcher.func_94305_f();
          }
          catch (StitcherException stitcherexception)
-@@ -151,12 +221,16 @@
+@@ -151,12 +223,16 @@
          }
  
          field_147635_d.info("Created: {}x{} {}-atlas", Integer.valueOf(stitcher.func_110935_a()), Integer.valueOf(stitcher.func_110936_b()), this.field_94254_c);
@@ -169,7 +171,7 @@
              {
                  String s = textureatlassprite1.func_94215_i();
                  map.remove(s);
-@@ -186,6 +260,8 @@
+@@ -186,6 +262,8 @@
          {
              textureatlassprite2.func_94217_a(this.field_94249_f);
          }
@@ -178,7 +180,7 @@
      }
  
      private boolean func_184397_a(IResourceManager p_184397_1_, final TextureAtlasSprite p_184397_2_)
-@@ -195,7 +271,7 @@
+@@ -195,7 +273,7 @@
          label62:
          {
              boolean flag;
@@ -187,7 +189,7 @@
              try
              {
                  iresource = p_184397_1_.func_110536_a(resourcelocation);
-@@ -292,7 +368,7 @@
+@@ -292,7 +370,7 @@
          }
          else
          {
@@ -196,7 +198,7 @@
  
              if (textureatlassprite == null)
              {
-@@ -318,4 +394,52 @@
+@@ -318,4 +396,52 @@
      {
          return this.field_94249_f;
      }
