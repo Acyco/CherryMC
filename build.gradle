@@ -192,7 +192,7 @@ project(':Cherry') {
     def getVersion = {
         // format: MCversion-CherryVersion-time
         //     mc version                        cherry version                         time  
-        return "1.12.2-" + rootProject.file("src/main/resources/version").text + "-" + time()
+        return "1.12.2-" + rootProject.cherry_version + "-" + time()
     }
 
     version = getVersion() 
@@ -683,6 +683,7 @@ project(':Cherry') {
 
     task installerJar(type: Zip, dependsOn: [downloadInstaller, installerJson, launcherJson, genClientBinPatches, genServerBinPatches, 'signUniversalJar']) {
         group ct
+        rootProject.file("/src/main/resources/version").setText(version)
         classifier = 'installer'
         extension = 'jar' //Needs to be Zip task to not override Manifest, so set extension
         destinationDir = file('build/libs')
