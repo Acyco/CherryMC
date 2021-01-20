@@ -212,7 +212,7 @@ project(':Cherry') {
             cherry_dev_client {
                 //group ct
                 taskName 'cherry_dev_client'
-                main 'net.minecraftforge.legacydev.MainClient'
+                main 'net.cherrymc.dev.MainClient'
 
                 environment 'tweakClass',       'net.minecraftforge.fml.common.launcher.FMLTweaker'
                 environment 'mainClass',        'net.minecraft.launchwrapper.Launch'
@@ -229,11 +229,14 @@ project(':Cherry') {
 
                 // Recommended logging level for the console
                 property 'cherry.logging.console.level', 'debug'
+                
+                //args
+                args '--username', 'Acyco'
             }
 
             cherry_dev_server {
                 taskName 'cherry_dev_server'
-                main 'net.minecraftforge.legacydev.MainServer'
+                main 'net.cherrymc.dev.MainServer'
 
                 environment 'tweakClass',       'net.minecraftforge.fml.common.launcher.FMLServerTweaker'
                 environment 'mainClass',        'net.minecraft.launchwrapper.Launch'
@@ -304,8 +307,7 @@ project(':Cherry') {
         installer 'net.sf.trove4j:trove4j:3.0.3'
         installer 'org.apache.maven:maven-artifact:3.5.3'
         installer 'net.sf.jopt-simple:jopt-simple:5.0.3'
-//        installer 'net.minecraftforge:legacydev:fatjar:0.2.3.1'
-        installer 'net.minecraftforge:legacydev:0.2.3.+:fatjar'
+//        installer 'net.minecraftforge:legacydev:0.2.3.+:fatjar'
 
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.0.0'
         testImplementation 'org.junit.vintage:junit-vintage-engine:5.+'
