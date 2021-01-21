@@ -1,6 +1,23 @@
 --- ../src-base/minecraft/net/minecraft/client/gui/GuiMainMenu.java
 +++ ../src-work/minecraft/net/minecraft/client/gui/GuiMainMenu.java
-@@ -70,6 +70,8 @@
+@@ -12,6 +12,8 @@
+ import java.util.Date;
+ import java.util.List;
+ import java.util.Random;
++
++import net.cherrymc.client.config.ClientConfig;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.BufferBuilder;
+ import net.minecraft.client.renderer.GlStateManager;
+@@ -35,6 +37,7 @@
+ import org.apache.commons.io.IOUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import org.lwjgl.input.Keyboard;
+ import org.lwjgl.input.Mouse;
+ import org.lwjgl.opengl.GLContext;
+ import org.lwjgl.util.glu.Project;
+@@ -70,6 +73,8 @@
      private GuiScreen field_183503_M;
      private int field_193978_M;
      private int field_193979_N;
@@ -9,7 +26,7 @@
  
      public GuiMainMenu()
      {
-@@ -212,13 +214,15 @@
+@@ -212,13 +217,15 @@
              this.field_183503_M.func_183500_a(this.field_146294_l, this.field_146295_m);
              this.field_183503_M.func_73866_w_();
          }
@@ -26,7 +43,7 @@
      }
  
      private void func_73972_b(int p_73972_1_, int p_73972_2_)
-@@ -266,6 +270,11 @@
+@@ -266,6 +273,11 @@
              this.field_146297_k.func_71400_g();
          }
  
@@ -38,7 +55,7 @@
          if (p_146284_1_.field_146127_k == 11)
          {
              this.field_146297_k.func_71371_a("Demo_World", "Demo_World", WorldServerDemo.field_73071_a);
-@@ -500,6 +509,9 @@
+@@ -500,6 +512,9 @@
  
          this.field_146297_k.func_110434_K().func_110577_a(field_194400_H);
          func_146110_a(j + 88, 67, 0.0F, 0.0F, 98, 14, 128.0F, 16.0F);
@@ -48,25 +65,33 @@
          GlStateManager.func_179094_E();
          GlStateManager.func_179109_b((float)(this.field_146294_l / 2 + 90), 70.0F, 0.0F);
          GlStateManager.func_179114_b(-20.0F, 0.0F, 0.0F, 1.0F);
-@@ -519,7 +531,16 @@
+@@ -518,10 +533,23 @@
+         {
              s = s + ("release".equalsIgnoreCase(this.field_146297_k.func_184123_d()) ? "" : "/" + this.field_146297_k.func_184123_d());
          }
++        //cherry modify
  
 -        this.func_73731_b(this.field_146289_q, s, 2, this.field_146295_m - 10, -1);
-+        java.util.List<String> brandings = com.google.common.collect.Lists.reverse(net.minecraftforge.fml.common.FMLCommonHandler.instance().getBrandings(true));
-+        for (int brdline = 0; brdline < brandings.size(); brdline++)
-+        {
-+            String brd = brandings.get(brdline);
-+            if (!com.google.common.base.Strings.isNullOrEmpty(brd))
+-        this.func_73731_b(this.field_146289_q, "Copyright Mojang AB. Do not distribute!", this.field_193979_N, this.field_146295_m - 10, -1);
++        if (!ClientConfig.hideVersion) {
++            java.util.List<String> brandings = com.google.common.collect.Lists.reverse(net.minecraftforge.fml.common.FMLCommonHandler.instance().getBrandings(true));
++            for (int brdline = 0; brdline < brandings.size(); brdline++)
 +            {
-+                this.func_73731_b(this.field_146289_q, brd, 2, this.field_146295_m - ( 10 + brdline * (this.field_146289_q.field_78288_b + 1)), 16777215);
++                String brd = brandings.get(brdline);
++                if (!com.google.common.base.Strings.isNullOrEmpty(brd))
++                {
++                    this.func_73731_b(this.field_146289_q, brd, 2, this.field_146295_m - ( 10 + brdline * (this.field_146289_q.field_78288_b + 1)), 16777215);
++                }
 +            }
-+        }
-+
-         this.func_73731_b(this.field_146289_q, "Copyright Mojang AB. Do not distribute!", this.field_193979_N, this.field_146295_m - 10, -1);
  
++            this.func_73731_b(this.field_146289_q, "Copyright Mojang AB. Do not distribute!", this.field_193979_N, this.field_146295_m - 10, -1);
++        }
++        
++
          if (p_73863_1_ > this.field_193979_N && p_73863_1_ < this.field_193979_N + this.field_193978_M && p_73863_2_ > this.field_146295_m - 10 && p_73863_2_ < this.field_146295_m && Mouse.isInsideWindow())
-@@ -540,6 +561,7 @@
+         {
+             func_73734_a(this.field_193979_N, this.field_146295_m - 1, this.field_193979_N + this.field_193978_M, this.field_146295_m, -1);
+@@ -540,6 +568,7 @@
          {
              this.field_183503_M.func_73863_a(p_73863_1_, p_73863_2_, p_73863_3_);
          }
@@ -74,3 +99,22 @@
      }
  
      protected void func_73864_a(int p_73864_1_, int p_73864_2_, int p_73864_3_) throws IOException
+@@ -574,4 +603,18 @@
+             this.field_183503_M.func_146281_b();
+         }
+     }
++    
++    //charry add function
++
++    @Override
++    public void func_146282_l() throws IOException {
++        super.func_146282_l();
++        char key = Keyboard.getEventCharacter();
++        if (key == 'H' || key == 'h') {
++            
++            ClientConfig.hideVersion = !ClientConfig.hideVersion;
++            ClientConfig.save();
++        }
++        
++    }
+ }

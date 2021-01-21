@@ -1,6 +1,7 @@
 package net.cherrymc;
 
 import net.cherrymc.dev.Main;
+import net.minecraft.client.Minecraft;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +16,6 @@ import java.io.InputStreamReader;
  * @url https://acyco.cn
  */
 public class Cherry {
-    
     
     public static void main(String[] args) {
         System.out.println("Hello CherryMC!!!");
