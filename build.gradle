@@ -1,9 +1,7 @@
 buildscript {
     repositories {
         mavenLocal()
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
-        mavenCentral()
+        maven { url = "http://cherrymc.net:15000/repository/maven-public/" }
     }
     
     dependencies {
@@ -95,6 +93,7 @@ project(':Clean'){
 
     dependencies {
         implementation 'net.minecraftforge:mergetool:0.2.3.3:forge'
+        implementation 'javax.vecmath:vecmath:1.5.2'
     }
 
     patcher {
@@ -303,7 +302,7 @@ project(':Cherry') {
         installer 'org.scala-lang:scala-swing_2.11:1.0.1'
         installer 'org.scala-lang:scala-xml_2.11:1.0.2'
         installer 'lzma:lzma:0.0.1'
-        installer 'java3d:vecmath:1.5.2'
+        installer 'javax.vecmath:vecmath:1.5.2' 
         installer 'net.sf.trove4j:trove4j:3.0.3'
         installer 'org.apache.maven:maven-artifact:3.5.3'
         installer 'net.sf.jopt-simple:jopt-simple:5.0.3'
