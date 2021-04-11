@@ -1,6 +1,16 @@
 --- ../src-base/minecraft/net/minecraft/client/resources/ResourcePackRepository.java
 +++ ../src-work/minecraft/net/minecraft/client/resources/ResourcePackRepository.java
-@@ -310,9 +310,10 @@
+@@ -67,7 +67,8 @@
+     private final ReentrantLock field_177321_h = new ReentrantLock();
+     private ListenableFuture<Object> field_177322_i;
+     private List<ResourcePackRepository.Entry> field_110619_e = Lists.<ResourcePackRepository.Entry>newArrayList();
+-    private final List<ResourcePackRepository.Entry> field_110617_f = Lists.<ResourcePackRepository.Entry>newArrayList();
++    //op public
++    public final List<ResourcePackRepository.Entry> field_110617_f = Lists.<ResourcePackRepository.Entry>newArrayList();
+ 
+     public ResourcePackRepository(File p_i45101_1_, File p_i45101_2_, IResourcePack p_i45101_3_, MetadataSerializer p_i45101_4_, GameSettings p_i45101_5_)
+     {
+@@ -310,9 +311,10 @@
  
      private boolean func_190113_a(String p_190113_1_, File p_190113_2_)
      {
@@ -12,7 +22,7 @@
  
              if (p_190113_1_.isEmpty())
              {
-@@ -332,6 +333,7 @@
+@@ -332,6 +334,7 @@
          {
              field_177320_c.warn("File {} couldn't be hashed.", p_190113_2_, ioexception);
          }

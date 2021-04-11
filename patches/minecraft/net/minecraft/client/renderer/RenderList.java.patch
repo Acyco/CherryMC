@@ -1,0 +1,22 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/RenderList.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/RenderList.java
+@@ -5,6 +5,7 @@
+ import net.minecraft.util.BlockRenderLayer;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
+ 
+ @SideOnly(Side.CLIENT)
+ public class RenderList extends ChunkRenderContainer
+@@ -22,6 +23,11 @@
+                 GlStateManager.func_179121_F();
+             }
+ 
++            if (Config.isMultiTexture())
++            {
++                GlStateManager.bindCurrentTexture();
++            }
++
+             GlStateManager.func_179117_G();
+             this.field_178009_a.clear();
+         }

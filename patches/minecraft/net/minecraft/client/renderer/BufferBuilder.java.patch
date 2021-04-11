@@ -1,24 +1,257 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/BufferBuilder.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/BufferBuilder.java
-@@ -123,6 +123,8 @@
+@@ -9,43 +9,81 @@
+ import java.util.Arrays;
+ import java.util.BitSet;
+ import java.util.Comparator;
++
++import net.minecraft.block.state.IBlockState;
++import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+ import net.minecraft.client.renderer.vertex.VertexFormat;
+ import net.minecraft.client.renderer.vertex.VertexFormatElement;
++import net.minecraft.util.BlockRenderLayer;
++import net.minecraft.util.math.BlockPos;
+ import net.minecraft.util.math.MathHelper;
++import net.minecraft.world.IBlockAccess;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.RenderEnv;
++import optifine.TextureUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import org.lwjgl.opengl.GL11;
++import shadersmod.client.SVertexBuilder;
+ 
+ @SideOnly(Side.CLIENT)
+ public class BufferBuilder
+ {
+     private static final Logger field_187316_a = LogManager.getLogger();
+     private ByteBuffer field_179001_a;
+-    private IntBuffer field_178999_b;
+-    private ShortBuffer field_181676_c;
+-    private FloatBuffer field_179000_c;
+-    private int field_178997_d;
++    // op public
++    public IntBuffer field_178999_b;
++    public ShortBuffer field_181676_c;
++    public FloatBuffer field_179000_c;
++    //op public
++    public int field_178997_d;
+     private VertexFormatElement field_181677_f;
+     private int field_181678_g;
+     private boolean field_78939_q;
+-    private int field_179006_k;
++    // op public
++    public int field_179006_k;
+     private double field_179004_l;
+     private double field_179005_m;
+     private double field_179002_n;
+     private VertexFormat field_179011_q;
+     private boolean field_179010_r;
+ 
++    //op add
++    private BlockRenderLayer blockLayer = null;
++    private boolean[] drawnIcons = new boolean[256];
++    private TextureAtlasSprite[] quadSprites = null;
++    private TextureAtlasSprite[] quadSpritesPrev = null;
++    private TextureAtlasSprite quadSprite = null;
++    public SVertexBuilder sVertexBuilder;
++    public RenderEnv renderEnv = null;
++    
+     public BufferBuilder(int p_i46275_1_)
+     {
++        if (Config.isShaders())
++        {
++            p_i46275_1_ *= 2;
++        }
++
+         this.field_179001_a = GLAllocation.func_74524_c(p_i46275_1_ * 4);
+         this.field_178999_b = this.field_179001_a.asIntBuffer();
+         this.field_181676_c = this.field_179001_a.asShortBuffer();
+         this.field_179000_c = this.field_179001_a.asFloatBuffer();
++        //op 
++
++        SVertexBuilder.initVertexBuilder(this);
+     }
+ 
+     private void func_181670_b(int p_181670_1_)
+     {
++        //op
++        if (Config.isShaders())
++        {
++            p_181670_1_ *= 2;
++        }
++
++        
+         if (MathHelper.func_154354_b(p_181670_1_, 4) / 4 > this.field_178999_b.remaining() || this.field_178997_d * this.field_179011_q.func_177338_f() + p_181670_1_ > this.field_179001_a.capacity())
+         {
+             int i = this.field_179001_a.capacity();
+@@ -62,6 +100,16 @@
+             this.field_178999_b.position(k);
+             this.field_181676_c = this.field_179001_a.asShortBuffer();
+             this.field_181676_c.position(k << 1);
++            
++            //op add
++            if (this.quadSprites != null)
++            {
++                TextureAtlasSprite[] atextureatlassprite = this.quadSprites;
++                int l = this.getBufferQuadSize();
++                this.quadSprites = new TextureAtlasSprite[l];
++                System.arraycopy(atextureatlassprite, 0, this.quadSprites, 0, Math.min(atextureatlassprite.length, this.quadSprites.length));
++                this.quadSpritesPrev = null;
++            }
+         }
+     }
+ 
+@@ -123,6 +171,23 @@
  
              bitset.set(i1);
          }
 +        this.field_178999_b.limit(this.field_178999_b.capacity());
 +        this.field_178999_b.position(this.func_181664_j());
++
++        //op
++        if (this.quadSprites != null)
++        {
++            TextureAtlasSprite[] atextureatlassprite = new TextureAtlasSprite[this.field_178997_d / 4];
++            int i2 = this.field_179011_q.func_177338_f() / 4 * 4;
++
++            for (int j2 = 0; j2 < ainteger.length; ++j2)
++            {
++                int k2 = ainteger[j2].intValue();
++                atextureatlassprite[j2] = this.quadSprites[k2];
++            }
++
++            System.arraycopy(atextureatlassprite, 0, this.quadSprites, 0, atextureatlassprite.length);
++        }
      }
  
      public BufferBuilder.State func_181672_a()
-@@ -415,7 +417,7 @@
+@@ -137,7 +202,8 @@
+         return new BufferBuilder.State(aint, new VertexFormat(this.field_179011_q));
+     }
+ 
+-    private int func_181664_j()
++    //  op public
++    public int func_181664_j()
+     {
+         return this.field_178997_d * this.field_179011_q.func_181719_f();
+     }
+@@ -178,6 +244,24 @@
+         this.field_181678_g = 0;
+     }
+ 
++    public void beginO(int glMode, VertexFormat format)
++    {
++        if (this.field_179010_r)
++        {
++            throw new IllegalStateException("Already building!");
++        }
++        else
++        {
++            this.field_179010_r = true;
++            this.func_178965_a();
++            this.field_179006_k = glMode;
++            this.field_179011_q = format;
++            this.field_181677_f = format.func_177348_c(this.field_181678_g);
++            this.field_78939_q = false;
++            this.field_179001_a.limit(this.field_179001_a.capacity());
++        }
++    }
++
+     public void func_181668_a(int p_181668_1_, VertexFormat p_181668_2_)
+     {
+         if (this.field_179010_r)
+@@ -193,9 +277,40 @@
+             this.field_181677_f = p_181668_2_.func_177348_c(this.field_181678_g);
+             this.field_78939_q = false;
+             this.field_179001_a.limit(this.field_179001_a.capacity());
++
++            if (Config.isShaders())
++            {
++                SVertexBuilder.endSetVertexFormat(this);
++            }
++
++            if (Config.isMultiTexture())
++            {
++                if (this.blockLayer != null)
++                {
++                    if (this.quadSprites == null)
++                    {
++                        this.quadSprites = this.quadSpritesPrev;
++                    }
++
++                    if (this.quadSprites == null || this.quadSprites.length < this.getBufferQuadSize())
++                    {
++                        this.quadSprites = new TextureAtlasSprite[this.getBufferQuadSize()];
++                    }
++                }
++            }
++            else
++            {
++                if (this.quadSprites != null)
++                {
++                    this.quadSpritesPrev = this.quadSprites;
++                }
++
++                this.quadSprites = null;
++            }
+         }
+     }
+ 
++
+     public BufferBuilder func_187315_a(double p_187315_1_, double p_187315_3_)
+     {
+         int i = this.field_178997_d * this.field_179011_q.func_177338_f() + this.field_179011_q.func_181720_d(this.field_181678_g);
+@@ -415,20 +530,45 @@
  
      public void func_178981_a(int[] p_178981_1_)
      {
 -        this.func_181670_b(p_178981_1_.length * 4);
++        //op
++        if (Config.isShaders())
++        {
++            SVertexBuilder.beginAddVertexData(this, p_178981_1_);
++        }
++        
 +        this.func_181670_b(p_178981_1_.length * 4 + this.field_179011_q.func_177338_f());//Forge, fix MC-122110
          this.field_178999_b.position(this.func_181664_j());
          this.field_178999_b.put(p_178981_1_);
          this.field_178997_d += p_178981_1_.length / this.field_179011_q.func_181719_f();
-@@ -506,15 +508,15 @@
++
++        if (Config.isShaders())
++        {
++            SVertexBuilder.endAddVertexData(this);
++        }
+     }
+ 
+     public void func_181675_d()
+     {
+         ++this.field_178997_d;
+         this.func_181670_b(this.field_179011_q.func_177338_f());
++
++        this.field_181678_g = 0;
++        this.field_181677_f = this.field_179011_q.func_177348_c(this.field_181678_g);
++
++        if (Config.isShaders())
++        {
++            SVertexBuilder.endAddVertex(this);
++        }
+     }
+ 
+     public BufferBuilder func_181662_b(double p_181662_1_, double p_181662_3_, double p_181662_5_)
+     {
++
++        if (Config.isShaders())
++        {
++            SVertexBuilder.beginAddVertex(this);
++        }
++
+         int i = this.field_178997_d * this.field_179011_q.func_177338_f() + this.field_179011_q.func_181720_d(this.field_181678_g);
+ 
+         switch (this.field_181677_f.func_177367_b())
+@@ -506,15 +646,15 @@
                  break;
              case USHORT:
              case SHORT:
@@ -40,7 +273,238 @@
          }
  
          this.func_181667_k();
-@@ -605,4 +607,27 @@
+@@ -577,7 +717,230 @@
+             this.func_178994_b(p_178990_1_, p_178990_2_, p_178990_3_, i + 1);
+         }
+     }
++    
++    //op add
+ 
++    public void putSprite(TextureAtlasSprite p_putSprite_1_)
++    {
++        if (this.quadSprites != null)
++        {
++            int i = this.field_178997_d / 4;
++            this.quadSprites[i - 1] = p_putSprite_1_;
++        }
++    }
++
++    public void setSprite(TextureAtlasSprite p_setSprite_1_)
++    {
++        if (this.quadSprites != null)
++        {
++            this.quadSprite = p_setSprite_1_;
++        }
++    }
++
++    public boolean isMultiTexture()
++    {
++        return this.quadSprites != null;
++    }
++
++    public void drawMultiTexture()
++    {
++        if (this.quadSprites != null)
++        {
++            int i = Config.getMinecraft().func_147117_R().getCountRegisteredSprites();
++
++            if (this.drawnIcons.length <= i)
++            {
++                this.drawnIcons = new boolean[i + 1];
++            }
++
++            Arrays.fill(this.drawnIcons, false);
++            int j = 0;
++            int k = -1;
++            int l = this.field_178997_d / 4;
++
++            for (int i1 = 0; i1 < l; ++i1)
++            {
++                TextureAtlasSprite textureatlassprite = this.quadSprites[i1];
++
++                if (textureatlassprite != null)
++                {
++                    int j1 = textureatlassprite.getIndexInMap();
++
++                    if (!this.drawnIcons[j1])
++                    {
++                        if (textureatlassprite == TextureUtils.iconGrassSideOverlay)
++                        {
++                            if (k < 0)
++                            {
++                                k = i1;
++                            }
++                        }
++                        else
++                        {
++                            i1 = this.drawForIcon(textureatlassprite, i1) - 1;
++                            ++j;
++
++                            if (this.blockLayer != BlockRenderLayer.TRANSLUCENT)
++                            {
++                                this.drawnIcons[j1] = true;
++                            }
++                        }
++                    }
++                }
++            }
++
++            if (k >= 0)
++            {
++                this.drawForIcon(TextureUtils.iconGrassSideOverlay, k);
++                ++j;
++            }
++
++            if (j > 0)
++            {
++                ;
++            }
++        }
++    }
++
++    private int drawForIcon(TextureAtlasSprite p_drawForIcon_1_, int p_drawForIcon_2_)
++    {
++        GL11.glBindTexture(GL11.GL_TEXTURE_2D, p_drawForIcon_1_.glSpriteTextureId);
++        int i = -1;
++        int j = -1;
++        int k = this.field_178997_d / 4;
++
++        for (int l = p_drawForIcon_2_; l < k; ++l)
++        {
++            TextureAtlasSprite textureatlassprite = this.quadSprites[l];
++
++            if (textureatlassprite == p_drawForIcon_1_)
++            {
++                if (j < 0)
++                {
++                    j = l;
++                }
++            }
++            else if (j >= 0)
++            {
++                this.draw(j, l);
++
++                if (this.blockLayer == BlockRenderLayer.TRANSLUCENT)
++                {
++                    return l;
++                }
++
++                j = -1;
++
++                if (i < 0)
++                {
++                    i = l;
++                }
++            }
++        }
++
++        if (j >= 0)
++        {
++            this.draw(j, k);
++        }
++
++        if (i < 0)
++        {
++            i = k;
++        }
++
++        return i;
++    }
++
++    private void draw(int p_draw_1_, int p_draw_2_)
++    {
++        int i = p_draw_2_ - p_draw_1_;
++
++        if (i > 0)
++        {
++            int j = p_draw_1_ * 4;
++            int k = i * 4;
++            GL11.glDrawArrays(this.field_179006_k, j, k);
++        }
++    }
++
++    public void setBlockLayer(BlockRenderLayer p_setBlockLayer_1_)
++    {
++        this.blockLayer = p_setBlockLayer_1_;
++
++        if (p_setBlockLayer_1_ == null)
++        {
++            if (this.quadSprites != null)
++            {
++                this.quadSpritesPrev = this.quadSprites;
++            }
++
++            this.quadSprites = null;
++            this.quadSprite = null;
++        }
++    }
++
++    private int getBufferQuadSize()
++    {
++        int i = this.field_178999_b.capacity() * 4 / (this.field_179011_q.func_181719_f() * 4);
++        return i;
++    }
++
++    public RenderEnv getRenderEnv(IBlockAccess p_getRenderEnv_1_, IBlockState p_getRenderEnv_2_, BlockPos p_getRenderEnv_3_)
++    {
++        if (this.renderEnv == null)
++        {
++            this.renderEnv = new RenderEnv(p_getRenderEnv_1_, p_getRenderEnv_2_, p_getRenderEnv_3_);
++            return this.renderEnv;
++        }
++        else
++        {
++            this.renderEnv.reset(p_getRenderEnv_1_, p_getRenderEnv_2_, p_getRenderEnv_3_);
++            return this.renderEnv;
++        }
++    }
++
++    public boolean isDrawing()
++    {
++        return this.field_179010_r;
++    }
++
++    public double getXOffset()
++    {
++        return this.field_179004_l;
++    }
++
++    public double getYOffset()
++    {
++        return this.field_179005_m;
++    }
++
++    public double getZOffset()
++    {
++        return this.field_179002_n;
++    }
++    
++    
++    
++
++ /*// forge has  
++   public void putColorRGBA(int p_putColorRGBA_1_, int p_putColorRGBA_2_, int p_putColorRGBA_3_, int p_putColorRGBA_4_, int p_putColorRGBA_5_)
++    {
++        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
++        {
++            this.rawIntBuffer.put(p_putColorRGBA_1_, p_putColorRGBA_5_ << 24 | p_putColorRGBA_4_ << 16 | p_putColorRGBA_3_ << 8 | p_putColorRGBA_2_);
++        }
++        else
++        {
++            this.rawIntBuffer.put(p_putColorRGBA_1_, p_putColorRGBA_2_ << 24 | p_putColorRGBA_3_ << 16 | p_putColorRGBA_4_ << 8 | p_putColorRGBA_5_);
++        }
++    }*/
++// forge has 
++   /* public boolean isColorDisabled()
++    {
++        return this.noColor;
++    }*/
++    // op end
++
+     @SideOnly(Side.CLIENT)
+     public class State
+     {
+@@ -605,4 +968,27 @@
              return this.field_179018_e;
          }
      }

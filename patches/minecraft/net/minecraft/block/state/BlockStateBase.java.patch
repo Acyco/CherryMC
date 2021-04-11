@@ -1,6 +1,67 @@
 --- ../src-base/minecraft/net/minecraft/block/state/BlockStateBase.java
 +++ ../src-work/minecraft/net/minecraft/block/state/BlockStateBase.java
-@@ -73,4 +73,10 @@
+@@ -9,6 +9,7 @@
+ import javax.annotation.Nullable;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.properties.IProperty;
++import net.minecraft.util.ResourceLocation;
+ 
+ public abstract class BlockStateBase implements IBlockState
+ {
+@@ -33,7 +34,52 @@
+             return p_185886_1_.func_177702_a((T)p_185886_2_);
+         }
+     };
++    //cherry add begin
++    private int blockId = -1;
++    private int blockStateId = -1;
++    private int metadata = -1;
++    private ResourceLocation blockLocation = null;
+ 
++    public int getBlockId()
++    {
++        if (this.blockId < 0)
++        {
++            this.blockId = Block.func_149682_b(this.func_177230_c());
++        }
++
++        return this.blockId;
++    }
++
++    public int getBlockStateId()
++    {
++        if (this.blockStateId < 0)
++        {
++            this.blockStateId = Block.func_176210_f(this);
++        }
++
++        return this.blockStateId;
++    }
++
++    public int getMetadata() {
++        if (this.metadata < 0) {
++            this.metadata = this.func_177230_c().func_176201_c(this);
++        }
++
++        return this.metadata;
++    }
++
++    public ResourceLocation getBlockLocation()
++    {
++        if (this.blockLocation == null)
++        {
++            this.blockLocation = Block.field_149771_c.func_177774_c(this.func_177230_c());
++        }
++
++        return this.blockLocation;
++    }
++    
++    // cherry add end
++    
+     public <T extends Comparable<T>> IBlockState func_177231_a(IProperty<T> p_177231_1_)
+     {
+         return this.func_177226_a(p_177231_1_, func_177232_a(p_177231_1_.func_177700_c(), this.func_177229_b(p_177231_1_)));
+@@ -73,4 +119,10 @@
  
          return stringbuilder.toString();
      }

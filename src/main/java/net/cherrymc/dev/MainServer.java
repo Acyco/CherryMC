@@ -19,7 +19,7 @@
 package net.cherrymc.dev;
 
 
-public class MainServer extends Main {
+public class MainServer extends Main111 {
     public static void main(String[] args) throws Exception {
         new MainServer().start(args);
     }

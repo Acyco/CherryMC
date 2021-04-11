@@ -1,0 +1,22 @@
+--- ../src-base/minecraft/net/minecraft/client/resources/I18n.java
++++ ../src-work/minecraft/net/minecraft/client/resources/I18n.java
+@@ -3,6 +3,8 @@
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
+ 
++import java.util.Map;
++
+ @SideOnly(Side.CLIENT)
+ public class I18n
+ {
+@@ -22,4 +24,10 @@
+     {
+         return field_135054_a.func_188568_a(p_188566_0_);
+     }
++
++//op add
++    public static Map getLocaleProperties()
++    {
++        return field_135054_a.field_135032_a;
++    }
+ }

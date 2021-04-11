@@ -1,0 +1,14 @@
+--- ../src-base/minecraft/net/minecraft/block/material/MapColor.java
++++ ../src-work/minecraft/net/minecraft/block/material/MapColor.java
+@@ -60,8 +60,9 @@
+     public static final MapColor field_193574_Z = new MapColor(49, 5001770);
+     public static final MapColor field_193559_aa = new MapColor(50, 9321518);
+     public static final MapColor field_193560_ab = new MapColor(51, 2430480);
+-    public final int field_76291_p;
+-    public final int field_76290_q;
++    //op del final
++    public  int field_76291_p;
++    public  int field_76290_q;
+ 
+     private MapColor(int p_i2117_1_, int p_i2117_2_)
+     {

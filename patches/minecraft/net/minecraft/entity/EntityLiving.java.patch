@@ -1,6 +1,60 @@
 --- ../src-base/minecraft/net/minecraft/entity/EntityLiving.java
 +++ ../src-work/minecraft/net/minecraft/entity/EntityLiving.java
-@@ -170,6 +170,7 @@
+@@ -17,6 +17,7 @@
+ import net.minecraft.entity.item.EntityBoat;
+ import net.minecraft.entity.item.EntityItem;
+ import net.minecraft.entity.monster.EntityGhast;
++import net.minecraft.entity.monster.EntityMob;
+ import net.minecraft.entity.monster.IMob;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.init.Blocks;
+@@ -37,6 +38,7 @@
+ import net.minecraft.pathfinding.PathNavigate;
+ import net.minecraft.pathfinding.PathNavigateGround;
+ import net.minecraft.pathfinding.PathNodeType;
++import net.minecraft.scoreboard.Team;
+ import net.minecraft.util.DamageSource;
+ import net.minecraft.util.EnumHand;
+ import net.minecraft.util.EnumHandSide;
+@@ -53,10 +55,12 @@
+ import net.minecraft.world.EnumDifficulty;
+ import net.minecraft.world.World;
+ import net.minecraft.world.WorldServer;
++import net.minecraft.world.biome.Biome;
+ import net.minecraft.world.storage.loot.LootContext;
+ import net.minecraft.world.storage.loot.LootTable;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
+ 
+ public abstract class EntityLiving extends EntityLivingBase
+ {
+@@ -84,6 +88,12 @@
+     private boolean field_110169_bv;
+     private Entity field_110168_bw;
+     private NBTTagCompound field_110170_bx;
++    //op add
++    public int randomMobsId = 0;
++    public Biome spawnBiome = null;
++    public BlockPos spawnPosition = null;
++    private UUID teamUuid = null;
++    private String teamUuidString = null;
+ 
+     public EntityLiving(World p_i1595_1_)
+     {
+@@ -103,6 +113,11 @@
+         {
+             this.func_184651_r();
+         }
++        
++        //op add
++        UUID uuid = this.func_110124_au();
++        long i = uuid.getLeastSignificantBits();
++        this.randomMobsId = (int)(i & 2147483647L);
+     }
+ 
+     protected void func_184651_r()
+@@ -170,6 +185,7 @@
      public void func_70624_b(@Nullable EntityLivingBase p_70624_1_)
      {
          this.field_70696_bz = p_70624_1_;
@@ -8,7 +62,60 @@
      }
  
      public boolean func_70686_a(Class <? extends EntityLivingBase > p_70686_1_)
-@@ -576,7 +577,7 @@
+@@ -291,21 +307,43 @@
+ 
+     public void func_70071_h_()
+     {
+-        super.func_70071_h_();
++       /* super.onUpdate();
+ 
+-        if (!this.field_70170_p.field_72995_K)
++        if (!this.world.isRemote)
+         {
+-            this.func_110159_bB();
++            this.updateLeashedState();
+ 
+-            if (this.field_70173_aa % 5 == 0)
++            if (this.ticksExisted % 5 == 0)
+             {
+-                boolean flag = !(this.func_184179_bs() instanceof EntityLiving);
+-                boolean flag1 = !(this.func_184187_bx() instanceof EntityBoat);
+-                this.field_70714_bg.func_188527_a(1, flag);
+-                this.field_70714_bg.func_188527_a(4, flag && flag1);
+-                this.field_70714_bg.func_188527_a(2, flag);
++                boolean flag = !(this.getControllingPassenger() instanceof EntityLiving);
++                boolean flag1 = !(this.getRidingEntity() instanceof EntityBoat);
++                this.tasks.setControlFlag(1, flag);
++                this.tasks.setControlFlag(4, flag && flag1);
++                this.tasks.setControlFlag(2, flag);
+             }
++        }*/
++        if (Config.isSmoothWorld() && this.canSkipUpdate())
++        {
++            this.onUpdateMinimal();
+         }
++        else
++        {
++            super.func_70071_h_();
++
++            if (!this.field_70170_p.field_72995_K)
++            {
++                this.func_110159_bB();
++
++                if (this.field_70173_aa % 5 == 0)
++                {
++                    boolean flag = !(this.func_184179_bs() instanceof EntityLiving);
++                    boolean flag1 = !(this.func_184187_bx() instanceof EntityBoat);
++                    this.field_70714_bg.func_188527_a(1, flag);
++                    this.field_70714_bg.func_188527_a(4, flag && flag1);
++                    this.field_70714_bg.func_188527_a(2, flag);
++                }
++            }
++        }
+     }
+ 
+     protected float func_110146_f(float p_110146_1_, float p_110146_2_)
+@@ -576,7 +614,7 @@
          super.func_70636_d();
          this.field_70170_p.field_72984_F.func_76320_a("looting");
  
@@ -17,7 +124,7 @@
          {
              for (EntityItem entityitem : this.field_70170_p.func_72872_a(EntityItem.class, this.func_174813_aQ().func_72314_b(1.0D, 0.0D, 1.0D)))
              {
-@@ -702,10 +703,22 @@
+@@ -702,10 +740,22 @@
  
      protected void func_70623_bb()
      {
@@ -40,7 +147,7 @@
          else
          {
              Entity entity = this.field_70170_p.func_72890_a(this, -1.0D);
-@@ -839,7 +852,6 @@
+@@ -839,7 +889,6 @@
          return !this.field_70170_p.func_72953_d(this.func_174813_aQ()) && this.field_70170_p.func_184144_a(this, this.func_174813_aQ()).isEmpty() && this.field_70170_p.func_72917_a(this.func_174813_aQ(), this);
      }
  
@@ -48,7 +155,7 @@
      public float func_70603_bj()
      {
          return 1.0F;
-@@ -991,6 +1003,8 @@
+@@ -991,6 +1040,8 @@
  
      public static EntityEquipmentSlot func_184640_d(ItemStack p_184640_0_)
      {
@@ -57,7 +164,7 @@
          if (p_184640_0_.func_77973_b() != Item.func_150898_a(Blocks.field_150423_aK) && p_184640_0_.func_77973_b() != Items.field_151144_bL)
          {
              if (p_184640_0_.func_77973_b() instanceof ItemArmor)
-@@ -1003,7 +1017,7 @@
+@@ -1003,7 +1054,7 @@
              }
              else
              {
@@ -66,7 +173,84 @@
              }
          }
          else
-@@ -1434,5 +1448,19 @@
+@@ -1428,11 +1479,96 @@
+     {
+         return this.func_184638_cS() ? EnumHandSide.LEFT : EnumHandSide.RIGHT;
+     }
++    
++    
++    //op add
+ 
++    private boolean canSkipUpdate()
++    {
++        if (this.func_70631_g_())
++        {
++            return false;
++        }
++        else if (this.field_70737_aN > 0)
++        {
++            return false;
++        }
++        else if (this.field_70173_aa < 20)
++        {
++            return false;
++        }
++        else
++        {
++            World world = this.func_130014_f_();
++
++            if (world == null)
++            {
++                return false;
++            }
++            else if (world.field_73010_i.size() != 1)
++            {
++                return false;
++            }
++            else
++            {
++                Entity entity = world.field_73010_i.get(0);
++                double d0 = Math.max(Math.abs(this.field_70165_t - entity.field_70165_t) - 16.0D, 0.0D);
++                double d1 = Math.max(Math.abs(this.field_70161_v - entity.field_70161_v) - 16.0D, 0.0D);
++                double d2 = d0 * d0 + d1 * d1;
++                return !this.func_70112_a(d2);
++            }
++        }
++    }
++
++    private void onUpdateMinimal()
++    {
++        ++this.field_70708_bq;
++
++        if (this instanceof EntityMob)
++        {
++            float f = this.func_70013_c();
++
++            if (f > 0.5F)
++            {
++                this.field_70708_bq += 2;
++            }
++        }
++
++        this.func_70623_bb();
++    }
++
++    public Team func_96124_cp()
++    {
++        UUID uuid = this.func_110124_au();
++
++        if (this.teamUuid != uuid)
++        {
++            this.teamUuid = uuid;
++            this.teamUuidString = uuid.toString();
++        }
++
++        return this.field_70170_p.func_96441_U().func_96509_i(this.teamUuidString);
++    }
++    //op end
++
+     public static enum SpawnPlacementType
+     {
          ON_GROUND,
          IN_AIR,
          IN_WATER;

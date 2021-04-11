@@ -1,0 +1,133 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/GlStateManager.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/GlStateManager.java
+@@ -6,6 +6,8 @@
+ import javax.annotation.Nullable;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.GlBlendState;
+ import org.lwjgl.BufferUtils;
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL15;
+@@ -40,6 +42,7 @@
+     private static final GlStateManager.BooleanState field_179172_r;
+     private static final GlStateManager.ColorMask field_179171_s;
+     private static final GlStateManager.Color field_179170_t;
++    public static boolean clearEnabled = true;
+ 
+     public static void func_179123_a()
+     {
+@@ -461,15 +464,15 @@
+ 
+     public static void func_179150_h(int p_179150_0_)
+     {
+-        GL11.glDeleteTextures(p_179150_0_);
++        if (p_179150_0_ != 0) { //op add
++            GL11.glDeleteTextures(p_179150_0_);
+ 
+-        for (GlStateManager.TextureState glstatemanager$texturestate : field_179174_p)
+-        {
+-            if (glstatemanager$texturestate.field_179059_b == p_179150_0_)
+-            {
+-                glstatemanager$texturestate.field_179059_b = -1;
++            for (GlStateManager.TextureState glstatemanager$texturestate : field_179174_p) {
++                if (glstatemanager$texturestate.field_179059_b == p_179150_0_) {
++                    glstatemanager$texturestate.field_179059_b = -1;
++                }
+             }
+-        }
++        } //op add
+     }
+ 
+     public static void func_179144_i(int p_179144_0_)
+@@ -834,7 +837,77 @@
+     {
+         p_187440_0_.func_187374_b();
+     }
++    //op
++    public static int getActiveTextureUnit()
++    {
++        return OpenGlHelper.field_77478_a + field_179162_o;
++    }
+ 
++    public static void bindCurrentTexture()
++    {
++        GL11.glBindTexture(GL11.GL_TEXTURE_2D, field_179174_p[field_179162_o].field_179059_b);
++    }
++
++    public static int getBoundTexture()
++    {
++        return field_179174_p[field_179162_o].field_179059_b;
++    }
++
++    public static void checkBoundTexture()
++    {
++        if (Config.isMinecraftThread())
++        {
++            int i = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
++            int j = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
++            int k = getActiveTextureUnit();
++            int l = getBoundTexture();
++
++            if (l > 0)
++            {
++                if (i != k || j != l)
++                {
++                    Config.dbg("checkTexture: act: " + k + ", glAct: " + i + ", tex: " + l + ", glTex: " + j);
++                }
++            }
++        }
++    }
++
++    public static void deleteTextures(IntBuffer p_deleteTextures_0_)
++    {
++        p_deleteTextures_0_.rewind();
++
++        while (p_deleteTextures_0_.position() < p_deleteTextures_0_.limit())
++        {
++            int i = p_deleteTextures_0_.get();
++            func_179150_h(i);
++        }
++
++        p_deleteTextures_0_.rewind();
++    }
++
++    public static boolean isFogEnabled()
++    {
++        return field_179155_g.field_179049_a.field_179201_b;
++    }
++
++    public static void setFogEnabled(boolean p_setFogEnabled_0_)
++    {
++        field_179155_g.field_179049_a.func_179199_a(p_setFogEnabled_0_);
++    }
++
++    public static void getBlendState(GlBlendState p_getBlendState_0_)
++    {
++        p_getBlendState_0_.enabled = field_179157_e.field_179213_a.field_179201_b;
++        p_getBlendState_0_.srcFactor = field_179157_e.field_179211_b;
++        p_getBlendState_0_.dstFactor = field_179157_e.field_179212_c;
++    }
++
++    public static void setBlendState(GlBlendState p_setBlendState_0_)
++    {
++        field_179157_e.field_179213_a.func_179199_a(p_setBlendState_0_.enabled);
++        func_179112_b(p_setBlendState_0_.srcFactor, p_setBlendState_0_.dstFactor);
++    }
++
+     static
+     {
+         for (int i = 0; i < 8; ++i)
+@@ -853,9 +926,9 @@
+         field_179163_l = new GlStateManager.ClearState();
+         field_179164_m = new GlStateManager.StencilState();
+         field_179161_n = new GlStateManager.BooleanState(2977);
+-        field_179174_p = new GlStateManager.TextureState[8];
+-
+-        for (int j = 0; j < 8; ++j)
++        field_179174_p = new GlStateManager.TextureState[32];  // op modify 8 -> 32
++        
++        for (int j = 0; j < field_179174_p.length; ++j)  // op modify 8 -> textureState.length
+         {
+             field_179174_p[j] = new GlStateManager.TextureState();
+         }

@@ -1,6 +1,71 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/texture/TextureManager.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/texture/TextureManager.java
-@@ -137,17 +137,20 @@
+@@ -16,8 +16,12 @@
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.CustomGuis;
++import optifine.RandomMobs;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import shadersmod.client.ShadersTex;
+ 
+ @SideOnly(Side.CLIENT)
+ public class TextureManager implements ITickable, IResourceManagerReloadListener
+@@ -36,6 +40,19 @@
+ 
+     public void func_110577_a(ResourceLocation p_110577_1_)
+     {
++        
++        //op add
++        if (Config.isRandomMobs())
++        {
++            p_110577_1_ = RandomMobs.getTextureLocation(p_110577_1_);
++        }
++
++        if (Config.isCustomGuis())
++        {
++            p_110577_1_ = CustomGuis.getTextureLocation(p_110577_1_);
++        }
++        //op end
++        
+         ITextureObject itextureobject = this.field_110585_a.get(p_110577_1_);
+ 
+         if (itextureobject == null)
+@@ -44,7 +61,17 @@
+             this.func_110579_a(p_110577_1_, itextureobject);
+         }
+ 
+-        TextureUtil.func_94277_a(itextureobject.func_110552_b());
++        //TextureUtil.bindTexture(itextureobject.getGlTextureId());
++        //op 
++
++        if (Config.isShaders())
++        {
++            ShadersTex.bindTexture(itextureobject);
++        }
++        else
++        {
++            TextureUtil.func_94277_a(itextureobject.func_110552_b());
++        }
+     }
+ 
+     public boolean func_110580_a(ResourceLocation p_110580_1_, ITickableTextureObject p_110580_2_)
+@@ -106,6 +133,12 @@
+ 
+     public ResourceLocation func_110578_a(String p_110578_1_, DynamicTexture p_110578_2_)
+     {
++        if (p_110578_1_.equals("logo"))
++        {
++            p_110578_2_ = Config.getMojangLogoTexture(p_110578_2_);
++        }
++
++        
+         Integer integer = this.field_110584_c.get(p_110578_1_);
+ 
+         if (integer == null)
+@@ -137,17 +170,20 @@
  
          if (itextureobject != null)
          {
@@ -9,7 +74,8 @@
          }
      }
  
-     public void func_110549_a(IResourceManager p_110549_1_)
+-    public void func_110549_a(IResourceManager p_110549_1_)
++    public void onResourceManagerReloadO(IResourceManager resourceManager)
      {
 +        net.minecraftforge.fml.common.ProgressManager.ProgressBar bar = net.minecraftforge.fml.common.ProgressManager.push("Reloading Texture Manager", this.field_110585_a.keySet().size(), true);
          Iterator<Entry<ResourceLocation, ITextureObject>> iterator = this.field_110585_a.entrySet().iterator();
@@ -21,10 +87,67 @@
              ITextureObject itextureobject = entry.getValue();
  
              if (itextureobject == TextureUtil.field_111001_a)
-@@ -159,5 +162,6 @@
+@@ -159,5 +195,63 @@
                  this.func_110579_a(entry.getKey(), itextureobject);
              }
          }
 +        net.minecraftforge.fml.common.ProgressManager.pop(bar);
      }
++
++    public void func_110549_a(IResourceManager p_110549_1_)
++    {
++        Config.dbg("*** Reloading textures ***");
++        Config.log("Resource packs: " + Config.getResourcePackNames());
++        Iterator iterator = this.field_110585_a.keySet().iterator();
++
++        while (iterator.hasNext())
++        {
++            ResourceLocation resourcelocation = (ResourceLocation)iterator.next();
++            String s = resourcelocation.func_110623_a();
++
++            if (s.startsWith("mcpatcher/") || s.startsWith("optifine/"))
++            {
++                ITextureObject itextureobject = this.field_110585_a.get(resourcelocation);
++
++                if (itextureobject instanceof AbstractTexture)
++                {
++                    AbstractTexture abstracttexture = (AbstractTexture)itextureobject;
++                    abstracttexture.func_147631_c();
++                }
++
++                iterator.remove();
++            }
++        }
++
++        Iterator<Entry<ResourceLocation, ITextureObject>> iterator1 = this.field_110585_a.entrySet().iterator();
++
++        while (iterator1.hasNext())
++        {
++            Entry<ResourceLocation, ITextureObject> entry = (Entry)iterator1.next();
++            ITextureObject itextureobject1 = entry.getValue();
++
++            if (itextureobject1 == TextureUtil.field_111001_a)
++            {
++                iterator1.remove();
++            }
++            else
++            {
++                this.func_110579_a(entry.getKey(), itextureobject1);
++            }
++        }
++    }
++
++    public void reloadBannerTextures()
++    {
++        for (Entry<ResourceLocation, ITextureObject> entry : this.field_110585_a.entrySet())
++        {
++            ResourceLocation resourcelocation = entry.getKey();
++            ITextureObject itextureobject = entry.getValue();
++
++            if (itextureobject instanceof LayeredColorMaskTexture)
++            {
++                this.func_110579_a(resourcelocation, itextureobject);
++            }
++        }
++    }
  }

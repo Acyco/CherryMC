@@ -1,10 +1,49 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/entity/RenderManager.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/entity/RenderManager.java
-@@ -227,8 +227,13 @@
+@@ -1,6 +1,8 @@
+ package net.minecraft.client.renderer.entity;
+ 
+ import com.google.common.collect.Maps;
++
++import java.util.Collections;
+ import java.util.Map;
+ import javax.annotation.Nullable;
+ import net.minecraft.block.Block;
+@@ -114,10 +116,13 @@
+ import net.minecraft.world.World;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Reflector;
+ 
+ @SideOnly(Side.CLIENT)
+ public class RenderManager
+ {
++
++    //private final Map<Class, Render> entityRenderMap = Maps.newHashMap();
+     public final Map < Class <? extends Entity > , Render <? extends Entity >> field_78729_o = Maps. < Class <? extends Entity > , Render <? extends Entity >> newHashMap();
+     private final Map<String, RenderPlayer> field_178636_l = Maps.<String, RenderPlayer>newHashMap();
+     private final RenderPlayer field_178637_m;
+@@ -138,7 +143,11 @@
+     private boolean field_178639_r;
+     private boolean field_178638_s = true;
+     private boolean field_85095_o;
++    //op add
+ 
++    public Entity renderEntity = null;
++    public Render renderRender = null;
++
+     public RenderManager(TextureManager p_i46180_1_, RenderItem p_i46180_2_)
+     {
+         this.field_78724_e = p_i46180_1_;
+@@ -227,8 +236,17 @@
          this.field_178637_m = new RenderPlayer(this);
          this.field_178636_l.put("default", this.field_178637_m);
          this.field_178636_l.put("slim", new RenderPlayer(this, true));
 +        net.minecraftforge.fml.client.registry.RenderingRegistry.loadEntityRenderers(this, this.field_78729_o);
++       /* if (Reflector.RenderingRegistry_loadEntityRenderers.exists())
++        {
++            Reflector.call(Reflector.RenderingRegistry_loadEntityRenderers, this, this.entityRenderMap);
++        }*/
      }
  
 +    public Map<String, RenderPlayer> getSkinMap() {
@@ -14,15 +53,82 @@
      public void func_178628_a(double p_178628_1_, double p_178628_3_, double p_178628_5_)
      {
          this.field_78725_b = p_178628_1_;
-@@ -277,9 +282,9 @@
+@@ -264,6 +282,42 @@
+         }
+     }
+ 
++    public void cacheActiveRenderInfoO(World worldIn, FontRenderer textRendererIn, Entity livingPlayerIn, Entity pointedEntityIn, GameSettings optionsIn, float partialTicks)
++    {
++        this.field_78722_g = worldIn;
++        this.field_78733_k = optionsIn;
++        this.field_78734_h = livingPlayerIn;
++        this.field_147941_i = pointedEntityIn;
++        this.field_78736_p = textRendererIn;
++
++        if (livingPlayerIn instanceof EntityLivingBase && ((EntityLivingBase)livingPlayerIn).func_70608_bn())
++        {
++            IBlockState iblockstate = worldIn.func_180495_p(new BlockPos(livingPlayerIn));
++            Block block = iblockstate.func_177230_c();
++
++            if (block.isBed(iblockstate, worldIn, new BlockPos(livingPlayerIn), (EntityLivingBase)livingPlayerIn))
++            {
++                int i = block.getBedDirection(iblockstate, worldIn, new BlockPos(livingPlayerIn)).func_176736_b();
++                this.field_78735_i = (float)(i * 90 + 180);
++                this.field_78732_j = 0.0F;
++            }
++        }
++        else
++        {
++            this.field_78735_i = livingPlayerIn.field_70126_B + (livingPlayerIn.field_70177_z - livingPlayerIn.field_70126_B) * partialTicks;
++            this.field_78732_j = livingPlayerIn.field_70127_C + (livingPlayerIn.field_70125_A - livingPlayerIn.field_70127_C) * partialTicks;
++        }
++
++        if (optionsIn.field_74320_O == 2)
++        {
++            this.field_78735_i += 180.0F;
++        }
++
++        this.field_78730_l = livingPlayerIn.field_70142_S + (livingPlayerIn.field_70165_t - livingPlayerIn.field_70142_S) * (double)partialTicks;
++        this.field_78731_m = livingPlayerIn.field_70137_T + (livingPlayerIn.field_70163_u - livingPlayerIn.field_70137_T) * (double)partialTicks;
++        this.field_78728_n = livingPlayerIn.field_70136_U + (livingPlayerIn.field_70161_v - livingPlayerIn.field_70136_U) * (double)partialTicks;
++    }
++
+     public void func_180597_a(World p_180597_1_, FontRenderer p_180597_2_, Entity p_180597_3_, Entity p_180597_4_, GameSettings p_180597_5_, float p_180597_6_)
+     {
+         this.field_78722_g = p_180597_1_;
+@@ -277,12 +331,19 @@
              IBlockState iblockstate = p_180597_1_.func_180495_p(new BlockPos(p_180597_3_));
              Block block = iblockstate.func_177230_c();
  
 -            if (block == Blocks.field_150324_C)
-+            if (block.isBed(iblockstate, p_180597_1_, new BlockPos(p_180597_3_), (EntityLivingBase)p_180597_3_))
++            if (Reflector.callBoolean(block, Reflector.ForgeBlock_isBed, iblockstate, p_180597_1_, new BlockPos(p_180597_3_), (EntityLivingBase)p_180597_3_))
              {
 -                int i = ((EnumFacing)iblockstate.func_177229_b(BlockBed.field_185512_D)).func_176736_b();
-+                int i = block.getBedDirection(iblockstate, p_180597_1_, new BlockPos(p_180597_3_)).func_176736_b();
++                EnumFacing enumfacing = (EnumFacing)Reflector.call(block, Reflector.ForgeBlock_getBedDirection, iblockstate, p_180597_1_, new BlockPos(p_180597_3_));
++                int i = enumfacing.func_176736_b();
                  this.field_78735_i = (float)(i * 90 + 180);
                  this.field_78732_j = 0.0F;
              }
++            else if (block == Blocks.field_150324_C)
++            {
++                int j = ((EnumFacing)iblockstate.func_177229_b(BlockBed.field_185512_D)).func_176736_b();
++                this.field_78735_i = (float)(j * 90 + 180);
++                this.field_78732_j = 0.0F;
++            }
+         }
+         else
+         {
+@@ -525,4 +586,13 @@
+     {
+         this.field_178639_r = p_178632_1_;
+     }
++    
++    //optifine add 1 method
++
++    public Map< Class <? extends Entity > , Render <? extends Entity >> getEntityRenderMap()
++        {
++            return this.field_78729_o;
++    }
++    
++    
+ }

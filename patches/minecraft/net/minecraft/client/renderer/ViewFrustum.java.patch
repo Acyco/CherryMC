@@ -1,0 +1,12 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/ViewFrustum.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/ViewFrustum.java
+@@ -145,7 +145,8 @@
+     }
+ 
+     @Nullable
+-    protected RenderChunk func_178161_a(BlockPos p_178161_1_)
++    //op modify protected -> public
++    public RenderChunk func_178161_a(BlockPos p_178161_1_)
+     {
+         int i = MathHelper.func_76137_a(p_178161_1_.func_177958_n(), 16);
+         int j = MathHelper.func_76137_a(p_178161_1_.func_177956_o(), 16);

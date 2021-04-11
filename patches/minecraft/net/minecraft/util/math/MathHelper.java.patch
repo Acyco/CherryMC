@@ -1,0 +1,84 @@
+--- ../src-base/minecraft/net/minecraft/util/math/MathHelper.java
++++ ../src-work/minecraft/net/minecraft/util/math/MathHelper.java
+@@ -14,15 +14,31 @@
+     private static final double field_181163_d;
+     private static final double[] field_181164_e;
+     private static final double[] field_181165_f;
++    //optifine add begin
++    private static final int SIN_BITS = 12;
++    private static final int SIN_MASK = 4095;
++    private static final int SIN_COUNT = 4096;
++    public static final float PI = (float)Math.PI;
++    public static final float PI2 = ((float)Math.PI * 2F);
++    public static final float PId2 = ((float)Math.PI / 2F);
++    private static final float radFull = ((float)Math.PI * 2F);
++    private static final float degFull = 360.0F;
++    private static final float radToIndex = 651.8986F;
++    private static final float degToIndex = 11.377778F;
++    public static final float deg2Rad = 0.017453292F;
++    private static final float[] SIN_TABLE_FAST = new float[4096];
++    public static boolean fastMath = false; //快速运算
+ 
+     public static float func_76126_a(float p_76126_0_)
+     {
+-        return field_76144_a[(int)(p_76126_0_ * 10430.378F) & 65535];
++        //return SIN_TABLE[(int)(value * 10430.378F) & 65535];
++        return fastMath ? SIN_TABLE_FAST[(int)(p_76126_0_ * 651.8986F) & 4095] : field_76144_a[(int)(p_76126_0_ * 10430.378F) & 65535];
+     }
+ 
+     public static float func_76134_b(float p_76134_0_)
+     {
+-        return field_76144_a[(int)(p_76134_0_ * 10430.378F + 16384.0F) & 65535];
++        //return SIN_TABLE[(int)(value * 10430.378F + 16384.0F) & 65535];
++        return fastMath ? SIN_TABLE_FAST[(int)((p_76134_0_ + ((float)Math.PI / 2F)) * 651.8986F) & 4095] : field_76144_a[(int)(p_76134_0_ * 10430.378F + 16384.0F) & 65535];
+     }
+ 
+     public static float func_76129_c(float p_76129_0_)
+@@ -53,6 +69,7 @@
+         return p_76128_0_ < (double)i ? i - 1 : i;
+     }
+ 
++    //lFloor
+     public static long func_76124_d(double p_76124_0_)
+     {
+         long i = (long)p_76124_0_;
+@@ -202,6 +219,7 @@
+     }
+ 
+     @SideOnly(Side.CLIENT)
++    //func_191273_b
+     public static double func_191273_b(double p_191273_0_, double p_191273_2_)
+     {
+         return (p_191273_0_ % p_191273_2_ + p_191273_2_) % p_191273_2_;
+@@ -258,6 +276,23 @@
+         return p_188209_0_;
+     }
+ 
++    /**
++     * Adjust the angle so that his value is in range [-180;180[
++     */
++    public static int clampAngle(int angle) {
++        angle = angle % 360;
++
++        if (angle >= 180) {
++            angle -= 360;
++        }
++
++        if (angle < -180) {
++            angle += 360;
++        }
++
++        return angle;
++    }
++
+     public static int func_82715_a(String p_82715_0_, int p_82715_1_)
+     {
+         try
+@@ -388,6 +423,7 @@
+     {
+         return func_180187_c(p_180186_0_.func_177958_n(), p_180186_0_.func_177956_o(), p_180186_0_.func_177952_p());
+     }
++    
+ 
+     public static UUID func_180182_a(Random p_180182_0_)
+     {

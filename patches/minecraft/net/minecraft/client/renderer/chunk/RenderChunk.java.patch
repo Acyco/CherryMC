@@ -1,6 +1,110 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/chunk/RenderChunk.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/chunk/RenderChunk.java
-@@ -162,7 +162,7 @@
+@@ -7,15 +7,20 @@
+ import java.util.concurrent.locks.ReentrantLock;
+ import javax.annotation.Nullable;
+ import net.minecraft.block.Block;
++import net.minecraft.block.BlockCactus;
++import net.minecraft.block.BlockRedstoneWire;
+ import net.minecraft.block.state.IBlockState;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.entity.EntityPlayerSP;
++import net.minecraft.client.multiplayer.WorldClient;
+ import net.minecraft.client.renderer.BlockRendererDispatcher;
+ import net.minecraft.client.renderer.BufferBuilder;
+ import net.minecraft.client.renderer.GLAllocation;
+ import net.minecraft.client.renderer.GlStateManager;
+ import net.minecraft.client.renderer.OpenGlHelper;
++import net.minecraft.client.renderer.RegionRenderCacheBuilder;
+ import net.minecraft.client.renderer.RenderGlobal;
++import net.minecraft.client.renderer.ViewFrustum;
+ import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+@@ -29,8 +34,16 @@
+ import net.minecraft.world.ChunkCache;
+ import net.minecraft.world.World;
+ import net.minecraft.world.chunk.Chunk;
++import net.minecraftforge.client.ForgeHooksClient;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.BlockPosM;
++import optifine.ChunkCacheOF;
++import optifine.Config;
++import optifine.Reflector;
++import optifine.ReflectorForge;
++import optifine.RenderEnv;
++import shadersmod.client.SVertexBuilder;
+ 
+ @SideOnly(Side.CLIENT)
+ public class RenderChunk
+@@ -54,6 +67,14 @@
+     private boolean field_188284_q;
+     private ChunkCache field_189564_r;
+ 
++    private static BlockRenderLayer[] ENUM_WORLD_BLOCK_LAYERS = BlockRenderLayer.values();
++    private BlockRenderLayer[] blockLayersSingle = new BlockRenderLayer[1];
++    private boolean isMipmaps = Config.isMipmaps();
++    private boolean fixBlockLayer = !Reflector.BetterFoliageClient.exists();
++    private boolean playerUpdate = false;
++    private RenderChunk[] renderChunksOfset16 = new RenderChunk[6];
++    private Chunk chunk;
++
+     public RenderChunk(World p_i47120_1_, RenderGlobal p_i47120_2_, int p_i47120_3_)
+     {
+         for (int i = 0; i < this.field_181702_p.length; ++i)
+@@ -103,8 +124,10 @@
+             for (EnumFacing enumfacing : EnumFacing.values())
+             {
+                 this.field_181702_p[enumfacing.ordinal()].func_189533_g(this.field_178586_f).func_189534_c(enumfacing, 16);
++                this.renderChunksOfset16[enumfacing.ordinal()] = null; // op add
+             }
+ 
++            this.chunk = null;//op add
+             this.func_178567_n();
+         }
+     }
+@@ -121,32 +144,33 @@
+         }
+     }
+ 
+-    public void func_178581_b(float p_178581_1_, float p_178581_2_, float p_178581_3_, ChunkCompileTaskGenerator p_178581_4_)
++    public void rebuildChunkO(float x, float y, float z, ChunkCompileTaskGenerator generator)
+     {
+         CompiledChunk compiledchunk = new CompiledChunk();
+         int i = 1;
+         BlockPos blockpos = this.field_178586_f;
+         BlockPos blockpos1 = blockpos.func_177982_a(15, 15, 15);
+-        p_178581_4_.func_178540_f().lock();
++        generator.func_178540_f().lock();
+ 
+         try
+         {
+-            if (p_178581_4_.func_178546_a() != ChunkCompileTaskGenerator.Status.COMPILING)
++            if (generator.func_178546_a() != ChunkCompileTaskGenerator.Status.COMPILING)
+             {
+                 return;
+             }
+ 
+-            p_178581_4_.func_178543_a(compiledchunk);
++            generator.func_178543_a(compiledchunk);
+         }
+         finally
+         {
+-            p_178581_4_.func_178540_f().unlock();
++            generator.func_178540_f().unlock();
+         }
+ 
+         VisGraph lvt_9_1_ = new VisGraph();
+         HashSet lvt_10_1_ = Sets.newHashSet();
+ 
+-        if (!this.field_189564_r.func_72806_N())
++        //if (!this.worldView.isEmpty())
++        if (this.field_178588_d !=null)
+         {
+             ++field_178592_a;
+             boolean[] aboolean = new boolean[BlockRenderLayer.values().length];
+@@ -162,7 +186,7 @@
                      lvt_9_1_.func_178606_a(blockpos$mutableblockpos);
                  }
  
@@ -9,7 +113,7 @@
                  {
                      TileEntity tileentity = this.field_189564_r.func_190300_a(blockpos$mutableblockpos, Chunk.EnumCreateEntityType.CHECK);
  
-@@ -172,17 +172,19 @@
+@@ -172,22 +196,24 @@
  
                          if (tileentityspecialrenderer != null)
                          {
@@ -31,7 +135,13 @@
                  int j = blockrenderlayer1.ordinal();
  
                  if (block.func_176223_P().func_185901_i() != EnumBlockRenderType.INVISIBLE)
-@@ -197,6 +199,8 @@
+                 {
+-                    BufferBuilder bufferbuilder = p_178581_4_.func_178545_d().func_179039_a(j);
++                    BufferBuilder bufferbuilder = generator.func_178545_d().func_179039_a(j);
+ 
+                     if (!compiledchunk.func_178492_d(blockrenderlayer1))
+                     {
+@@ -197,6 +223,8 @@
  
                      aboolean[j] |= blockrendererdispatcher.func_175018_a(iblockstate, blockpos$mutableblockpos, this.field_189564_r, bufferbuilder);
                  }
@@ -40,7 +150,203 @@
              }
  
              for (BlockRenderLayer blockrenderlayer : BlockRenderLayer.values())
-@@ -278,7 +282,9 @@
+@@ -208,7 +236,7 @@
+ 
+                 if (compiledchunk.func_178492_d(blockrenderlayer))
+                 {
+-                    this.func_178584_a(blockrenderlayer, p_178581_1_, p_178581_2_, p_178581_3_, p_178581_4_.func_178545_d().func_179038_a(blockrenderlayer), compiledchunk);
++                    this.func_178584_a(blockrenderlayer, x, y, z, generator.func_178545_d().func_179038_a(blockrenderlayer), compiledchunk);
+                 }
+             }
+         }
+@@ -232,6 +260,186 @@
+         }
+     }
+ 
++    public void func_178581_b(float p_178581_1_, float p_178581_2_, float p_178581_3_, ChunkCompileTaskGenerator p_178581_4_)
++    {
++        CompiledChunk compiledchunk = new CompiledChunk();
++        int i = 1;
++        BlockPos blockpos = this.field_178586_f;
++        BlockPos blockpos1 = blockpos.func_177982_a(15, 15, 15);
++        p_178581_4_.func_178540_f().lock();
++
++        try
++        {
++            if (p_178581_4_.func_178546_a() != ChunkCompileTaskGenerator.Status.COMPILING)
++            {
++                return;
++            }
++
++            p_178581_4_.func_178543_a(compiledchunk);
++        }
++        finally
++        {
++            p_178581_4_.func_178540_f().unlock();
++        }
++
++        VisGraph lvt_9_1_ = new VisGraph();
++        HashSet lvt_10_1_ = Sets.newHashSet();
++
++        if (this.field_178588_d != null)
++        {
++            ChunkCacheOF chunkcacheof = this.makeChunkCacheOF();
++
++            if (!chunkcacheof.isEmpty())
++            {
++                ++field_178592_a;
++                chunkcacheof.renderStart();
++                boolean[] aboolean = new boolean[ENUM_WORLD_BLOCK_LAYERS.length];
++                BlockRendererDispatcher blockrendererdispatcher = Minecraft.func_71410_x().func_175602_ab();
++                boolean flag = Reflector.ForgeBlock_canRenderInLayer.exists();
++                boolean flag1 = Reflector.ForgeHooksClient_setRenderLayer.exists();
++
++                for (Object blockposm0 : BlockPosM.getAllInBoxMutable(blockpos, blockpos1))
++                {
++                    BlockPosM blockposm = (BlockPosM) blockposm0;
++                    IBlockState iblockstate = chunkcacheof.func_180495_p(blockposm);
++                    Block block = iblockstate.func_177230_c();
++
++                    if (iblockstate.func_185914_p())
++                    {
++                        lvt_9_1_.func_178606_a(blockposm);
++                    }
++
++                    if (ReflectorForge.blockHasTileEntity(iblockstate))
++                    {
++                        TileEntity tileentity = chunkcacheof.getTileEntity(blockposm, Chunk.EnumCreateEntityType.CHECK);
++
++                        if (tileentity != null)
++                        {
++                            TileEntitySpecialRenderer<TileEntity> tileentityspecialrenderer = TileEntityRendererDispatcher.field_147556_a.<TileEntity>func_147547_b(tileentity);
++
++                            if (tileentityspecialrenderer != null)
++                            {
++                                if (tileentityspecialrenderer.func_188185_a(tileentity))
++                                {
++                                    lvt_10_1_.add(tileentity);
++                                }
++                                else
++                                {
++                                    compiledchunk.func_178490_a(tileentity);
++                                }
++                            }
++                        }
++                    }
++
++                    BlockRenderLayer[] ablockrenderlayer;
++
++                    if (flag)
++                    {
++                        ablockrenderlayer = ENUM_WORLD_BLOCK_LAYERS;
++                    }
++                    else
++                    {
++                        ablockrenderlayer = this.blockLayersSingle;
++                        ablockrenderlayer[0] = block.func_180664_k();
++                    }
++
++                    for (int j = 0; j < ablockrenderlayer.length; ++j)
++                    {
++                        BlockRenderLayer blockrenderlayer = ablockrenderlayer[j];
++
++                        if (flag)
++                        {
++                            boolean flag2 = Reflector.callBoolean(block, Reflector.ForgeBlock_canRenderInLayer, iblockstate, blockrenderlayer);
++
++                            if (!flag2)
++                            {
++                                continue;
++                            }
++                        }
++
++                        if (flag1)
++                        {
++                            Reflector.callVoid(Reflector.ForgeHooksClient_setRenderLayer, blockrenderlayer);
++                        }
++
++                        if (this.fixBlockLayer)
++                        {
++                            blockrenderlayer = this.fixBlockLayer(block, blockrenderlayer);
++                        }
++
++                        int k = blockrenderlayer.ordinal();
++
++                        if (block.func_176223_P().func_185901_i() != EnumBlockRenderType.INVISIBLE)
++                        {
++                            BufferBuilder bufferbuilder = p_178581_4_.func_178545_d().func_179039_a(k);
++                            bufferbuilder.setBlockLayer(blockrenderlayer);
++                            RenderEnv renderenv = bufferbuilder.getRenderEnv(chunkcacheof, iblockstate, blockposm);
++                            renderenv.setRegionRenderCacheBuilder(p_178581_4_.func_178545_d());
++
++                            if (!compiledchunk.func_178492_d(blockrenderlayer))
++                            {
++                                compiledchunk.func_178493_c(blockrenderlayer);
++                                this.func_178573_a(bufferbuilder, blockpos);
++                            }
++
++                            aboolean[k] |= blockrendererdispatcher.func_175018_a(iblockstate, blockposm, chunkcacheof, bufferbuilder);
++
++                            if (renderenv.isOverlaysRendered())
++                            {
++                                this.postRenderOverlays(p_178581_4_.func_178545_d(), compiledchunk, aboolean);
++                                renderenv.setOverlaysRendered(false);
++                            }
++                        }
++                    }
++
++                    if (flag1)
++                    {
++                        //Reflector.callVoid(Reflector.ForgeHooksClient_setRenderLayer, null);
++                        ForgeHooksClient.setRenderLayer(null);
++                    }
++                }
++
++                for (BlockRenderLayer blockrenderlayer1 : ENUM_WORLD_BLOCK_LAYERS)
++                {
++                    if (aboolean[blockrenderlayer1.ordinal()])
++                    {
++                        compiledchunk.func_178486_a(blockrenderlayer1);
++                    }
++
++                    if (compiledchunk.func_178492_d(blockrenderlayer1))
++                    {
++                        if (Config.isShaders())
++                        {
++                            SVertexBuilder.calcNormalChunkLayer(p_178581_4_.func_178545_d().func_179038_a(blockrenderlayer1));
++                        }
++
++                        this.func_178584_a(blockrenderlayer1, p_178581_1_, p_178581_2_, p_178581_3_, p_178581_4_.func_178545_d().func_179038_a(blockrenderlayer1), compiledchunk);
++                    }
++                }
++
++                chunkcacheof.renderFinish();
++            }
++
++            compiledchunk.func_178488_a(lvt_9_1_.func_178607_a());
++            this.field_178587_g.lock();
++
++            try
++            {
++                Set<TileEntity> set = Sets.newHashSet(lvt_10_1_);
++                Set<TileEntity> set1 = Sets.newHashSet(this.field_181056_j);
++                set.removeAll(this.field_181056_j);
++                set1.removeAll(lvt_10_1_);
++                this.field_181056_j.clear();
++                this.field_181056_j.addAll(lvt_10_1_);
++                this.field_178589_e.func_181023_a(set1, set);
++            }
++            finally
++            {
++                this.field_178587_g.unlock();
++            }
++        }
++    }
++    
+     protected void func_178578_b()
+     {
+         this.field_178587_g.lock();
+@@ -278,7 +486,9 @@
      private void func_189563_q()
      {
          int i = 1;
@@ -51,7 +357,7 @@
      }
  
      @Nullable
-@@ -427,6 +433,26 @@
+@@ -427,6 +637,26 @@
          return this.field_178593_n && this.field_188284_q;
      }
  
@@ -61,7 +367,7 @@
 +     * Extending classes can change the behavior of the cache, allowing to visually change
 +     * blocks (schematics etc).
 +     *
-+     * @see RegionRenderCache
++     * @see 
 +     * @param world The world to cache.
 +     * @param from The starting position of the chunk minus one on each axis.
 +     * @param to The ending position of the chunk plus one on each axis.
@@ -78,3 +384,117 @@
      public BlockPos func_181701_a(EnumFacing p_181701_1_)
      {
          return this.field_181702_p[p_181701_1_.ordinal()];
+@@ -436,4 +666,113 @@
+     {
+         return this.field_178588_d;
+     }
++
++    private boolean isWorldPlayerUpdate()
++    {
++        if (this.field_178588_d instanceof WorldClient)
++        {
++            WorldClient worldclient = (WorldClient)this.field_178588_d;
++            return worldclient.isPlayerUpdate();
++        }
++        else
++        {
++            return false;
++        }
++    }
++
++    public boolean isPlayerUpdate()
++    {
++        return this.playerUpdate;
++    }
++
++    private BlockRenderLayer fixBlockLayer(Block p_fixBlockLayer_1_, BlockRenderLayer p_fixBlockLayer_2_)
++    {
++        if (this.isMipmaps)
++        {
++            if (p_fixBlockLayer_2_ == BlockRenderLayer.CUTOUT)
++            {
++                if (p_fixBlockLayer_1_ instanceof BlockRedstoneWire)
++                {
++                    return p_fixBlockLayer_2_;
++                }
++
++                if (p_fixBlockLayer_1_ instanceof BlockCactus)
++                {
++                    return p_fixBlockLayer_2_;
++                }
++
++                return BlockRenderLayer.CUTOUT_MIPPED;
++            }
++        }
++        else if (p_fixBlockLayer_2_ == BlockRenderLayer.CUTOUT_MIPPED)
++        {
++            return BlockRenderLayer.CUTOUT;
++        }
++
++        return p_fixBlockLayer_2_;
++    }
++
++    private void postRenderOverlays(RegionRenderCacheBuilder p_postRenderOverlays_1_, CompiledChunk p_postRenderOverlays_2_, boolean[] p_postRenderOverlays_3_)
++    {
++        this.postRenderOverlay(BlockRenderLayer.CUTOUT, p_postRenderOverlays_1_, p_postRenderOverlays_2_, p_postRenderOverlays_3_);
++        this.postRenderOverlay(BlockRenderLayer.CUTOUT_MIPPED, p_postRenderOverlays_1_, p_postRenderOverlays_2_, p_postRenderOverlays_3_);
++        this.postRenderOverlay(BlockRenderLayer.TRANSLUCENT, p_postRenderOverlays_1_, p_postRenderOverlays_2_, p_postRenderOverlays_3_);
++    }
++
++    private void postRenderOverlay(BlockRenderLayer p_postRenderOverlay_1_, RegionRenderCacheBuilder p_postRenderOverlay_2_, CompiledChunk p_postRenderOverlay_3_, boolean[] p_postRenderOverlay_4_)
++    {
++        BufferBuilder bufferbuilder = p_postRenderOverlay_2_.func_179038_a(p_postRenderOverlay_1_);
++
++        if (bufferbuilder.isDrawing())
++        {
++            p_postRenderOverlay_3_.func_178493_c(p_postRenderOverlay_1_);
++            p_postRenderOverlay_4_[p_postRenderOverlay_1_.ordinal()] = true;
++        }
++    }
++
++    private ChunkCacheOF makeChunkCacheOF()
++    {
++        BlockPos blockpos = this.field_178586_f.func_177982_a(-1, -1, -1);
++        ChunkCache chunkcache = this.createRegionRenderCache(this.field_178588_d, blockpos, this.field_178586_f.func_177982_a(16, 16, 16), 1);
++
++        if (Reflector.MinecraftForgeClient_onRebuildChunk.exists())
++        {
++            Reflector.call(Reflector.MinecraftForgeClient_onRebuildChunk, this.field_178588_d, this.field_178586_f, chunkcache);
++        }
++
++        ChunkCacheOF chunkcacheof = new ChunkCacheOF(chunkcache, blockpos, 1);
++        return chunkcacheof;
++    }
++
++    public RenderChunk getRenderChunkOffset16(ViewFrustum p_getRenderChunkOffset16_1_, EnumFacing p_getRenderChunkOffset16_2_)
++    {
++        RenderChunk renderchunk = this.renderChunksOfset16[p_getRenderChunkOffset16_2_.ordinal()];
++
++        if (renderchunk == null)
++        {
++            BlockPos blockpos = this.func_181701_a(p_getRenderChunkOffset16_2_);
++            renderchunk = p_getRenderChunkOffset16_1_.func_178161_a(blockpos);
++            this.renderChunksOfset16[p_getRenderChunkOffset16_2_.ordinal()] = renderchunk;
++        }
++
++        return renderchunk;
++    }
++
++    public Chunk getChunk(World p_getChunk_1_)
++    {
++        if (this.chunk != null && this.chunk.func_177410_o())
++        {
++            return this.chunk;
++        }
++        else
++        {
++            this.chunk = p_getChunk_1_.func_175726_f(this.func_178568_j());
++            return this.chunk;
++        }
++    }
++
++   /* protected ChunkCache createRegionRenderCache(World p_createRegionRenderCache_1_, BlockPos p_createRegionRenderCache_2_, BlockPos p_createRegionRenderCache_3_, int p_createRegionRenderCache_4_)
++    {
++        return new ChunkCache(p_createRegionRenderCache_1_, p_createRegionRenderCache_2_, p_createRegionRenderCache_3_, p_createRegionRenderCache_4_);
++    }*/
+ }

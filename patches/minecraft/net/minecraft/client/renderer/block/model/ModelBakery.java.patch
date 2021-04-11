@@ -72,7 +72,17 @@
          }
          catch (Exception exception)
          {
-@@ -394,6 +405,7 @@
+@@ -374,7 +385,8 @@
+         }
+     }
+ 
+-    private void func_188634_a(String p_188634_1_, ResourceLocation p_188634_2_, ResourceLocation p_188634_3_)
++    //op public
++    public void func_188634_a(String p_188634_1_, ResourceLocation p_188634_2_, ResourceLocation p_188634_3_)
+     {
+         this.field_177615_s.put(p_188634_1_, p_188634_2_);
+ 
+@@ -394,6 +406,7 @@
  
      protected void func_177592_e()
      {
@@ -80,7 +90,7 @@
          this.field_177613_u.put(Item.func_150898_a(Blocks.field_150348_b), Lists.newArrayList("stone", "granite", "granite_smooth", "diorite", "diorite_smooth", "andesite", "andesite_smooth"));
          this.field_177613_u.put(Item.func_150898_a(Blocks.field_150346_d), Lists.newArrayList("dirt", "coarse_dirt", "podzol"));
          this.field_177613_u.put(Item.func_150898_a(Blocks.field_150344_f), Lists.newArrayList("oak_planks", "spruce_planks", "birch_planks", "jungle_planks", "acacia_planks", "dark_oak_planks"));
-@@ -441,6 +453,10 @@
+@@ -441,6 +454,10 @@
          this.field_177613_u.put(Items.field_179570_aq, Lists.newArrayList("oak_door"));
          this.field_177613_u.put(Items.field_151124_az, Lists.newArrayList("oak_boat"));
          this.field_177613_u.put(Items.field_190929_cY, Lists.newArrayList("totem"));
@@ -91,7 +101,7 @@
      }
  
      protected List<String> func_177596_a(Item p_177596_1_)
-@@ -457,7 +473,7 @@
+@@ -457,7 +474,7 @@
  
      protected ResourceLocation func_177583_a(String p_177583_1_)
      {
@@ -100,7 +110,7 @@
          return new ResourceLocation(resourcelocation.func_110624_b(), "item/" + resourcelocation.func_110623_a());
      }
  
-@@ -565,7 +581,7 @@
+@@ -565,7 +582,7 @@
          for (Entry<String, ResourceLocation> entry : this.field_177615_s.entrySet())
          {
              ResourceLocation resourcelocation = entry.getValue();
@@ -109,7 +119,16 @@
              ModelBlock modelblock = this.field_177611_h.get(resourcelocation);
  
              if (modelblock != null && modelblock.func_178303_d())
-@@ -653,6 +669,11 @@
+@@ -595,7 +612,7 @@
+         }
+     }
+ 
+-    private Set<ResourceLocation> func_177575_g()
++    protected Set<ResourceLocation> func_177575_g()
+     {
+         Set<ResourceLocation> set = Sets.<ResourceLocation>newHashSet();
+         List<ModelResourceLocation> list = Lists.newArrayList(this.field_177612_i.keySet());
+@@ -653,6 +670,11 @@
      @Nullable
      private IBakedModel func_177578_a(ModelBlock p_177578_1_, ModelRotation p_177578_2_, boolean p_177578_3_)
      {
@@ -121,7 +140,7 @@
          TextureAtlasSprite textureatlassprite = this.field_177599_g.get(new ResourceLocation(p_177578_1_.func_178308_c("particle")));
          SimpleBakedModel.Builder simplebakedmodel$builder = (new SimpleBakedModel.Builder(p_177578_1_, p_177578_1_.func_187967_g())).func_177646_a(textureatlassprite);
  
-@@ -669,13 +690,13 @@
+@@ -669,13 +691,13 @@
                      BlockPartFace blockpartface = blockpart.field_178240_c.get(enumfacing);
                      TextureAtlasSprite textureatlassprite1 = this.field_177599_g.get(new ResourceLocation(p_177578_1_.func_178308_c(blockpartface.field_178242_d)));
  
@@ -138,7 +157,7 @@
                      }
                  }
              }
-@@ -686,9 +707,14 @@
+@@ -686,9 +708,14 @@
  
      private BakedQuad func_177589_a(BlockPart p_177589_1_, BlockPartFace p_177589_2_, TextureAtlasSprite p_177589_3_, EnumFacing p_177589_4_, ModelRotation p_177589_5_, boolean p_177589_6_)
      {
@@ -154,7 +173,15 @@
      private void func_177597_h()
      {
          this.func_177574_i();
-@@ -916,4 +942,23 @@
+@@ -794,6 +821,7 @@
+ 
+     private void func_177572_j()
+     {
++        System.out.println("a load sprite");
+         final Set<ResourceLocation> set = this.func_177575_g();
+         set.addAll(this.func_177571_k());
+         set.remove(TextureMap.field_174945_f);
+@@ -916,4 +944,23 @@
          field_177606_o.field_178317_b = "generation marker";
          field_177616_r.field_178317_b = "block entity marker";
      }

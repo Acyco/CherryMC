@@ -1,6 +1,69 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/texture/TextureMap.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/texture/TextureMap.java
-@@ -45,6 +45,16 @@
+@@ -2,13 +2,23 @@
+ 
+ import com.google.common.collect.Lists;
+ import com.google.common.collect.Maps;
++
++import java.awt.*;
++import java.awt.image.BufferedImage;
+ import java.io.Closeable;
+ import java.io.IOException;
++import java.io.InputStream;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Map.Entry;
++import java.util.Set;
++import java.util.TreeSet;
+ import javax.annotation.Nullable;
+ import net.minecraft.client.Minecraft;
++import net.minecraft.client.renderer.GlStateManager;
+ import net.minecraft.client.renderer.StitcherException;
+ import net.minecraft.client.resources.IResource;
+ import net.minecraft.client.resources.IResourceManager;
+@@ -20,9 +30,18 @@
+ import net.minecraft.util.math.MathHelper;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.BetterGrass;
++import optifine.Config;
++import optifine.ConnectedTextures;
++import optifine.CustomItems;
++import optifine.Reflector;
++import optifine.ReflectorForge;
++import optifine.SpriteDependencies;
++import optifine.TextureUtils;
+ import org.apache.commons.io.IOUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import shadersmod.client.ShadersTex;
+ 
+ @SideOnly(Side.CLIENT)
+ public class TextureMap extends AbstractTexture implements ITickableTextureObject
+@@ -37,7 +56,19 @@
+     private final ITextureMapPopulator field_174946_m;
+     private int field_147636_j;
+     private final TextureAtlasSprite field_94249_f;
++    
++    //op add
+ 
++    private TextureAtlasSprite[] iconGrid;
++    private int iconGridSize;
++    private int iconGridCountX;
++    private int iconGridCountY;
++    private double iconGridSizeU;
++    private double iconGridSizeV;
++    private int counterIndexInMap;
++    public int atlasWidth;
++    public int atlasHeight;
++
+     public TextureMap(String p_i46099_1_)
+     {
+         this(p_i46099_1_, (ITextureMapPopulator)null);
+@@ -45,6 +76,27 @@
  
      public TextureMap(String p_i46100_1_, @Nullable ITextureMapPopulator p_i46100_2_)
      {
@@ -14,18 +77,107 @@
 +
 +    public TextureMap(String p_i46100_1_, @Nullable ITextureMapPopulator p_i46100_2_, boolean skipFirst)
 +    {
++        //op add
++        this.iconGrid = null;
++        this.iconGridSize = -1;
++        this.iconGridCountX = -1;
++        this.iconGridCountY = -1;
++        this.iconGridSizeU = -1.0D;
++        this.iconGridSizeV = -1.0D;
++        this.counterIndexInMap = 0;
++        this.atlasWidth = 0;
++        this.atlasHeight = 0;
++        //op end
          this.field_94258_i = Lists.<TextureAtlasSprite>newArrayList();
          this.field_110574_e = Maps.<String, TextureAtlasSprite>newHashMap();
          this.field_94252_e = Maps.<String, TextureAtlasSprite>newHashMap();
-@@ -74,6 +84,7 @@
+@@ -55,16 +107,22 @@
+ 
+     private void func_110569_e()
+     {
+-        int[] aint = TextureUtil.field_110999_b;
+-        this.field_94249_f.func_110966_b(16);
+-        this.field_94249_f.func_110969_c(16);
++        //int[] aint = TextureUtil.MISSING_TEXTURE_DATA;
++        int i = this.getMinSpriteSize();
++        int[] aint = this.getMissingImageData(i);
++        this.field_94249_f.func_110966_b(i); // op 16 -> i
++        this.field_94249_f.func_110969_c(i); // op 16 -> i
+         int[][] aint1 = new int[this.field_147636_j + 1][];
+         aint1[0] = aint;
+         this.field_94249_f.func_110968_a(Lists.<int[][]>newArrayList(aint1));
++        
++        //op
++        this.field_94249_f.setIndexInMap(this.counterIndexInMap++);
+     }
+ 
+     public void func_110551_a(IResourceManager p_110551_1_) throws IOException
+     {
++        ShadersTex.resManager = p_110551_1_;//??
+         if (this.field_174946_m != null)
+         {
+             this.func_174943_a(p_110551_1_, this.field_174946_m);
+@@ -74,43 +132,407 @@
      public void func_174943_a(IResourceManager p_174943_1_, ITextureMapPopulator p_174943_2_)
      {
          this.field_110574_e.clear();
++        this.counterIndexInMap = 0; // op add 
 +        net.minecraftforge.client.ForgeHooksClient.onTextureStitchedPre(this);
          p_174943_2_.func_177059_a(this);
++        //op add
++        if (this.field_147636_j >= 4)
++        {
++            this.field_147636_j = this.detectMaxMipmapLevel(this.field_110574_e, p_174943_1_);
++            Config.log("Mipmap levels: " + this.field_147636_j);
++        }        
++        //op end
          this.func_110569_e();
          this.func_147631_c();
-@@ -88,29 +99,77 @@
+         this.func_110571_b(p_174943_1_);
+     }
+ 
++    public void loadSprites1(IResourceManager resourceManager, ITextureMapPopulator iconCreatorIn)
++    {
++        
++        this.field_110574_e.clear();
++        this.counterIndexInMap = 0;
++     /*   Reflector.callVoid(Reflector.ForgeHooksClient_onTextureStitchedPre, this);*/
++        net.minecraftforge.client.ForgeHooksClient.onTextureStitchedPre(this);
++        iconCreatorIn.func_177059_a(this);
++
++        if (this.field_147636_j >= 4)
++        {
++            this.field_147636_j = this.detectMaxMipmapLevel(this.field_110574_e, resourceManager);
++            Config.log("Mipmap levels: " + this.field_147636_j);
++        }
++
++        this.func_110569_e();
++        this.func_147631_c();
++        this.func_110571_b(resourceManager);
++    }
++
++
+     public void func_110571_b(IResourceManager p_110571_1_)
+     {
++        //op add
++        ShadersTex.resManager = p_110571_1_;
++        Config.dbg("Multitexture: " + Config.isMultiTexture());
++
++        if (Config.isMultiTexture())
++        {
++            for (TextureAtlasSprite textureatlassprite : this.field_94252_e.values())
++            {
++                textureatlassprite.deleteSpriteTexture();
++            }
++        }
++
++        ConnectedTextures.updateIcons(this);
++        CustomItems.updateIcons(this);
++        BetterGrass.updateIcons(this);        
++        //op end
+         int i = Minecraft.func_71369_N();
+         Stitcher stitcher = new Stitcher(i, i, 0, this.field_147636_j);
+         this.field_94252_e.clear();
          this.field_94258_i.clear();
          int j = Integer.MAX_VALUE;
          int k = 1 << this.field_147636_j;
@@ -38,14 +190,283 @@
          {
 -            TextureAtlasSprite textureatlassprite = entry.getValue();
 -            ResourceLocation resourcelocation = this.func_184396_a(textureatlassprite);
--            IResource iresource = null;
 +            final ResourceLocation location = new ResourceLocation(entry.getKey());
 +            bar.step(location.toString());
 +            //net.minecraftforge.fml.common.FMLLog.log.debug("Texture location: {}",location.toString());
- 
++
 +            j = loadTexture(stitcher, p_110571_1_, location, entry.getValue(), bar, j, k);
 +        }
 +        finishLoading(stitcher, bar, j, k);
++    }
++
++    public void loadTextureAtlas1(IResourceManager resourceManager)
++    {
++        ShadersTex.resManager = resourceManager;
++        Config.dbg("Multitexture: " + Config.isMultiTexture());
++
++        if (Config.isMultiTexture())
++        {
++            for (TextureAtlasSprite textureatlassprite : this.field_94252_e.values())
++            {
++                textureatlassprite.deleteSpriteTexture();
++            }
++        }
++
++        ConnectedTextures.updateIcons(this);
++        CustomItems.updateIcons(this);
++        BetterGrass.updateIcons(this);
++        int k1 = TextureUtils.getGLMaximumTextureSize();
++        Stitcher stitcher = new Stitcher(k1, k1, 0, this.field_147636_j);
++        this.field_94252_e.clear();
++        this.field_94258_i.clear();
++        int i = Integer.MAX_VALUE;
++        int j = this.getMinSpriteSize();
++        this.iconGridSize = j;
++        int k = 1 << this.field_147636_j;
++        List<TextureAtlasSprite> list = new ArrayList<TextureAtlasSprite>(this.field_110574_e.values());
++
++        for (int l = 0; l < list.size(); ++l)
++        {
++            TextureAtlasSprite textureatlassprite1 = SpriteDependencies.resolveDependencies(list, l, this);
++            System.out.println(textureatlassprite1);
++            ResourceLocation resourcelocation = this.func_184396_a(textureatlassprite1);
+             IResource iresource = null;
+ 
++            if (textureatlassprite1.getIndexInMap() < 0)
++            {
++                textureatlassprite1.setIndexInMap(this.counterIndexInMap++);
++            }
++
++            if (textureatlassprite1.hasCustomLoader(resourceManager, resourcelocation))
++            {
++                if (textureatlassprite1.load(resourceManager, resourcelocation, (p_lambda$loadTextureAtlas$0_1_) ->
++                {
++                    return this.field_110574_e.get(p_lambda$loadTextureAtlas$0_1_.toString());
++                }))
++                {
++                    Config.dbg("Custom loader (skipped): " + textureatlassprite1);
++                    continue;
++                }
++                Config.dbg("Custom loader: " + textureatlassprite1);
++            }
++            else
++            {
++                try
++                {
++                    PngSizeInfo pngsizeinfo = PngSizeInfo.func_188532_a(resourceManager.func_110536_a(resourcelocation));
++
++                    if (Config.isShaders())
++                    {
++                        iresource = ShadersTex.loadResource(resourceManager, resourcelocation);
++                    }
++                    else
++                    {
++                        iresource = resourceManager.func_110536_a(resourcelocation);
++                    }
++
++                    boolean flag = iresource.func_110526_a("animation") != null;
++                    textureatlassprite1.func_188538_a(pngsizeinfo, flag);
++                }
++                catch (RuntimeException runtimeexception)
++                {
++                    field_147635_d.error("Unable to parse metadata from {}", resourcelocation, runtimeexception);
++                    ReflectorForge.FMLClientHandler_trackBrokenTexture(resourcelocation, runtimeexception.getMessage());
++                    continue;
++                }
++                catch (IOException ioexception)
++                {
++                    field_147635_d.error("Using missing texture, unable to load " + resourcelocation + ", " + ioexception.getClass().getName());
++                    ReflectorForge.FMLClientHandler_trackMissingTexture(resourcelocation);
++                    continue;
++                }
++                finally
++                {
++                    IOUtils.closeQuietly((Closeable)iresource);
++                }
++            }
++
++            int k2 = textureatlassprite1.func_94211_a();
++            int i3 = textureatlassprite1.func_94216_b();
++
++            if (k2 >= 1 && i3 >= 1)
++            {
++                if (k2 < j || this.field_147636_j > 0)
++                {
++                    int i1 = this.field_147636_j > 0 ? TextureUtils.scaleToPowerOfTwo(k2, j) : TextureUtils.scaleMinTo(k2, j);
++
++                    if (i1 != k2)
++                    {
++                        if (!TextureUtils.isPowerOfTwo(k2))
++                        {
++                            Config.log("Scaled non power of 2: " + textureatlassprite1.func_94215_i() + ", " + k2 + " -> " + i1);
++                        }
++                        else
++                        {
++                            Config.log("Scaled too small texture: " + textureatlassprite1.func_94215_i() + ", " + k2 + " -> " + i1);
++                        }
++
++                        int j1 = i3 * i1 / k2;
++                        textureatlassprite1.func_110966_b(i1);
++                        textureatlassprite1.func_110969_c(j1);
++                    }
++                }
++
++                i = Math.min(i, Math.min(textureatlassprite1.func_94211_a(), textureatlassprite1.func_94216_b()));
++                int j3 = Math.min(Integer.lowestOneBit(textureatlassprite1.func_94211_a()), Integer.lowestOneBit(textureatlassprite1.func_94216_b()));
++
++                if (j3 < k)
++                {
++                    field_147635_d.warn("Texture {} with size {}x{} limits mip level from {} to {}", resourcelocation, Integer.valueOf(textureatlassprite1.func_94211_a()), Integer.valueOf(textureatlassprite1.func_94216_b()), Integer.valueOf(MathHelper.func_151239_c(k)), Integer.valueOf(MathHelper.func_151239_c(j3)));
++                    k = j3;
++                }
++
++                if (this.func_184397_a(resourceManager, textureatlassprite1))
++                {
++                    stitcher.func_110934_a(textureatlassprite1);
++                }
++            }
++            else
++            {
++                Config.warn("Invalid sprite size: " + textureatlassprite1);
++            }
++        }
++
++        int l1 = Math.min(i, k);
++        int i2 = MathHelper.func_151239_c(l1);
++
++        if (i2 < 0)
++        {
++            i2 = 0;
++        }
++
++        if (i2 < this.field_147636_j)
++        {
++            field_147635_d.warn("{}: dropping miplevel from {} to {}, because of minimum power of two: {}", this.field_94254_c, Integer.valueOf(this.field_147636_j), Integer.valueOf(i2), Integer.valueOf(l1));
++            this.field_147636_j = i2;
++        }
++
++        this.field_94249_f.func_147963_d(this.field_147636_j);
++        stitcher.func_110934_a(this.field_94249_f);
++
++        try
++        {
++            stitcher.func_94305_f();
++        }
++        catch (StitcherException stitcherexception)
++        {
++            throw stitcherexception;
++        }
++
++        field_147635_d.info("Created: {}x{} {}-atlas", Integer.valueOf(stitcher.func_110935_a()), Integer.valueOf(stitcher.func_110936_b()), this.field_94254_c);
++
++        if (Config.isShaders())
++        {
++            ShadersTex.allocateTextureMap(this.func_110552_b(), this.field_147636_j, stitcher.func_110935_a(), stitcher.func_110936_b(), stitcher, this);
++        }
++        else
++        {
++            TextureUtil.func_180600_a(this.func_110552_b(), this.field_147636_j, stitcher.func_110935_a(), stitcher.func_110936_b());
++        }
++
++        Map<String, TextureAtlasSprite> map = Maps.<String, TextureAtlasSprite>newHashMap(this.field_110574_e);
++
++        for (TextureAtlasSprite textureatlassprite2 : stitcher.func_94309_g())
++        {
++            if (Config.isShaders())
++            {
++                ShadersTex.setIconName(ShadersTex.setSprite(textureatlassprite2).func_94215_i());
++            }
++
++            String s = textureatlassprite2.func_94215_i();
++            map.remove(s);
++            this.field_94252_e.put(s, textureatlassprite2);
++
+             try
+             {
++                if (Config.isShaders())
++                {
++                    ShadersTex.uploadTexSubForLoadAtlas(textureatlassprite2.func_147965_a(0), textureatlassprite2.func_94211_a(), textureatlassprite2.func_94216_b(), textureatlassprite2.func_130010_a(), textureatlassprite2.func_110967_i(), false, false);
++                }
++                else
++                {
++                    TextureUtil.func_147955_a(textureatlassprite2.func_147965_a(0), textureatlassprite2.func_94211_a(), textureatlassprite2.func_94216_b(), textureatlassprite2.func_130010_a(), textureatlassprite2.func_110967_i(), false, false);
++                }
++            }
++            catch (Throwable throwable)
++            {
++                CrashReport crashreport = CrashReport.func_85055_a(throwable, "Stitching texture atlas");
++                CrashReportCategory crashreportcategory = crashreport.func_85058_a("Texture being stitched together");
++                crashreportcategory.func_71507_a("Atlas path", this.field_94254_c);
++                crashreportcategory.func_71507_a("Sprite", textureatlassprite2);
++                throw new ReportedException(crashreport);
++            }
++
++            if (textureatlassprite2.func_130098_m())
++            {
++                this.field_94258_i.add(textureatlassprite2);
++            }
++        }
++
++        for (TextureAtlasSprite textureatlassprite3 : map.values())
++        {
++            textureatlassprite3.func_94217_a(this.field_94249_f);
++        }
++
++        if (Config.isMultiTexture())
++        {
++            int j2 = stitcher.func_110935_a();
++            int l2 = stitcher.func_110936_b();
++
++            for (TextureAtlasSprite textureatlassprite4 : stitcher.func_94309_g())
++            {
++                textureatlassprite4.sheetWidth = j2;
++                textureatlassprite4.sheetHeight = l2;
++                textureatlassprite4.mipmapLevels = this.field_147636_j;
++                TextureAtlasSprite textureatlassprite5 = textureatlassprite4.spriteSingle;
++
++                if (textureatlassprite5 != null)
++                {
++                    if (textureatlassprite5.func_94211_a() <= 0)
++                    {
++                        textureatlassprite5.func_110966_b(textureatlassprite4.func_94211_a());
++                        textureatlassprite5.func_110969_c(textureatlassprite4.func_94216_b());
++                        textureatlassprite5.func_110971_a(textureatlassprite4.func_94211_a(), textureatlassprite4.func_94216_b(), 0, 0, false);
++                        textureatlassprite5.func_130103_l();
++                        List<int[][]> list1 = textureatlassprite4.getFramesTextureData();
++                        textureatlassprite5.func_110968_a(list1);
++                        textureatlassprite5.setAnimationMetadata(textureatlassprite4.getAnimationMetadata());
++                    }
++
++                    textureatlassprite5.sheetWidth = j2;
++                    textureatlassprite5.sheetHeight = l2;
++                    textureatlassprite5.mipmapLevels = this.field_147636_j;
++                    textureatlassprite4.bindSpriteTexture();
++                    boolean flag2 = false;
++                    boolean flag1 = true;
++
++                    try
++                    {
++                        TextureUtil.func_147955_a(textureatlassprite5.func_147965_a(0), textureatlassprite5.func_94211_a(), textureatlassprite5.func_94216_b(), textureatlassprite5.func_130010_a(), textureatlassprite5.func_110967_i(), flag2, flag1);
++                    }
++                    catch (Exception exception)
++                    {
++                        Config.dbg("Error uploading sprite single: " + textureatlassprite5 + ", parent: " + textureatlassprite4);
++                        exception.printStackTrace();
++                    }
++                }
++            }
++
++            Config.getMinecraft().func_110434_K().func_110577_a(field_110575_b);
++        }
++
++        Reflector.callVoid(Reflector.ForgeHooksClient_onTextureStitchedPost, this);
++        this.updateIconGrid(stitcher.func_110935_a(), stitcher.func_110936_b());
++
++        if (Config.equals(System.getProperty("saveTextureMap"), "true"))
++        {
++            Config.dbg("Exporting texture map: " + this.field_94254_c);
++            TextureUtils.saveGlTexture("debug/" + this.field_94254_c.replaceAll("/", "_"), this.func_110552_b(), this.field_147636_j, stitcher.func_110935_a(), stitcher.func_110936_b());
++        }
 +    }
 +
 +    private int loadTexture(Stitcher stitcher, IResourceManager p_110571_1_, ResourceLocation location, TextureAtlasSprite textureatlassprite, net.minecraftforge.fml.common.ProgressManager.ProgressBar bar, int j, int k)
@@ -53,7 +474,7 @@
 +        if (loadedSprites.contains(location)) {
 +            return j;
 +        }
-+        net.minecraftforge.fml.common.FMLLog.log.debug("Texture textureatlassprite: {}, location: {}",textureatlassprite.toString(),location.toString());
++        //net.minecraftforge.fml.common.FMLLog.log.debug("Texture textureatlassprite: {}, location: {}",textureatlassprite.toString(),location.toString());
 +        ResourceLocation resourcelocation = this.func_184396_a(textureatlassprite);
 +        IResource iresource = null;
 +
@@ -78,8 +499,8 @@
 +                TextureAtlasSprite depSprite = field_110574_e.get(dependency.toString());
 +                j = loadTexture(stitcher, p_110571_1_, dependency, depSprite, bar, j, k);
 +            }
-             try
-             {
++            try
++            {
 +            if (textureatlassprite.hasCustomLoader(p_110571_1_, resourcelocation))
 +            {
 +                if (textureatlassprite.load(p_110571_1_, resourcelocation, l -> field_110574_e.get(l.toString())))
@@ -111,7 +532,7 @@
              }
              finally
              {
-@@ -122,16 +181,28 @@
+@@ -122,16 +544,29 @@
  
              if (j1 < k)
              {
@@ -121,6 +542,7 @@
 +                field_147635_d.warn("Texture {} with size {}x{} will have visual artifacts at mip level {}, it can only support level {}. Please report to the mod author that the texture should be some multiple of 16x16.", resourcelocation, Integer.valueOf(textureatlassprite.func_94211_a()), Integer.valueOf(textureatlassprite.func_94216_b()), Integer.valueOf(MathHelper.func_151239_c(k)), Integer.valueOf(MathHelper.func_151239_c(j1)));
              }
  
++            //System.out.println("a load texture");
 +            if (func_184397_a(p_110571_1_, textureatlassprite))
              stitcher.func_110934_a(textureatlassprite);
 +            return j;
@@ -142,7 +564,7 @@
          if (i1 < this.field_147636_j)
          {
              field_147635_d.warn("{}: dropping miplevel from {} to {}, because of minimum power of two: {}", this.field_94254_c, Integer.valueOf(this.field_147636_j), Integer.valueOf(i1), Integer.valueOf(l));
-@@ -140,9 +211,11 @@
+@@ -140,9 +575,11 @@
  
          this.field_94249_f.func_147963_d(this.field_147636_j);
          stitcher.func_110934_a(this.field_94249_f);
@@ -154,12 +576,23 @@
              stitcher.func_94305_f();
          }
          catch (StitcherException stitcherexception)
-@@ -151,12 +224,16 @@
+@@ -151,12 +588,26 @@
          }
  
          field_147635_d.info("Created: {}x{} {}-atlas", Integer.valueOf(stitcher.func_110935_a()), Integer.valueOf(stitcher.func_110936_b()), this.field_94254_c);
+-        TextureUtil.func_180600_a(this.func_110552_b(), this.field_147636_j, stitcher.func_110935_a(), stitcher.func_110936_b());
 +        bar.step("Allocating GL texture");
-         TextureUtil.func_180600_a(this.func_110552_b(), this.field_147636_j, stitcher.func_110935_a(), stitcher.func_110936_b());
++        //TextureUtil.allocateTextureImpl(this.getGlTextureId(), this.mipmapLevels, stitcher.getCurrentWidth(), stitcher.getCurrentHeight());
++        //op add
++        if (Config.isShaders())
++        {
++            ShadersTex.allocateTextureMap(this.func_110552_b(), this.field_147636_j, stitcher.func_110935_a(), stitcher.func_110936_b(), stitcher, this);
++        }
++        else
++        {
++            TextureUtil.func_180600_a(this.func_110552_b(), this.field_147636_j, stitcher.func_110935_a(), stitcher.func_110936_b());
++        }        
++        //op end
          Map<String, TextureAtlasSprite> map = Maps.<String, TextureAtlasSprite>newHashMap(this.field_110574_e);
  
 +        net.minecraftforge.fml.common.ProgressManager.pop(bar);
@@ -172,25 +605,373 @@
              {
                  String s = textureatlassprite1.func_94215_i();
                  map.remove(s);
-@@ -186,6 +263,8 @@
+@@ -164,7 +615,16 @@
+ 
+                 try
+                 {
+-                    TextureUtil.func_147955_a(textureatlassprite1.func_147965_a(0), textureatlassprite1.func_94211_a(), textureatlassprite1.func_94216_b(), textureatlassprite1.func_130010_a(), textureatlassprite1.func_110967_i(), false, false);
++                    //TextureUtil.uploadTextureMipmap(textureatlassprite1.getFrameTextureData(0), textureatlassprite1.getIconWidth(), textureatlassprite1.getIconHeight(), textureatlassprite1.getOriginX(), textureatlassprite1.getOriginY(), false, false);
++                    //op add
++                    if (Config.isShaders())
++                    {
++                        ShadersTex.uploadTexSubForLoadAtlas(textureatlassprite1.func_147965_a(0), textureatlassprite1.func_94211_a(), textureatlassprite1.func_94216_b(), textureatlassprite1.func_130010_a(), textureatlassprite1.func_110967_i(), false, false);
++                    }
++                    else {
++                        TextureUtil.func_147955_a(textureatlassprite1.func_147965_a(0), textureatlassprite1.func_94211_a(), textureatlassprite1.func_94216_b(), textureatlassprite1.func_130010_a(), textureatlassprite1.func_110967_i(), false, false);
++                    }
++                    //op end
+                 }
+                 catch (Throwable throwable)
+                 {
+@@ -186,20 +646,84 @@
          {
              textureatlassprite2.func_94217_a(this.field_94249_f);
          }
-+        net.minecraftforge.client.ForgeHooksClient.onTextureStitchedPost(this);
-+        net.minecraftforge.fml.common.ProgressManager.pop(bar);
-     }
+-    }
++        //op add
++        if (Config.isMultiTexture())
++        {
++            int j2 = stitcher.func_110935_a();
++            int l2 = stitcher.func_110936_b();
  
-     private boolean func_184397_a(IResourceManager p_184397_1_, final TextureAtlasSprite p_184397_2_)
-@@ -195,7 +274,7 @@
+-    private boolean func_184397_a(IResourceManager p_184397_1_, final TextureAtlasSprite p_184397_2_)
++            for (TextureAtlasSprite textureatlassprite4 : stitcher.func_94309_g())
++            {
++                textureatlassprite4.sheetWidth = j2;
++                textureatlassprite4.sheetHeight = l2;
++                textureatlassprite4.mipmapLevels = this.field_147636_j;
++                TextureAtlasSprite textureatlassprite5 = textureatlassprite4.spriteSingle;
++
++                if (textureatlassprite5 != null)
++                {
++                    if (textureatlassprite5.func_94211_a() <= 0)
++                    {
++                        textureatlassprite5.func_110966_b(textureatlassprite4.func_94211_a());
++                        textureatlassprite5.func_110969_c(textureatlassprite4.func_94216_b());
++                        textureatlassprite5.func_110971_a(textureatlassprite4.func_94211_a(), textureatlassprite4.func_94216_b(), 0, 0, false);
++                        textureatlassprite5.func_130103_l();
++                        List<int[][]> list1 = textureatlassprite4.getFramesTextureData();
++                        textureatlassprite5.func_110968_a(list1);
++                        textureatlassprite5.setAnimationMetadata(textureatlassprite4.getAnimationMetadata());
++                    }
++
++                    textureatlassprite5.sheetWidth = j2;
++                    textureatlassprite5.sheetHeight = l2;
++                    textureatlassprite5.mipmapLevels = this.field_147636_j;
++                    textureatlassprite4.bindSpriteTexture();
++                    boolean flag2 = false;
++                    boolean flag1 = true;
++
++                    try
++                    {
++                        TextureUtil.func_147955_a(textureatlassprite5.func_147965_a(0), textureatlassprite5.func_94211_a(), textureatlassprite5.func_94216_b(), textureatlassprite5.func_130010_a(), textureatlassprite5.func_110967_i(), flag2, flag1);
++                    }
++                    catch (Exception exception)
++                    {
++                        Config.dbg("Error uploading sprite single: " + textureatlassprite5 + ", parent: " + textureatlassprite4);
++                        exception.printStackTrace();
++                    }
++                }
++            }
++
++            Config.getMinecraft().func_110434_K().func_110577_a(field_110575_b);
++        }        
++        
++        
++        
++        //op end
++        
++        net.minecraftforge.client.ForgeHooksClient.onTextureStitchedPost(this);
++        //op add
++        Reflector.callVoid(Reflector.ForgeHooksClient_onTextureStitchedPost, this);
++        this.updateIconGrid(stitcher.func_110935_a(), stitcher.func_110936_b());
++
++        if (Config.equals(System.getProperty("saveTextureMap"), "true"))
++        {
++            Config.dbg("Exporting texture map: " + this.field_94254_c);
++            TextureUtils.saveGlTexture("debug/" + this.field_94254_c.replaceAll("/", "_"), this.func_110552_b(), this.field_147636_j, stitcher.func_110935_a(), stitcher.func_110936_b());
++        }        
++        //op end
++        net.minecraftforge.fml.common.ProgressManager.pop(bar);
++    }
++///op public
++    public boolean generateMipmaps0(IResourceManager resourceManager, final TextureAtlasSprite texture)
+     {
+-        ResourceLocation resourcelocation = this.func_184396_a(p_184397_2_);
++        ResourceLocation resourcelocation = this.func_184396_a(texture);
+         IResource iresource = null;
          label62:
          {
              boolean flag;
 -
-+            if (p_184397_2_.hasCustomLoader(p_184397_1_, resourcelocation)) break label62;
++            if (texture.hasCustomLoader(resourceManager, resourcelocation)) break label62;
              try
              {
-                 iresource = p_184397_1_.func_110536_a(resourcelocation);
-@@ -292,7 +371,7 @@
+-                iresource = p_184397_1_.func_110536_a(resourcelocation);
+-                p_184397_2_.func_188539_a(iresource, this.field_147636_j + 1);
++                iresource = resourceManager.func_110536_a(resourcelocation);
++                texture.func_188539_a(iresource, this.field_147636_j + 1);
+                 break label62;
+             }
+             catch (RuntimeException runtimeexception)
+@@ -223,7 +747,7 @@
+ 
+         try
+         {
+-            p_184397_2_.func_147963_d(this.field_147636_j);
++            texture.func_147963_d(this.field_147636_j);
+             return true;
+         }
+         catch (Throwable throwable)
+@@ -234,21 +758,21 @@
+             {
+                 public String call() throws Exception
+                 {
+-                    return p_184397_2_.func_94215_i();
++                    return texture.func_94215_i();
+                 }
+             });
+             crashreportcategory.func_189529_a("Sprite size", new ICrashReportDetail<String>()
+             {
+                 public String call() throws Exception
+                 {
+-                    return p_184397_2_.func_94211_a() + " x " + p_184397_2_.func_94216_b();
++                    return texture.func_94211_a() + " x " + texture.func_94216_b();
+                 }
+             });
+             crashreportcategory.func_189529_a("Sprite frames", new ICrashReportDetail<String>()
+             {
+                 public String call() throws Exception
+                 {
+-                    return p_184397_2_.func_110970_k() + " frames";
++                    return texture.func_110970_k() + " frames";
+                 }
+             });
+             crashreportcategory.func_71507_a("Mipmap levels", Integer.valueOf(this.field_147636_j));
+@@ -256,12 +780,102 @@
+         }
+     }
+ 
+-    private ResourceLocation func_184396_a(TextureAtlasSprite p_184396_1_)
++    public boolean func_184397_a(IResourceManager p_184397_1_, final TextureAtlasSprite p_184397_2_)
+     {
++        ResourceLocation resourcelocation1 = this.func_184396_a(p_184397_2_);
++        IResource iresource1 = null;
++
++        if (p_184397_2_.hasCustomLoader(p_184397_1_, resourcelocation1))
++        {
++            TextureUtils.generateCustomMipmaps(p_184397_2_, this.field_147636_j);
++        }
++        else
++        {
++            label60:
++            {
++                boolean flag4;
++
++                try
++                {
++                    iresource1 = p_184397_1_.func_110536_a(resourcelocation1);
++                    p_184397_2_.func_188539_a(iresource1, this.field_147636_j + 1);
++                    break label60;
++                }
++                catch (RuntimeException runtimeexception1)
++                {
++                    field_147635_d.error("Unable to parse metadata from {}", resourcelocation1, runtimeexception1);
++                    flag4 = false;
++                }
++                catch (IOException ioexception1)
++                {
++                    field_147635_d.error("Using missing texture, unable to load {}", resourcelocation1, ioexception1);
++                    flag4 = false;
++                    boolean crashreportcategory = flag4;
++                    return crashreportcategory;
++                }
++                finally
++                {
++                    IOUtils.closeQuietly((Closeable)iresource1);
++                }
++
++                return flag4;
++            }
++        }
++
++        try
++        {
++            p_184397_2_.func_147963_d(this.field_147636_j);
++            return true;
++        }
++        catch (Throwable throwable1)
++        {
++            CrashReport crashreport1 = CrashReport.func_85055_a(throwable1, "Applying mipmap");
++            CrashReportCategory crashreportcategory1 = crashreport1.func_85058_a("Sprite being mipmapped");
++            crashreportcategory1.func_189529_a("Sprite name", new ICrashReportDetail<String>()
++            {
++                public String call() throws Exception
++                {
++                    return p_184397_2_.func_94215_i();
++                }
++            });
++            crashreportcategory1.func_189529_a("Sprite size", new ICrashReportDetail<String>()
++            {
++                public String call() throws Exception
++                {
++                    return p_184397_2_.func_94211_a() + " x " + p_184397_2_.func_94216_b();
++                }
++            });
++            crashreportcategory1.func_189529_a("Sprite frames", new ICrashReportDetail<String>()
++            {
++                public String call() throws Exception
++                {
++                    return p_184397_2_.func_110970_k() + " frames";
++                }
++            });
++            crashreportcategory1.func_71507_a("Mipmap levels", Integer.valueOf(this.field_147636_j));
++            throw new ReportedException(crashreport1);
++        }
++    }
++
++
++    private ResourceLocation getResourceLocationO(TextureAtlasSprite p_184396_1_)
++    {
+         ResourceLocation resourcelocation = new ResourceLocation(p_184396_1_.func_94215_i());
+         return new ResourceLocation(resourcelocation.func_110624_b(), String.format("%s/%s%s", this.field_94254_c, resourcelocation.func_110623_a(), ".png"));
+     }
+ 
++
++    public ResourceLocation func_184396_a(TextureAtlasSprite p_184396_1_)
++    {
++        ResourceLocation resourcelocation1 = new ResourceLocation(p_184396_1_.func_94215_i());
++        return this.completeResourceLocation(resourcelocation1);
++    }
++
++    public ResourceLocation completeResourceLocation(ResourceLocation p_completeResourceLocation_1_)
++    {
++        return this.isAbsoluteLocation(p_completeResourceLocation_1_) ? new ResourceLocation(p_completeResourceLocation_1_.func_110624_b(), p_completeResourceLocation_1_.func_110623_a() + ".png") : new ResourceLocation(p_completeResourceLocation_1_.func_110624_b(), String.format("%s/%s%s", this.field_94254_c, p_completeResourceLocation_1_.func_110623_a(), ".png"));
++    }
++
+     public TextureAtlasSprite func_110572_b(String p_110572_1_)
+     {
+         TextureAtlasSprite textureatlassprite = this.field_94252_e.get(p_110572_1_);
+@@ -274,7 +888,7 @@
+         return textureatlassprite;
+     }
+ 
+-    public void func_94248_c()
++    public void updateAnimationsO()
+     {
+         TextureUtil.func_94277_a(this.func_110552_b());
+ 
+@@ -283,7 +897,109 @@
+             textureatlassprite.func_94219_l();
+         }
+     }
++    public void func_94248_c()
++    {
++        if (Config.isShaders())
++        {
++            ShadersTex.updatingTex = this.getMultiTexID();
++        }
+ 
++        boolean flag3 = false;
++        boolean flag4 = false;
++        TextureUtil.func_94277_a(this.func_110552_b());
++
++        for (TextureAtlasSprite textureatlassprite6 : this.field_94258_i)
++        {
++            if (this.isTerrainAnimationActive(textureatlassprite6))
++            {
++                textureatlassprite6.func_94219_l();
++
++                if (textureatlassprite6.spriteNormal != null)
++                {
++                    flag3 = true;
++                }
++
++                if (textureatlassprite6.spriteSpecular != null)
++                {
++                    flag4 = true;
++                }
++            }
++        }
++
++        if (Config.isMultiTexture())
++        {
++            for (TextureAtlasSprite textureatlassprite8 : this.field_94258_i)
++            {
++                if (this.isTerrainAnimationActive(textureatlassprite8))
++                {
++                    TextureAtlasSprite textureatlassprite7 = textureatlassprite8.spriteSingle;
++
++                    if (textureatlassprite7 != null)
++                    {
++                        if (textureatlassprite8 == TextureUtils.iconClock || textureatlassprite8 == TextureUtils.iconCompass)
++                        {
++                            textureatlassprite7.field_110973_g = textureatlassprite8.field_110973_g;
++                        }
++
++                        textureatlassprite8.bindSpriteTexture();
++                        textureatlassprite7.func_94219_l();
++                    }
++                }
++            }
++
++            TextureUtil.func_94277_a(this.func_110552_b());
++        }
++
++        if (Config.isShaders())
++        {
++            if (flag3)
++            {
++                TextureUtil.func_94277_a(this.getMultiTexID().norm);
++
++                for (TextureAtlasSprite textureatlassprite9 : this.field_94258_i)
++                {
++                    if (textureatlassprite9.spriteNormal != null && this.isTerrainAnimationActive(textureatlassprite9))
++                    {
++                        if (textureatlassprite9 == TextureUtils.iconClock || textureatlassprite9 == TextureUtils.iconCompass)
++                        {
++                            textureatlassprite9.spriteNormal.field_110973_g = textureatlassprite9.field_110973_g;
++                        }
++
++                        textureatlassprite9.spriteNormal.func_94219_l();
++                    }
++                }
++            }
++
++            if (flag4)
++            {
++                TextureUtil.func_94277_a(this.getMultiTexID().spec);
++
++                for (TextureAtlasSprite textureatlassprite10 : this.field_94258_i)
++                {
++                    if (textureatlassprite10.spriteSpecular != null && this.isTerrainAnimationActive(textureatlassprite10))
++                    {
++                        if (textureatlassprite10 == TextureUtils.iconClock || textureatlassprite10 == TextureUtils.iconCompass)
++                        {
++                            textureatlassprite10.spriteNormal.field_110973_g = textureatlassprite10.field_110973_g;
++                        }
++
++                        textureatlassprite10.spriteSpecular.func_94219_l();
++                    }
++                }
++            }
++
++            if (flag3 || flag4)
++            {
++                TextureUtil.func_94277_a(this.func_110552_b());
++            }
++        }
++
++        if (Config.isShaders())
++        {
++            ShadersTex.updatingTex = null;
++        }
++    }
++
+     public TextureAtlasSprite func_174942_a(ResourceLocation p_174942_1_)
+     {
+         if (p_174942_1_ == null)
+@@ -292,12 +1008,18 @@
          }
          else
          {
@@ -199,7 +980,18 @@
  
              if (textureatlassprite == null)
              {
-@@ -318,4 +397,52 @@
+                 textureatlassprite = TextureAtlasSprite.func_176604_a(p_174942_1_);
+                 this.field_110574_e.put(p_174942_1_.toString(), textureatlassprite);
++                //op add
++                if (textureatlassprite.getIndexInMap() < 0)
++                {
++                    textureatlassprite.setIndexInMap(this.counterIndexInMap++);
++                }
++                //op end
+             }
+ 
+             return textureatlassprite;
+@@ -318,4 +1040,329 @@
      {
          return this.field_94249_f;
      }
@@ -237,6 +1029,12 @@
 +        if (!field_110574_e.containsKey(name))
 +        {
 +            field_110574_e.put(name, entry);
++            //op add
++            if (entry.getIndexInMap() < 0)
++            {
++                entry.setIndexInMap(this.counterIndexInMap++);
++            }
++            //op end
 +            return true;
 +        }
 +        return false;
@@ -250,5 +1048,276 @@
 +    public int getMipmapLevels()
 +    {
 +        return field_147636_j;
++    }
++    
++    
++    //op add
++    private boolean isAbsoluteLocation(ResourceLocation p_isAbsoluteLocation_1_)
++    {
++        String s1 = p_isAbsoluteLocation_1_.func_110623_a();
++        return this.isAbsoluteLocationPath(s1);
++    }
++
++    private boolean isAbsoluteLocationPath(String p_isAbsoluteLocationPath_1_)
++    {
++        String s1 = p_isAbsoluteLocationPath_1_.toLowerCase();
++        return s1.startsWith("mcpatcher/") || s1.startsWith("optifine/");
++    }
++
++    public TextureAtlasSprite getSpriteSafe(String p_getSpriteSafe_1_)
++    {
++        ResourceLocation resourcelocation1 = new ResourceLocation(p_getSpriteSafe_1_);
++        return this.field_110574_e.get(resourcelocation1.toString());
++    }
++
++    public TextureAtlasSprite getRegisteredSprite(ResourceLocation p_getRegisteredSprite_1_)
++    {
++        return this.field_110574_e.get(p_getRegisteredSprite_1_.toString());
++    }
++
++    private boolean isTerrainAnimationActive(TextureAtlasSprite p_isTerrainAnimationActive_1_)
++    {
++        if (p_isTerrainAnimationActive_1_ != TextureUtils.iconWaterStill && p_isTerrainAnimationActive_1_ != TextureUtils.iconWaterFlow)
++        {
++            if (p_isTerrainAnimationActive_1_ != TextureUtils.iconLavaStill && p_isTerrainAnimationActive_1_ != TextureUtils.iconLavaFlow)
++            {
++                if (p_isTerrainAnimationActive_1_ != TextureUtils.iconFireLayer0 && p_isTerrainAnimationActive_1_ != TextureUtils.iconFireLayer1)
++                {
++                    if (p_isTerrainAnimationActive_1_ == TextureUtils.iconPortal)
++                    {
++                        return Config.isAnimatedPortal();
++                    }
++                    else
++                    {
++                        return p_isTerrainAnimationActive_1_ != TextureUtils.iconClock && p_isTerrainAnimationActive_1_ != TextureUtils.iconCompass ? Config.isAnimatedTerrain() : true;
++                    }
++                }
++                else
++                {
++                    return Config.isAnimatedFire();
++                }
++            }
++            else
++            {
++                return Config.isAnimatedLava();
++            }
++        }
++        else
++        {
++            return Config.isAnimatedWater();
++        }
++    }
++
++    public int getCountRegisteredSprites()
++    {
++        return this.counterIndexInMap;
++    }
++
++    private int detectMaxMipmapLevel(Map p_detectMaxMipmapLevel_1_, IResourceManager p_detectMaxMipmapLevel_2_)
++    {
++        int k3 = this.detectMinimumSpriteSize(p_detectMaxMipmapLevel_1_, p_detectMaxMipmapLevel_2_, 20);
++
++        if (k3 < 16)
++        {
++            k3 = 16;
++        }
++
++        k3 = MathHelper.func_151236_b(k3);
++
++        if (k3 > 16)
++        {
++            Config.log("Sprite size: " + k3);
++        }
++
++        int l3 = MathHelper.func_151239_c(k3);
++
++        if (l3 < 4)
++        {
++            l3 = 4;
++        }
++
++        return l3;
++    }
++
++    private int detectMinimumSpriteSize(Map p_detectMinimumSpriteSize_1_, IResourceManager p_detectMinimumSpriteSize_2_, int p_detectMinimumSpriteSize_3_)
++    {
++        Map map1 = new HashMap();
++
++        for (Object entry : p_detectMinimumSpriteSize_1_.entrySet())
++        {
++            TextureAtlasSprite textureatlassprite6 = (TextureAtlasSprite)((Entry) entry).getValue();
++            ResourceLocation resourcelocation1 = new ResourceLocation(textureatlassprite6.func_94215_i());
++            ResourceLocation resourcelocation2 = this.completeResourceLocation(resourcelocation1);
++
++            if (!textureatlassprite6.hasCustomLoader(p_detectMinimumSpriteSize_2_, resourcelocation1))
++            {
++                try
++                {
++                    IResource iresource1 = p_detectMinimumSpriteSize_2_.func_110536_a(resourcelocation2);
++
++                    if (iresource1 != null)
++                    {
++                        InputStream inputstream = iresource1.func_110527_b();
++
++                        if (inputstream != null)
++                        {
++                            Dimension dimension = TextureUtils.getImageSize(inputstream, "png");
++
++                            if (dimension != null)
++                            {
++                                int k3 = dimension.width;
++                                int l3 = MathHelper.func_151236_b(k3);
++
++                                if (!map1.containsKey(Integer.valueOf(l3)))
++                                {
++                                    map1.put(Integer.valueOf(l3), Integer.valueOf(1));
++                                }
++                                else
++                                {
++                                    int i4 = ((Integer)map1.get(Integer.valueOf(l3))).intValue();
++                                    map1.put(Integer.valueOf(l3), Integer.valueOf(i4 + 1));
++                                }
++                            }
++                        }
++                    }
++                }
++                catch (Exception var17)
++                {
++                    ;
++                }
++            }
++        }
++
++        int j4 = 0;
++        Set set = map1.keySet();
++        Set set1 = new TreeSet(set);
++        int j5;
++
++        for (Iterator iterator = set1.iterator(); iterator.hasNext(); j4 += j5)
++        {
++            int l4 = ((Integer)iterator.next()).intValue();
++            j5 = ((Integer)map1.get(Integer.valueOf(l4))).intValue();
++        }
++
++        int k4 = 16;
++        int i5 = 0;
++        j5 = j4 * p_detectMinimumSpriteSize_3_ / 100;
++        Iterator iterator1 = set1.iterator();
++
++        while (iterator1.hasNext())
++        {
++            int k5 = ((Integer)iterator1.next()).intValue();
++            int l5 = ((Integer)map1.get(Integer.valueOf(k5))).intValue();
++            i5 += l5;
++
++            if (k5 > k4)
++            {
++                k4 = k5;
++            }
++
++            if (i5 > j5)
++            {
++                return k4;
++            }
++        }
++
++        return k4;
++    }
++
++    private int getMinSpriteSize()
++    {
++        int k3 = 1 << this.field_147636_j;
++
++        if (k3 < 8)
++        {
++            k3 = 8;
++        }
++
++        return k3;
++    }
++
++    private int[] getMissingImageData(int p_getMissingImageData_1_)
++    {
++        BufferedImage bufferedimage = new BufferedImage(16, 16, 2);
++        bufferedimage.setRGB(0, 0, 16, 16, TextureUtil.field_110999_b, 0, 16);
++        BufferedImage bufferedimage1 = TextureUtils.scaleToPowerOfTwo(bufferedimage, p_getMissingImageData_1_);
++        int[] aint = new int[p_getMissingImageData_1_ * p_getMissingImageData_1_];
++        bufferedimage1.getRGB(0, 0, p_getMissingImageData_1_, p_getMissingImageData_1_, aint, 0, p_getMissingImageData_1_);
++        return aint;
++    }
++
++    public boolean isTextureBound()
++    {
++        int k3 = GlStateManager.getBoundTexture();
++        int l3 = this.func_110552_b();
++        return k3 == l3;
++    }
++
++    private void updateIconGrid(int p_updateIconGrid_1_, int p_updateIconGrid_2_)
++    {
++        this.iconGridCountX = -1;
++        this.iconGridCountY = -1;
++        this.iconGrid = null;
++
++        if (this.iconGridSize > 0)
++        {
++            this.iconGridCountX = p_updateIconGrid_1_ / this.iconGridSize;
++            this.iconGridCountY = p_updateIconGrid_2_ / this.iconGridSize;
++            this.iconGrid = new TextureAtlasSprite[this.iconGridCountX * this.iconGridCountY];
++            this.iconGridSizeU = 1.0D / (double)this.iconGridCountX;
++            this.iconGridSizeV = 1.0D / (double)this.iconGridCountY;
++
++            for (TextureAtlasSprite textureatlassprite6 : this.field_94252_e.values())
++            {
++                double d0 = 0.5D / (double)p_updateIconGrid_1_;
++                double d1 = 0.5D / (double)p_updateIconGrid_2_;
++                double d2 = (double)Math.min(textureatlassprite6.func_94209_e(), textureatlassprite6.func_94212_f()) + d0;
++                double d3 = (double)Math.min(textureatlassprite6.func_94206_g(), textureatlassprite6.func_94210_h()) + d1;
++                double d4 = (double)Math.max(textureatlassprite6.func_94209_e(), textureatlassprite6.func_94212_f()) - d0;
++                double d5 = (double)Math.max(textureatlassprite6.func_94206_g(), textureatlassprite6.func_94210_h()) - d1;
++                int k3 = (int)(d2 / this.iconGridSizeU);
++                int l3 = (int)(d3 / this.iconGridSizeV);
++                int i4 = (int)(d4 / this.iconGridSizeU);
++                int j4 = (int)(d5 / this.iconGridSizeV);
++
++                for (int k4 = k3; k4 <= i4; ++k4)
++                {
++                    if (k4 >= 0 && k4 < this.iconGridCountX)
++                    {
++                        for (int l4 = l3; l4 <= j4; ++l4)
++                        {
++                            if (l4 >= 0 && l4 < this.iconGridCountX)
++                            {
++                                int i5 = l4 * this.iconGridCountX + k4;
++                                this.iconGrid[i5] = textureatlassprite6;
++                            }
++                            else
++                            {
++                                Config.warn("Invalid grid V: " + l4 + ", icon: " + textureatlassprite6.func_94215_i());
++                            }
++                        }
++                    }
++                    else
++                    {
++                        Config.warn("Invalid grid U: " + k4 + ", icon: " + textureatlassprite6.func_94215_i());
++                    }
++                }
++            }
++        }
++    }
++
++    public TextureAtlasSprite getIconByUV(double p_getIconByUV_1_, double p_getIconByUV_3_)
++    {
++        if (this.iconGrid == null)
++        {
++            return null;
++        }
++        else
++        {
++            int k3 = (int)(p_getIconByUV_1_ / this.iconGridSizeU);
++            int l3 = (int)(p_getIconByUV_3_ / this.iconGridSizeV);
++            int i4 = l3 * this.iconGridCountX + k3;
++            return i4 >= 0 && i4 <= this.iconGrid.length ? this.iconGrid[i4] : null;
++        }
 +    }
  }

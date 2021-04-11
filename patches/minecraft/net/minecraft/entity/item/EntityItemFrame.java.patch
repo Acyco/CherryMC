@@ -54,11 +54,11 @@
 +            //  down    0       -1      90          0
 +            
 +            
-+            System.out.println("ishorizontal: " + facingDirectionIn.func_176740_k().func_176722_c());
-+            System.out.println("facing index : " + this.field_174860_b.func_176745_a());
-+            System.out.println("facingIn axis offset: " + facingDirectionIn.func_176743_c().func_179524_a());
-+            System.out.println("prevRotationPitch: " + this.field_70127_C);
-+            System.out.println("prevRotationYaw: " + this.field_70126_B);
++      /*      System.out.println("ishorizontal: " + facingDirectionIn.getAxis().isHorizontal());
++            System.out.println("facing index : " + this.facingDirection.getIndex());
++            System.out.println("facingIn axis offset: " + facingDirectionIn.getAxisDirection().getOffset());
++            System.out.println("prevRotationPitch: " + this.prevRotationPitch);
++            System.out.println("prevRotationYaw: " + this.prevRotationYaw);*/
 +
 +            this.func_174856_o();
 +         
@@ -97,8 +97,8 @@
 +                x1 /= 32.0D;
 +                y1 /= 32.0D;
 +                z1 /= 32.0D;
-+                System.out.println("getAxis" + this.field_174860_b.func_176740_k());
-+                System.out.println("x,y,z,x1,y1,z1: "+x+","+y+","+z+","+x1+","+y1+","+z1);
++                //System.out.println("getAxis" + this.facingDirection.getAxis());
++                //System.out.println("x,y,z,x1,y1,z1: "+x+","+y+","+z+","+x1+","+y1+","+z1);
 +                this.func_174826_a(new AxisAlignedBB(x - x1, y - y1, z - z1, x + x1, y + y1, z + z1));
 +            }
 +          

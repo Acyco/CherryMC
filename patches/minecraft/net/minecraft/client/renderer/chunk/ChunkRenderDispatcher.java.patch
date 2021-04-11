@@ -17,3 +17,68 @@
  
          if (j > 1)
          {
+@@ -217,14 +223,14 @@
+         return this.field_178519_d.take();
+     }
+ 
+-    public boolean func_178509_c(RenderChunk p_178509_1_)
++    public boolean updateTransparencyLaterO(RenderChunk chunkRenderer)
+     {
+-        p_178509_1_.func_178579_c().lock();
++        chunkRenderer.func_178579_c().lock();
+         boolean flag;
+ 
+         try
+         {
+-            final ChunkCompileTaskGenerator chunkcompiletaskgenerator = p_178509_1_.func_178582_e();
++            final ChunkCompileTaskGenerator chunkcompiletaskgenerator = chunkRenderer.func_178582_e();
+ 
+             if (chunkcompiletaskgenerator == null)
+             {
+@@ -243,12 +249,45 @@
+         }
+         finally
+         {
+-            p_178509_1_.func_178579_c().unlock();
++            chunkRenderer.func_178579_c().unlock();
+         }
+ 
+         return flag;
+     }
+ 
++    public boolean func_178509_c(RenderChunk p_178509_1_)
++    {
++        p_178509_1_.func_178579_c().lock();
++        boolean flag1;
++
++        try
++        {
++            final ChunkCompileTaskGenerator chunkcompiletaskgenerator = p_178509_1_.func_178582_e();
++
++            if (chunkcompiletaskgenerator != null)
++            {
++                chunkcompiletaskgenerator.func_178539_a(new Runnable()
++                {
++                    public void run()
++                    {
++                        ChunkRenderDispatcher.this.field_178519_d.remove(chunkcompiletaskgenerator);
++                    }
++                });
++                boolean flag2 = this.field_178519_d.offer(chunkcompiletaskgenerator);
++                return flag2;
++            }
++
++            boolean flag = true;
++            flag1 = flag;
++        }
++        finally
++        {
++            p_178509_1_.func_178579_c().unlock();
++        }
++
++        return flag1;
++    }
++    
+     public ListenableFuture<Object> func_188245_a(final BlockRenderLayer p_188245_1_, final BufferBuilder p_188245_2_, final RenderChunk p_188245_3_, final CompiledChunk p_188245_4_, final double p_188245_5_)
+     {
+         if (Minecraft.func_71410_x().func_152345_ab())

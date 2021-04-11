@@ -1,0 +1,53 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/entity/Render.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/entity/Render.java
+@@ -24,15 +24,21 @@
+ import net.minecraft.world.World;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import net.optifine.entity.model.IEntityRenderer;
+ 
+ @SideOnly(Side.CLIENT)
+-public abstract class Render<T extends Entity>
++public abstract class Render<T extends Entity> implements IEntityRenderer
+ {
+     private static final ResourceLocation field_110778_a = new ResourceLocation("textures/misc/shadow.png");
+     protected final RenderManager field_76990_c;
+-    protected float field_76989_e;
++    //op public
++    public float field_76989_e;
+     protected float field_76987_f = 1.0F;
+     protected boolean field_188301_f;
++    
++    //op add
++    private Class entityClass = null;
++    private ResourceLocation locationTextureCustom = null;
+ 
+     protected Render(RenderManager p_i46179_1_)
+     {
+@@ -361,4 +367,26 @@
+     public void func_188300_b(T p_188300_1_, double p_188300_2_, double p_188300_4_, double p_188300_6_, float p_188300_8_, float p_188300_9_)
+     {
+     }
++    
++    //op add
++    public Class getEntityClass()
++    {
++        return this.entityClass;
++    }
++
++    public void setEntityClass(Class p_setEntityClass_1_)
++    {
++        this.entityClass = p_setEntityClass_1_;
++    }
++
++    public ResourceLocation getLocationTextureCustom()
++    {
++        return this.locationTextureCustom;
++    }
++
++    public void setLocationTextureCustom(ResourceLocation p_setLocationTextureCustom_1_)
++    {
++        this.locationTextureCustom = p_setLocationTextureCustom_1_;
++    }
++    //op end
+ }

@@ -1,0 +1,58 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/vertex/DefaultVertexFormats.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/vertex/DefaultVertexFormats.java
+@@ -2,12 +2,19 @@
+ 
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.Reflector;
++import shadersmod.client.SVertexFormat;
+ 
+ @SideOnly(Side.CLIENT)
+ public class DefaultVertexFormats
+ {
+-    public static final VertexFormat field_176600_a = new VertexFormat();
+-    public static final VertexFormat field_176599_b = new VertexFormat();
++    public static  VertexFormat field_176600_a = new VertexFormat();// op remove final
++    public static  VertexFormat field_176599_b = new VertexFormat();// op remove final
++//op add 2
++    private static final VertexFormat BLOCK_VANILLA = field_176600_a;
++    private static final VertexFormat ITEM_VANILLA = field_176599_b;
++    
+     public static final VertexFormat field_181703_c = new VertexFormat();
+     public static final VertexFormat field_181704_d = new VertexFormat();
+     public static final VertexFormat field_181705_e = new VertexFormat();
+@@ -25,6 +32,33 @@
+     public static final VertexFormatElement field_181717_q = new VertexFormatElement(0, VertexFormatElement.EnumType.BYTE, VertexFormatElement.EnumUsage.NORMAL, 3);
+     public static final VertexFormatElement field_181718_r = new VertexFormatElement(0, VertexFormatElement.EnumType.BYTE, VertexFormatElement.EnumUsage.PADDING, 1);
+ 
++    //op shaders
++    public static void updateVertexFormats()
++    {
++        if (Config.isShaders())
++        {
++            field_176600_a = SVertexFormat.makeDefVertexFormatBlock();
++            field_176599_b = SVertexFormat.makeDefVertexFormatItem();
++        }
++        else
++        {
++            field_176600_a = BLOCK_VANILLA;
++            field_176599_b = ITEM_VANILLA;
++        }
++
++        if (Reflector.Attributes_DEFAULT_BAKED_FORMAT.exists())
++        {
++            VertexFormat vertexformat = field_176599_b;
++            VertexFormat vertexformat1 = (VertexFormat)Reflector.getFieldValue(Reflector.Attributes_DEFAULT_BAKED_FORMAT);
++            vertexformat1.func_177339_a();
++
++            for (int i = 0; i < vertexformat.func_177345_h(); ++i)
++            {
++                vertexformat1.func_181721_a(vertexformat.func_177348_c(i));
++            }
++        }
++    }
++
+     static
+     {
+         field_176600_a.func_181721_a(field_181713_m);

@@ -1,6 +1,18 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/block/model/FaceBakery.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/block/model/FaceBakery.java
-@@ -49,14 +49,19 @@
+@@ -8,9 +8,11 @@
+ import net.minecraft.util.math.Vec3i;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
+ import org.lwjgl.util.vector.Matrix4f;
+ import org.lwjgl.util.vector.Vector3f;
+ import org.lwjgl.util.vector.Vector4f;
++import shadersmod.client.Shaders;
+ 
+ @SideOnly(Side.CLIENT)
+ public class FaceBakery
+@@ -49,14 +51,19 @@
  
      public BakedQuad func_178414_a(Vector3f p_178414_1_, Vector3f p_178414_2_, BlockPartFace p_178414_3_, TextureAtlasSprite p_178414_4_, EnumFacing p_178414_5_, ModelRotation p_178414_6_, @Nullable BlockPartRotation p_178414_7_, boolean p_178414_8_, boolean p_178414_9_)
      {
@@ -22,7 +34,7 @@
          EnumFacing enumfacing = func_178410_a(aint);
  
          if (p_178414_7_ == null)
-@@ -64,7 +69,8 @@
+@@ -64,7 +71,8 @@
              this.func_178408_a(aint, enumfacing);
          }
  
@@ -32,7 +44,7 @@
      }
  
      private BlockFaceUV func_188010_a(BlockFaceUV p_188010_1_, EnumFacing p_188010_2_, ModelRotation p_188010_3_)
-@@ -74,11 +80,16 @@
+@@ -74,11 +82,16 @@
  
      private int[] func_188012_a(BlockFaceUV p_188012_1_, TextureAtlasSprite p_188012_2_, EnumFacing p_188012_3_, float[] p_188012_4_, ModelRotation p_188012_5_, @Nullable BlockPartRotation p_188012_6_, boolean p_188012_7_)
      {
@@ -50,7 +62,66 @@
          }
  
          return aint;
-@@ -124,12 +135,17 @@
+@@ -90,10 +103,10 @@
+         int i = MathHelper.func_76125_a((int)(f * 255.0F), 0, 255);
+         return -16777216 | i << 16 | i << 8 | i;
+     }
+-
+-    private float func_178412_b(EnumFacing p_178412_1_)
++// op public static
++/*    public static float getFaceBrightness(EnumFacing facing)
+     {
+-        switch (p_178412_1_)
++        switch (facing)
+         {
+             case DOWN:
+                 return 0.5F;
+@@ -108,7 +121,44 @@
+             default:
+                 return 1.0F;
+         }
++    }*/
++public static float func_178412_b(EnumFacing p_178412_1_)
++{
++    switch (p_178412_1_)
++    {
++        case DOWN:
++            if (Config.isShaders())
++            {
++                return Shaders.blockLightLevel05;
++            }
++
++            return 0.5F;
++
++        case UP:
++            return 1.0F;
++
++        case NORTH:
++        case SOUTH:
++            if (Config.isShaders())
++            {
++                return Shaders.blockLightLevel08;
++            }
++
++            return 0.8F;
++
++        case WEST:
++        case EAST:
++            if (Config.isShaders())
++            {
++                return Shaders.blockLightLevel06;
++            }
++
++            return 0.6F;
++
++        default:
++            return 1.0F;
+     }
++}
+ 
+     private float[] func_178403_a(Vector3f p_178403_1_, Vector3f p_178403_2_)
+     {
+@@ -124,12 +174,17 @@
  
      private void func_188015_a(int[] p_188015_1_, int p_188015_2_, EnumFacing p_188015_3_, BlockFaceUV p_188015_4_, float[] p_188015_5_, TextureAtlasSprite p_188015_6_, ModelRotation p_188015_7_, @Nullable BlockPartRotation p_188015_8_, boolean p_188015_9_)
      {
@@ -70,7 +141,7 @@
          this.func_178404_a(p_188015_1_, j, p_188015_2_, vector3f, i, p_188015_6_, p_188015_4_);
      }
  
-@@ -140,8 +156,8 @@
+@@ -140,8 +195,8 @@
          p_178404_1_[i + 1] = Float.floatToRawIntBits(p_178404_4_.y);
          p_178404_1_[i + 2] = Float.floatToRawIntBits(p_178404_4_.z);
          p_178404_1_[i + 3] = p_178404_5_;
@@ -81,7 +152,7 @@
      }
  
      private void func_178407_a(Vector3f p_178407_1_, @Nullable BlockPartRotation p_178407_2_)
-@@ -190,14 +206,19 @@
+@@ -190,14 +245,19 @@
  
      public int func_188011_a(Vector3f p_188011_1_, EnumFacing p_188011_2_, int p_188011_3_, ModelRotation p_188011_4_)
      {

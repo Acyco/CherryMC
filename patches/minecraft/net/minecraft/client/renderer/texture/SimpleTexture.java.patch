@@ -1,0 +1,31 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/texture/SimpleTexture.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/texture/SimpleTexture.java
+@@ -9,9 +9,11 @@
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
+ import org.apache.commons.io.IOUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import shadersmod.client.ShadersTex;
+ 
+ @SideOnly(Side.CLIENT)
+ public class SimpleTexture extends AbstractTexture
+@@ -54,7 +56,15 @@
+                 }
+             }
+ 
+-            TextureUtil.func_110989_a(this.func_110552_b(), bufferedimage, flag, flag1);
++            //TextureUtil.uploadTextureImageAllocate(this.getGlTextureId(), bufferedimage, flag, flag1);
++            if (Config.isShaders())
++            {
++                ShadersTex.loadSimpleTexture(this.func_110552_b(), bufferedimage, flag, flag1, p_110551_1_, this.field_110568_b, this.getMultiTexID());
++            }
++            else
++            {
++                TextureUtil.func_110989_a(this.func_110552_b(), bufferedimage, flag, flag1);
++            }
+         }
+         finally
+         {

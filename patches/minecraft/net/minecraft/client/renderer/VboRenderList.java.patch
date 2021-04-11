@@ -1,0 +1,37 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/VboRenderList.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/VboRenderList.java
+@@ -5,6 +5,8 @@
+ import net.minecraft.util.BlockRenderLayer;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import shadersmod.client.ShadersRender;
+ 
+ @SideOnly(Side.CLIENT)
+ public class VboRenderList extends ChunkRenderContainer
+@@ -33,11 +35,19 @@
+ 
+     private void func_178010_a()
+     {
+-        GlStateManager.func_187420_d(3, 5126, 28, 0);
+-        GlStateManager.func_187406_e(4, 5121, 28, 12);
+-        GlStateManager.func_187405_c(2, 5126, 28, 16);
+-        OpenGlHelper.func_77472_b(OpenGlHelper.field_77476_b);
+-        GlStateManager.func_187405_c(2, 5122, 28, 24);
+-        OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
++        //op add
++        if (Config.isShaders())
++        {
++            ShadersRender.setupArrayPointersVbo();
++        }
++        else {
++            //op end
++            GlStateManager.func_187420_d(3, 5126, 28, 0);
++            GlStateManager.func_187406_e(4, 5121, 28, 12);
++            GlStateManager.func_187405_c(2, 5126, 28, 16);
++            OpenGlHelper.func_77472_b(OpenGlHelper.field_77476_b);
++            GlStateManager.func_187405_c(2, 5122, 28, 24);
++            OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
++        }//op add
+     }
+ }

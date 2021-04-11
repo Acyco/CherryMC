@@ -266,7 +266,7 @@
 +    }
 +
 +
-+    // 下面全是forge 添加的
++    // ä¸é¢å¨æ¯forge æ·»å ç
 +    @Override
 +    public boolean hasCapability(net.minecraftforge.common.capabilities.Capability<?> capability, @Nullable net.minecraft.util.EnumFacing facing)
 +    {

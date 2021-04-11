@@ -1,14 +1,17 @@
 --- ../src-base/minecraft/net/minecraft/client/model/TexturedQuad.java
 +++ ../src-work/minecraft/net/minecraft/client/model/TexturedQuad.java
-@@ -7,7 +7,6 @@
+@@ -6,8 +6,9 @@
+ import net.minecraft.util.math.Vec3d;
  import net.minecraftforge.fml.relauncher.Side;
  import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import shadersmod.client.SVertexFormat;
  
 -@SideOnly(Side.CLIENT)
  public class TexturedQuad
  {
      public PositionTextureVertex[] field_78239_a;
-@@ -43,6 +42,7 @@
+@@ -43,6 +44,7 @@
          this.field_78239_a = apositiontexturevertex;
      }
  
@@ -16,3 +19,23 @@
      public void func_178765_a(BufferBuilder p_178765_1_, float p_178765_2_)
      {
          Vec3d vec3d = this.field_78239_a[1].field_78243_a.func_72444_a(this.field_78239_a[0].field_78243_a);
+@@ -59,7 +61,18 @@
+             f2 = -f2;
+         }
+ 
+-        p_178765_1_.func_181668_a(7, DefaultVertexFormats.field_181703_c);
++        //renderer.begin(7, DefaultVertexFormats.OLDMODEL_POSITION_TEX_NORMAL);
++        //op add
++        if (Config.isShaders())
++        {
++            p_178765_1_.func_181668_a(7, SVertexFormat.defVertexFormatTextured);
++        }
++        else
++        {
++            p_178765_1_.func_181668_a(7, DefaultVertexFormats.field_181703_c);
++        }
++        
++        //op end
+ 
+         for (int i = 0; i < 4; ++i)
+         {

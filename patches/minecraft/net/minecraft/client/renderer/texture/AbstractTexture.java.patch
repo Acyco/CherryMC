@@ -1,0 +1,41 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/texture/AbstractTexture.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/texture/AbstractTexture.java
+@@ -3,6 +3,8 @@
+ import net.minecraft.client.renderer.GlStateManager;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import shadersmod.client.MultiTexID;
++import shadersmod.client.ShadersTex;
+ 
+ @SideOnly(Side.CLIENT)
+ public abstract class AbstractTexture implements ITextureObject
+@@ -12,7 +14,11 @@
+     protected boolean field_174941_c;
+     protected boolean field_174938_d;
+     protected boolean field_174939_e;
++    
++    //op add
++    public MultiTexID multiTex;
+ 
++
+     public void func_174937_a(boolean p_174937_1_, boolean p_174937_2_)
+     {
+         this.field_174940_b = p_174937_1_;
+@@ -31,6 +37,7 @@
+             j = 9728;
+         }
+ 
++        GlStateManager.func_179144_i(this.func_110552_b());
+         GlStateManager.func_187421_b(3553, 10241, i);
+         GlStateManager.func_187421_b(3553, 10240, j);
+     }
+@@ -65,4 +72,9 @@
+             this.field_110553_a = -1;
+         }
+     }
++
++    public MultiTexID getMultiTexID()
++    {
++        return ShadersTex.getMultiTexID(this);
++    }
+ }

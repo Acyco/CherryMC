@@ -1,6 +1,39 @@
 --- ../src-base/minecraft/net/minecraft/client/entity/AbstractClientPlayer.java
 +++ ../src-work/minecraft/net/minecraft/client/entity/AbstractClientPlayer.java
-@@ -135,7 +135,7 @@
+@@ -20,6 +20,8 @@
+ import net.minecraft.world.World;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.CapeUtils;
++import optifine.PlayerConfigurations;
+ 
+ @SideOnly(Side.CLIENT)
+ public abstract class AbstractClientPlayer extends EntityPlayer
+@@ -28,10 +30,23 @@
+     public float field_184835_a;
+     public float field_184836_b;
+     public float field_184837_c;
++    private ResourceLocation locationOfCape = null;
++    private String nameClear = null;
++    private static final ResourceLocation TEXTURE_ELYTRA = new ResourceLocation("textures/entity/elytra.png");
+ 
+     public AbstractClientPlayer(World p_i45074_1_, GameProfile p_i45074_2_)
+     {
+         super(p_i45074_1_, p_i45074_2_);
++        //op add
++        this.nameClear = p_i45074_2_.getName();
++
++        if (this.nameClear != null && !this.nameClear.isEmpty())
++        {
++            this.nameClear = StringUtils.func_76338_a(this.nameClear);
++        }
++
++        CapeUtils.downloadCape(this);
++        PlayerConfigurations.getPlayerConfiguration(this);
+     }
+ 
+     public boolean func_175149_v()
+@@ -135,7 +150,7 @@
              f = 1.0F;
          }
  
@@ -9,11 +42,43 @@
          {
              int i = this.func_184612_cw();
              float f1 = (float)i / 20.0F;
-@@ -152,6 +152,6 @@
+@@ -152,6 +167,38 @@
              f *= 1.0F - f1 * 0.15F;
          }
  
 -        return f;
 +        return net.minecraftforge.client.ForgeHooksClient.getOffsetFOV(this, f);
      }
++    
++    //op add
++    public String getNameClear()
++    {
++        return this.nameClear;
++    }
++
++    public ResourceLocation getLocationOfCape()
++    {
++        return this.locationOfCape;
++    }
++
++    public void setLocationOfCape(ResourceLocation p_setLocationOfCape_1_)
++    {
++        this.locationOfCape = p_setLocationOfCape_1_;
++    }
++
++    public boolean hasElytraCape()
++    {
++        ResourceLocation resourcelocation = this.func_110303_q();
++
++        if (resourcelocation == null)
++        {
++            return false;
++        }
++        else
++        {
++            return resourcelocation != this.locationOfCape;
++        }
++    }
++
++    //op end
  }

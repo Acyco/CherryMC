@@ -1,6 +1,14 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/OpenGlHelper.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/OpenGlHelper.java
-@@ -93,6 +93,10 @@
+@@ -13,6 +13,7 @@
+ import net.minecraft.util.Util;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ import org.lwjgl.Sys;
+@@ -93,8 +94,13 @@
      public static int field_176089_P;
      public static int field_148826_e;
  
@@ -10,8 +18,11 @@
 +
      public static void func_77474_a()
      {
++        Config.initDisplay();
          ContextCapabilities contextcapabilities = GLContext.getCapabilities();
-@@ -853,6 +857,12 @@
+         field_153215_z = contextcapabilities.GL_ARB_multitexture && !contextcapabilities.OpenGL13;
+         field_176088_V = contextcapabilities.GL_ARB_texture_env_combine && !contextcapabilities.OpenGL13;
+@@ -853,6 +859,12 @@
          {
              GL13.glMultiTexCoord2f(p_77475_0_, p_77475_1_, p_77475_2_);
          }

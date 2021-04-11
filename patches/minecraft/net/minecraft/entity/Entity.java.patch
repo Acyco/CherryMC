@@ -23,7 +23,7 @@
 +    
      public float field_70126_B;
      public float field_70127_C;
-+    //碰撞箱
++    //ç¢°æç®±
      private AxisAlignedBB field_70121_D;
      public boolean field_70122_E;
      public boolean field_70123_F;
@@ -39,7 +39,7 @@
      public Entity(World p_i1582_1_)
      {
 -        this.field_145783_c = field_70152_a++;
-+        this.field_145783_c = field_70152_a++;//实体id
++        this.field_145783_c = field_70152_a++;//å®ä½id
          this.field_184244_h = Lists.<Entity>newArrayList();
          this.field_70121_D = field_174836_a;
          this.field_70130_N = 0.6F;
@@ -82,7 +82,7 @@
      }
  
 +    
-+    /** 调整位置到碰撞箱 */
++    /** è°æ´ä½ç½®å°ç¢°æç®± */
      public void func_174829_m()
      {
          AxisAlignedBB axisalignedbb = this.func_174813_aQ();

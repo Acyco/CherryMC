@@ -1,0 +1,80 @@
+--- ../src-base/minecraft/net/minecraft/client/renderer/texture/DynamicTexture.java
++++ ../src-work/minecraft/net/minecraft/client/renderer/texture/DynamicTexture.java
+@@ -5,6 +5,8 @@
+ import net.minecraft.client.resources.IResourceManager;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import shadersmod.client.ShadersTex;
+ 
+ @SideOnly(Side.CLIENT)
+ public class DynamicTexture extends AbstractTexture
+@@ -12,6 +14,8 @@
+     private final int[] field_110566_b;
+     private final int field_94233_j;
+     private final int field_94234_k;
++    //op
++    private boolean shadersInitialized;
+ 
+     public DynamicTexture(BufferedImage p_i1270_1_)
+     {
+@@ -22,10 +26,34 @@
+ 
+     public DynamicTexture(int p_i1271_1_, int p_i1271_2_)
+     {
++       /* this.shadersInitialized = false;///op add
++        this.width = textureWidth;
++        this.height = textureHeight;
++        this.dynamicTextureData = new int[textureWidth * textureHeight];
++        //TextureUtil.allocateTexture(this.getGlTextureId(), textureWidth, textureHeight);
++        if (Config.isShaders())
++        {
++            ShadersTex.initDynamicTexture(this.getGlTextureId(), textureWidth, textureHeight, this);
++            this.shadersInitialized = true;
++        }
++        else
++        {
++            TextureUtil.allocateTexture(this.getGlTextureId(), textureWidth, textureHeight);
++        }*/
++        this.shadersInitialized = false;
+         this.field_94233_j = p_i1271_1_;
+         this.field_94234_k = p_i1271_2_;
+-        this.field_110566_b = new int[p_i1271_1_ * p_i1271_2_];
+-        TextureUtil.func_110991_a(this.func_110552_b(), p_i1271_1_, p_i1271_2_);
++        this.field_110566_b = new int[p_i1271_1_ * p_i1271_2_ * 3];
++
++        if (Config.isShaders())
++        {
++            ShadersTex.initDynamicTexture(this.func_110552_b(), p_i1271_1_, p_i1271_2_, this);
++            this.shadersInitialized = true;
++        }
++        else
++        {
++            TextureUtil.func_110991_a(this.func_110552_b(), p_i1271_1_, p_i1271_2_);
++        }
+     }
+ 
+     public void func_110551_a(IResourceManager p_110551_1_) throws IOException
+@@ -34,7 +62,21 @@
+ 
+     public void func_110564_a()
+     {
+-        TextureUtil.func_110988_a(this.func_110552_b(), this.field_110566_b, this.field_94233_j, this.field_94234_k);
++        //TextureUtil.uploadTexture(this.getGlTextureId(), this.dynamicTextureData, this.width, this.height);
++        if (Config.isShaders())
++        {
++            if (!this.shadersInitialized)
++            {
++                ShadersTex.initDynamicTexture(this.func_110552_b(), this.field_94233_j, this.field_94234_k, this);
++                this.shadersInitialized = true;
++            }
++
++            ShadersTex.updateDynamicTexture(this.func_110552_b(), this.field_110566_b, this.field_94233_j, this.field_94234_k, this);
++        }
++        else
++        {
++            TextureUtil.func_110988_a(this.func_110552_b(), this.field_110566_b, this.field_94233_j, this.field_94234_k);
++        }
+     }
+ 
+     public int[] func_110565_c()

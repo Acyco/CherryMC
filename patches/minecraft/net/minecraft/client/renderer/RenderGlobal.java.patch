@@ -1,8 +1,326 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/RenderGlobal.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/RenderGlobal.java
-@@ -553,8 +553,10 @@
+@@ -6,8 +6,15 @@
+ import com.google.common.collect.Sets;
+ import com.google.gson.JsonSyntaxException;
+ import java.io.IOException;
++import java.util.ArrayDeque;
++import java.util.ArrayList;
++import java.util.Arrays;
+ import java.util.Collection;
++import java.util.Collections;
++import java.util.Deque;
++import java.util.HashSet;
+ import java.util.Iterator;
++import java.util.LinkedHashSet;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Queue;
+@@ -15,6 +22,8 @@
+ import java.util.Set;
+ import java.util.function.Supplier;
+ import javax.annotation.Nullable;
++
++import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.BlockChest;
+ import net.minecraft.block.BlockEnderChest;
+@@ -26,6 +35,7 @@
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.audio.ISound;
+ import net.minecraft.client.audio.PositionedSoundRecord;
++import net.minecraft.client.gui.FontRenderer;
+ import net.minecraft.client.multiplayer.WorldClient;
+ import net.minecraft.client.particle.Particle;
+ import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+@@ -67,6 +77,7 @@
+ import net.minecraft.item.ItemRecord;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.tileentity.TileEntityChest;
++import net.minecraft.tileentity.TileEntitySign;
+ import net.minecraft.util.BlockRenderLayer;
+ import net.minecraft.util.ClassInheritanceMultiMap;
+ import net.minecraft.util.EnumFacing;
+@@ -80,16 +91,33 @@
+ import net.minecraft.util.math.MathHelper;
+ import net.minecraft.util.math.RayTraceResult;
+ import net.minecraft.util.math.Vec3d;
++import net.minecraft.world.DimensionType;
+ import net.minecraft.world.IWorldEventListener;
+ import net.minecraft.world.World;
++import net.minecraft.world.WorldProvider;
+ import net.minecraft.world.border.WorldBorder;
+ import net.minecraft.world.chunk.Chunk;
++import net.minecraft.world.chunk.IChunkProvider;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.ChunkUtils;
++import optifine.CloudRenderer;
++import optifine.Config;
++import optifine.CustomColors;
++import optifine.CustomSky;
++import optifine.DynamicLights;
++import optifine.Lagometer;
++import optifine.Reflector;
++import optifine.RenderEnv;
++import optifine.RenderInfoLazy;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import org.lwjgl.input.Keyboard;
+ import org.lwjgl.util.vector.Vector3f;
+ import org.lwjgl.util.vector.Vector4f;
++import shadersmod.client.Shaders;
++import shadersmod.client.ShadersRender;
++import shadersmod.client.ShadowUtils;
  
-     public void func_180446_a(Entity p_180446_1_, ICamera p_180446_2_, float p_180446_3_)
+ @SideOnly(Side.CLIENT)
+ public class RenderGlobal implements IWorldEventListener, IResourceManagerReloadListener
+@@ -116,7 +144,8 @@
+     private VertexBuffer field_175012_t;
+     private VertexBuffer field_175011_u;
+     private int field_72773_u;
+-    private final Map<Integer, DestroyBlockProgress> field_72738_E = Maps.<Integer, DestroyBlockProgress>newHashMap();
++    // op public
++    public final Map<Integer, DestroyBlockProgress> field_72738_E = Maps.<Integer, DestroyBlockProgress>newHashMap();
+     private final Map<BlockPos, ISound> field_147593_P = Maps.<BlockPos, ISound>newHashMap();
+     private final TextureAtlasSprite[] field_94141_F = new TextureAtlasSprite[10];
+     private Framebuffer field_175015_z;
+@@ -148,12 +177,47 @@
+     private double field_147596_f;
+     private double field_147597_g;
+     private double field_147602_h;
+-    private boolean field_147595_R = true;
++    /// op public
++    public boolean field_147595_R = true;
+     private boolean field_184386_ad;
+     private final Set<BlockPos> field_184387_ae = Sets.<BlockPos>newHashSet();
++    //op add
+ 
++    private CloudRenderer cloudRenderer;
++    public Entity renderedEntity;
++    public Set chunksToResortTransparency = new LinkedHashSet();
++    public Set chunksToUpdateForced = new LinkedHashSet();
++    private Deque visibilityDeque = new ArrayDeque();
++    private List renderInfosEntities = new ArrayList(1024);
++    private List renderInfosTileEntities = new ArrayList(1024);
++    private List renderInfosNormal = new ArrayList(1024);
++    private List renderInfosEntitiesNormal = new ArrayList(1024);
++    private List renderInfosTileEntitiesNormal = new ArrayList(1024);
++    private List renderInfosShadow = new ArrayList(1024);
++    private List renderInfosEntitiesShadow = new ArrayList(1024);
++    private List renderInfosTileEntitiesShadow = new ArrayList(1024);
++    private int renderDistance = 0;
++    private int renderDistanceSq = 0;
++    private static final Set SET_ALL_FACINGS = Collections.unmodifiableSet(new HashSet(Arrays.asList(EnumFacing.field_82609_l)));
++    private int countTileEntitiesRendered;
++    private IChunkProvider worldChunkProvider = null;
++    private Long2ObjectMap<Chunk> worldChunkProviderMap = null;
++    private int countLoadedChunksPrev = 0;
++    private RenderEnv renderEnv;
++    public boolean renderOverlayDamaged;
++    public boolean renderOverlayEyes;
++    static Deque<ContainerLocalRenderInformation> renderInfoCache = new ArrayDeque<ContainerLocalRenderInformation>();
++
++
++
+     public RenderGlobal(Minecraft p_i1249_1_)
+     {
++        //op add 
++        this.renderEnv = new RenderEnv(this.field_72769_h, Blocks.field_150350_a.func_176223_P(), new BlockPos(0, 0, 0));
++        this.renderOverlayDamaged = false;
++        this.renderOverlayEyes = false;
++        this.cloudRenderer = new CloudRenderer(p_i1249_1_);
++        //end
+         this.field_72777_q = p_i1249_1_;
+         this.field_175010_j = p_i1249_1_.func_175598_ae();
+         this.field_72770_i = p_i1249_1_.func_110434_K();
+@@ -245,11 +309,56 @@
+         }
+     }
+ 
+-    protected boolean func_174985_d()
++    protected boolean isRenderEntityOutlines0()
+     {
+         return this.field_175015_z != null && this.field_174991_A != null && this.field_72777_q.field_71439_g != null;
+     }
++    protected boolean func_174985_d()
++    {
++        if (!Config.isFastRender() && !Config.isShaders() && !Config.isAntialiasing())
++        {
++            return this.field_175015_z != null && this.field_174991_A != null && this.field_72777_q.field_71439_g != null;
++        }
++        else
++        {
++            return false;
++        }
++    }
+ 
++    private void generateSky2O()
++    {
++        Tessellator tessellator = Tessellator.func_178181_a();
++        BufferBuilder bufferbuilder = tessellator.func_178180_c();
++
++        if (this.field_175011_u != null)
++        {
++            this.field_175011_u.func_177362_c();
++        }
++
++        if (this.field_72781_x >= 0)
++        {
++            GLAllocation.func_74523_b(this.field_72781_x);
++            this.field_72781_x = -1;
++        }
++
++        if (this.field_175005_X)
++        {
++            this.field_175011_u = new VertexBuffer(this.field_175014_r);
++            this.func_174968_a(bufferbuilder, -16.0F, true);
++            bufferbuilder.func_178977_d();
++            bufferbuilder.func_178965_a();
++            this.field_175011_u.func_181722_a(bufferbuilder.func_178966_f());
++        }
++        else
++        {
++            this.field_72781_x = GLAllocation.func_74526_a(1);
++            GlStateManager.func_187423_f(this.field_72781_x, 4864);
++            this.func_174968_a(bufferbuilder, -16.0F, true);
++            tessellator.func_78381_a();
++            GlStateManager.func_187415_K();
++        }
++    }
++
+     private void func_174964_o()
+     {
+         Tessellator tessellator = Tessellator.func_178181_a();
+@@ -283,7 +392,39 @@
+             GlStateManager.func_187415_K();
+         }
+     }
++    private void generateSkyO()
++    {
++        Tessellator tessellator = Tessellator.func_178181_a();
++        BufferBuilder bufferbuilder = tessellator.func_178180_c();
+ 
++        if (this.field_175012_t != null)
++        {
++            this.field_175012_t.func_177362_c();
++        }
++
++        if (this.field_72771_w >= 0)
++        {
++            GLAllocation.func_74523_b(this.field_72771_w);
++            this.field_72771_w = -1;
++        }
++
++        if (this.field_175005_X)
++        {
++            this.field_175012_t = new VertexBuffer(this.field_175014_r);
++            this.func_174968_a(bufferbuilder, 16.0F, false);
++            bufferbuilder.func_178977_d();
++            bufferbuilder.func_178965_a();
++            this.field_175012_t.func_181722_a(bufferbuilder.func_178966_f());
++        }
++        else
++        {
++            this.field_72771_w = GLAllocation.func_74526_a(1);
++            GlStateManager.func_187423_f(this.field_72771_w, 4864);
++            this.func_174968_a(bufferbuilder, 16.0F, false);
++            tessellator.func_78381_a();
++            GlStateManager.func_187415_K();
++        }
++    }
+     private void func_174980_p()
+     {
+         Tessellator tessellator = Tessellator.func_178181_a();
+@@ -318,6 +459,32 @@
+         }
+     }
+ 
++    private void renderSkyO(BufferBuilder bufferBuilderIn, float posY, boolean reverseX)
++    {
++        int i = 64;
++        int j = 6;
++        bufferBuilderIn.func_181668_a(7, DefaultVertexFormats.field_181705_e);
++
++        for (int k = -384; k <= 384; k += 64)
++        {
++            for (int l = -384; l <= 384; l += 64)
++            {
++                float f = (float)k;
++                float f1 = (float)(k + 64);
++
++                if (reverseX)
++                {
++                    f1 = (float)k;
++                    f = (float)(k + 64);
++                }
++
++                bufferBuilderIn.func_181662_b((double)f, (double)posY, (double)l).func_181675_d();
++                bufferBuilderIn.func_181662_b((double)f1, (double)posY, (double)l).func_181675_d();
++                bufferBuilderIn.func_181662_b((double)f1, (double)posY, (double)(l + 64)).func_181675_d();
++                bufferBuilderIn.func_181662_b((double)f, (double)posY, (double)(l + 64)).func_181675_d();
++            }
++        }
++    }
+     private void func_174968_a(BufferBuilder p_174968_1_, float p_174968_2_, boolean p_174968_3_)
+     {
+         int i = 64;
+@@ -447,6 +614,14 @@
+         this.field_175010_j.func_78717_a(p_72732_1_);
+         this.field_72769_h = p_72732_1_;
+ 
++        //op add
++        if (Config.isDynamicLights())
++        {
++            DynamicLights.clear();
++        }
++
++        //op end
++        
+         if (p_72732_1_ != null)
+         {
+             p_72732_1_.func_72954_a(this);
+@@ -480,14 +655,31 @@
+             {
+                 this.field_174995_M = new ChunkRenderDispatcher();
+             }
++/*
++            this.displayListEntitiesDirty = true;
++            Blocks.LEAVES.setGraphicsLevel(this.mc.gameSettings.fancyGraphics);
++            Blocks.LEAVES2.setGraphicsLevel(this.mc.gameSettings.fancyGraphics);
++            this.renderDistanceChunks = this.mc.gameSettings.renderDistanceChunks;
++            boolean flag = this.vboEnabled;
++            this.vboEnabled = OpenGlHelper.useVbo();*/
+ 
+             this.field_147595_R = true;
+-            Blocks.field_150362_t.func_150122_b(this.field_72777_q.field_71474_y.field_74347_j);
+-            Blocks.field_150361_u.func_150122_b(this.field_72777_q.field_71474_y.field_74347_j);
++            Blocks.field_150362_t.func_150122_b(Config.isTreesFancy());
++            Blocks.field_150361_u.func_150122_b(Config.isTreesFancy());
++            BlockModelRenderer.updateAoLightValue();
++            renderInfoCache.clear();
++
++            if (Config.isDynamicLights())
++            {
++                DynamicLights.clear();
++            }
++
+             this.field_72739_F = this.field_72777_q.field_71474_y.field_151451_c;
++            this.renderDistance = this.field_72739_F * 16;
++            this.renderDistanceSq = this.renderDistance * this.renderDistance;
+             boolean flag = this.field_175005_X;
+             this.field_175005_X = OpenGlHelper.func_176075_f();
+-
++            
+             if (flag && !this.field_175005_X)
+             {
+                 this.field_174996_N = new RenderList();
+@@ -551,27 +743,32 @@
+         }
+     }
+ 
+-    public void func_180446_a(Entity p_180446_1_, ICamera p_180446_2_, float p_180446_3_)
++    public void renderEntitiesO(Entity renderViewEntity, ICamera camera, float partialTicks)
      {
 +        int pass = net.minecraftforge.client.MinecraftForgeClient.getRenderPass();
          if (this.field_72740_G > 0)
@@ -11,10 +329,18 @@
              --this.field_72740_G;
          }
          else
-@@ -565,9 +567,12 @@
+         {
+-            double d0 = p_180446_1_.field_70169_q + (p_180446_1_.field_70165_t - p_180446_1_.field_70169_q) * (double)p_180446_3_;
+-            double d1 = p_180446_1_.field_70167_r + (p_180446_1_.field_70163_u - p_180446_1_.field_70167_r) * (double)p_180446_3_;
+-            double d2 = p_180446_1_.field_70166_s + (p_180446_1_.field_70161_v - p_180446_1_.field_70166_s) * (double)p_180446_3_;
++            double d0 = renderViewEntity.field_70169_q + (renderViewEntity.field_70165_t - renderViewEntity.field_70169_q) * (double)partialTicks;
++            double d1 = renderViewEntity.field_70167_r + (renderViewEntity.field_70163_u - renderViewEntity.field_70167_r) * (double)partialTicks;
++            double d2 = renderViewEntity.field_70166_s + (renderViewEntity.field_70161_v - renderViewEntity.field_70166_s) * (double)partialTicks;
              this.field_72769_h.field_72984_F.func_76320_a("prepare");
-             TileEntityRendererDispatcher.field_147556_a.func_190056_a(this.field_72769_h, this.field_72777_q.func_110434_K(), this.field_72777_q.field_71466_p, this.field_72777_q.func_175606_aa(), this.field_72777_q.field_71476_x, p_180446_3_);
-             this.field_175010_j.func_180597_a(this.field_72769_h, this.field_72777_q.field_71466_p, this.field_72777_q.func_175606_aa(), this.field_72777_q.field_147125_j, this.field_72777_q.field_71474_y, p_180446_3_);
+-            TileEntityRendererDispatcher.field_147556_a.func_190056_a(this.field_72769_h, this.field_72777_q.func_110434_K(), this.field_72777_q.field_71466_p, this.field_72777_q.func_175606_aa(), this.field_72777_q.field_71476_x, p_180446_3_);
+-            this.field_175010_j.func_180597_a(this.field_72769_h, this.field_72777_q.field_71466_p, this.field_72777_q.func_175606_aa(), this.field_72777_q.field_147125_j, this.field_72777_q.field_71474_y, p_180446_3_);
++            TileEntityRendererDispatcher.field_147556_a.func_190056_a(this.field_72769_h, this.field_72777_q.func_110434_K(), this.field_72777_q.field_71466_p, this.field_72777_q.func_175606_aa(), this.field_72777_q.field_71476_x, partialTicks);
++            this.field_175010_j.func_180597_a(this.field_72769_h, this.field_72777_q.field_71466_p, this.field_72777_q.func_175606_aa(), this.field_72777_q.field_147125_j, this.field_72777_q.field_71474_y, partialTicks);
 +            if(pass == 0)
 +            {
              this.field_72748_H = 0;
@@ -22,9 +348,16 @@
              this.field_72750_J = 0;
 +            }
              Entity entity = this.field_72777_q.func_175606_aa();
-             double d3 = entity.field_70142_S + (entity.field_70165_t - entity.field_70142_S) * (double)p_180446_3_;
-             double d4 = entity.field_70137_T + (entity.field_70163_u - entity.field_70137_T) * (double)p_180446_3_;
-@@ -579,11 +584,15 @@
+-            double d3 = entity.field_70142_S + (entity.field_70165_t - entity.field_70142_S) * (double)p_180446_3_;
+-            double d4 = entity.field_70137_T + (entity.field_70163_u - entity.field_70137_T) * (double)p_180446_3_;
+-            double d5 = entity.field_70136_U + (entity.field_70161_v - entity.field_70136_U) * (double)p_180446_3_;
++            double d3 = entity.field_70142_S + (entity.field_70165_t - entity.field_70142_S) * (double)partialTicks;
++            double d4 = entity.field_70137_T + (entity.field_70163_u - entity.field_70137_T) * (double)partialTicks;
++            double d5 = entity.field_70136_U + (entity.field_70161_v - entity.field_70136_U) * (double)partialTicks;
+             TileEntityRendererDispatcher.field_147554_b = d3;
+             TileEntityRendererDispatcher.field_147555_c = d4;
+             TileEntityRendererDispatcher.field_147552_d = d5;
+@@ -579,16 +776,20 @@
              this.field_72777_q.field_71460_t.func_180436_i();
              this.field_72769_h.field_72984_F.func_76318_c("global");
              List<Entity> list = this.field_72769_h.func_72910_y();
@@ -40,15 +373,40 @@
                  ++this.field_72749_I;
  
                  if (entity1.func_145770_h(d0, d1, d2))
-@@ -606,6 +615,7 @@
+                 {
+-                    this.field_175010_j.func_188388_a(entity1, p_180446_3_, false);
++                    this.field_175010_j.func_188388_a(entity1, partialTicks, false);
+                 }
+             }
+ 
+@@ -606,7 +807,8 @@
                  {
                      for (Entity entity2 : classinheritancemultimap)
                      {
+-                        boolean flag = this.field_175010_j.func_178635_a(entity2, p_180446_2_, d0, d1, d2) || entity2.func_184215_y(this.field_72777_q.field_71439_g);
 +                        if(!entity2.shouldRenderInPass(pass)) continue;
-                         boolean flag = this.field_175010_j.func_178635_a(entity2, p_180446_2_, d0, d1, d2) || entity2.func_184215_y(this.field_72777_q.field_71439_g);
++                        boolean flag = this.field_175010_j.func_178635_a(entity2, camera, d0, d1, d2) || entity2.func_184215_y(this.field_72777_q.field_71439_g);
  
                          if (flag)
-@@ -642,6 +652,7 @@
+                         {
+@@ -615,9 +817,9 @@
+                             if ((entity2 != this.field_72777_q.func_175606_aa() || this.field_72777_q.field_71474_y.field_74320_O != 0 || flag1) && (entity2.field_70163_u < 0.0D || entity2.field_70163_u >= 256.0D || this.field_72769_h.func_175667_e(blockpos$pooledmutableblockpos.func_189535_a(entity2))))
+                             {
+                                 ++this.field_72749_I;
+-                                this.field_175010_j.func_188388_a(entity2, p_180446_3_, false);
++                                this.field_175010_j.func_188388_a(entity2, partialTicks, false);
+ 
+-                                if (this.func_184383_a(entity2, entity, p_180446_2_))
++                                if (this.func_184383_a(entity2, entity, camera))
+                                 {
+                                     list1.add(entity2);
+                                 }
+@@ -638,10 +840,11 @@
+             {
+                 for (Entity entity3 : list2)
+                 {
+-                    this.field_175010_j.func_188389_a(entity3, p_180446_3_);
++                    this.field_175010_j.func_188389_a(entity3, partialTicks);
                  }
              }
  
@@ -56,7 +414,23 @@
              if (this.func_174985_d() && (!list1.isEmpty() || this.field_184386_ad))
              {
                  this.field_72769_h.field_72984_F.func_76318_c("entityOutlines");
-@@ -681,6 +692,7 @@
+@@ -658,13 +861,13 @@
+ 
+                     for (int j = 0; j < list1.size(); ++j)
+                     {
+-                        this.field_175010_j.func_188388_a(list1.get(j), p_180446_3_, false);
++                        this.field_175010_j.func_188388_a(list1.get(j), partialTicks, false);
+                     }
+ 
+                     this.field_175010_j.func_178632_c(false);
+                     RenderHelper.func_74519_b();
+                     GlStateManager.func_179132_a(false);
+-                    this.field_174991_A.func_148018_a(p_180446_3_);
++                    this.field_174991_A.func_148018_a(partialTicks);
+                     GlStateManager.func_179145_e();
+                     GlStateManager.func_179132_a(true);
+                     GlStateManager.func_179127_m();
+@@ -681,6 +884,7 @@
              this.field_72769_h.field_72984_F.func_76318_c("blockentities");
              RenderHelper.func_74519_b();
  
@@ -64,36 +438,571 @@
              for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1 : this.field_72755_R)
              {
                  List<TileEntity> list3 = renderglobal$containerlocalrenderinformation1.field_178036_a.func_178571_g().func_178485_b();
-@@ -689,6 +701,7 @@
+@@ -689,7 +893,8 @@
                  {
                      for (TileEntity tileentity2 : list3)
                      {
-+                        if (!tileentity2.shouldRenderInPass(pass) || !p_180446_2_.func_78546_a(tileentity2.getRenderBoundingBox())) continue;
-                         TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity2, p_180446_3_, -1);
+-                        TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity2, p_180446_3_, -1);
++                        if (!tileentity2.shouldRenderInPass(pass) || !camera.func_78546_a(tileentity2.getRenderBoundingBox())) continue;
++                        TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity2, partialTicks, -1);
                      }
                  }
-@@ -698,9 +711,11 @@
+             }
+@@ -698,9 +903,11 @@
              {
                  for (TileEntity tileentity : this.field_181024_n)
                  {
-+                    if (!tileentity.shouldRenderInPass(pass) || !p_180446_2_.func_78546_a(tileentity.getRenderBoundingBox())) continue;
-                     TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity, p_180446_3_, -1);
+-                    TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity, p_180446_3_, -1);
++                    if (!tileentity.shouldRenderInPass(pass) || !camera.func_78546_a(tileentity.getRenderBoundingBox())) continue;
++                    TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity, partialTicks, -1);
                  }
              }
 +            TileEntityRendererDispatcher.field_147556_a.drawBatch(pass);
  
              this.func_180443_s();
  
-@@ -895,7 +910,7 @@
+@@ -732,7 +939,7 @@
+ 
+                     if (tileentity1 != null && iblockstate.func_191057_i())
+                     {
+-                        TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity1, p_180446_3_, destroyblockprogress.func_73106_e());
++                        TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity1, partialTicks, destroyblockprogress.func_73106_e());
+                     }
+                 }
+             }
+@@ -743,6 +950,393 @@
+         }
+     }
+ 
++    public void func_180446_a(Entity p_180446_1_, ICamera p_180446_2_, float p_180446_3_)
++    {
++        int i = 0;
++
++        if (Reflector.MinecraftForgeClient_getRenderPass.exists())
++        {
++            i = Reflector.callInt(Reflector.MinecraftForgeClient_getRenderPass);
++        }
++
++        if (this.field_72740_G > 0)
++        {
++            if (i > 0)
++            {
++                return;
++            }
++
++            --this.field_72740_G;
++        }
++        else
++        {
++            double d0 = p_180446_1_.field_70169_q + (p_180446_1_.field_70165_t - p_180446_1_.field_70169_q) * (double)p_180446_3_;
++            double d1 = p_180446_1_.field_70167_r + (p_180446_1_.field_70163_u - p_180446_1_.field_70167_r) * (double)p_180446_3_;
++            double d2 = p_180446_1_.field_70166_s + (p_180446_1_.field_70161_v - p_180446_1_.field_70166_s) * (double)p_180446_3_;
++            this.field_72769_h.field_72984_F.func_76320_a("prepare");
++            TileEntityRendererDispatcher.field_147556_a.func_190056_a(this.field_72769_h, this.field_72777_q.func_110434_K(), this.field_72777_q.field_71466_p, this.field_72777_q.func_175606_aa(), this.field_72777_q.field_71476_x, p_180446_3_);
++            this.field_175010_j.func_180597_a(this.field_72769_h, this.field_72777_q.field_71466_p, this.field_72777_q.func_175606_aa(), this.field_72777_q.field_147125_j, this.field_72777_q.field_71474_y, p_180446_3_);
++
++            if (i == 0)
++            {
++                this.field_72748_H = 0;
++                this.field_72749_I = 0;
++                this.field_72750_J = 0;
++                this.countTileEntitiesRendered = 0;
++            }
++
++            Entity entity = this.field_72777_q.func_175606_aa();
++            double d3 = entity.field_70142_S + (entity.field_70165_t - entity.field_70142_S) * (double)p_180446_3_;
++            double d4 = entity.field_70137_T + (entity.field_70163_u - entity.field_70137_T) * (double)p_180446_3_;
++            double d5 = entity.field_70136_U + (entity.field_70161_v - entity.field_70136_U) * (double)p_180446_3_;
++            TileEntityRendererDispatcher.field_147554_b = d3;
++            TileEntityRendererDispatcher.field_147555_c = d4;
++            TileEntityRendererDispatcher.field_147552_d = d5;
++            this.field_175010_j.func_178628_a(d3, d4, d5);
++            this.field_72777_q.field_71460_t.func_180436_i();
++            this.field_72769_h.field_72984_F.func_76318_c("global");
++            List<Entity> list = this.field_72769_h.func_72910_y();
++
++            if (i == 0)
++            {
++                this.field_72748_H = list.size();
++            }
++
++            if (Config.isFogOff() && this.field_72777_q.field_71460_t.fogStandard)
++            {
++                GlStateManager.func_179106_n();
++            }
++
++            boolean flag = Reflector.ForgeEntity_shouldRenderInPass.exists();
++            boolean flag1 = Reflector.ForgeTileEntity_shouldRenderInPass.exists();
++
++            for (int j = 0; j < this.field_72769_h.field_73007_j.size(); ++j)
++            {
++                Entity entity1 = this.field_72769_h.field_73007_j.get(j);
++
++                if (!flag || Reflector.callBoolean(entity1, Reflector.ForgeEntity_shouldRenderInPass, i))
++                {
++                    ++this.field_72749_I;
++
++                    if (entity1.func_145770_h(d0, d1, d2))
++                    {
++                        this.field_175010_j.func_188388_a(entity1, p_180446_3_, false);
++                    }
++                }
++            }
++
++            this.field_72769_h.field_72984_F.func_76318_c("entities");
++            boolean flag4 = Config.isShaders();
++
++            if (flag4)
++            {
++                Shaders.beginEntities();
++            }
++
++            boolean flag5 = this.field_72777_q.field_71474_y.field_74347_j;
++            this.field_72777_q.field_71474_y.field_74347_j = Config.isDroppedItemsFancy();
++            List<Entity> list1 = Lists.<Entity>newArrayList();
++            List<Entity> list2 = Lists.<Entity>newArrayList();
++            BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos = BlockPos.PooledMutableBlockPos.func_185346_s();
++
++            for (Object renderglobal$containerlocalrenderinformation0 : this.renderInfosEntities)
++            {
++                ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation = (ContainerLocalRenderInformation) renderglobal$containerlocalrenderinformation0;
++                Chunk chunk = renderglobal$containerlocalrenderinformation.field_178036_a.getChunk(this.field_72769_h);
++                ClassInheritanceMultiMap<Entity> classinheritancemultimap = chunk.func_177429_s()[renderglobal$containerlocalrenderinformation.field_178036_a.func_178568_j().func_177956_o() / 16];
++
++                if (!classinheritancemultimap.isEmpty())
++                {
++                    for (Entity entity2 : classinheritancemultimap)
++                    {
++                        if (!flag || Reflector.callBoolean(entity2, Reflector.ForgeEntity_shouldRenderInPass, i))
++                        {
++                            boolean flag2 = this.field_175010_j.func_178635_a(entity2, p_180446_2_, d0, d1, d2) || entity2.func_184215_y(this.field_72777_q.field_71439_g);
++
++                            if (flag2)
++                            {
++                                boolean flag3 = this.field_72777_q.func_175606_aa() instanceof EntityLivingBase ? ((EntityLivingBase)this.field_72777_q.func_175606_aa()).func_70608_bn() : false;
++
++                                if ((entity2 != this.field_72777_q.func_175606_aa() || this.field_72777_q.field_71474_y.field_74320_O != 0 || flag3) && (entity2.field_70163_u < 0.0D || entity2.field_70163_u >= 256.0D || this.field_72769_h.func_175667_e(blockpos$pooledmutableblockpos.func_189535_a(entity2))))
++                                {
++                                    ++this.field_72749_I;
++                                    this.renderedEntity = entity2;
++
++                                    if (flag4)
++                                    {
++                                        Shaders.nextEntity(entity2);
++                                    }
++
++                                    this.field_175010_j.func_188388_a(entity2, p_180446_3_, false);
++                                    this.renderedEntity = null;
++
++                                    if (this.func_184383_a(entity2, entity, p_180446_2_))
++                                    {
++                                        list1.add(entity2);
++                                    }
++
++                                    if (this.field_175010_j.func_188390_b(entity2))
++                                    {
++                                        list2.add(entity2);
++                                    }
++                                }
++                            }
++                        }
++                    }
++                }
++            }
++
++            blockpos$pooledmutableblockpos.func_185344_t();
++
++            if (!list2.isEmpty())
++            {
++                for (Entity entity3 : list2)
++                {
++                    if (!flag || Reflector.callBoolean(entity3, Reflector.ForgeEntity_shouldRenderInPass, i))
++                    {
++                        if (flag4)
++                        {
++                            Shaders.nextEntity(entity3);
++                        }
++
++                        this.field_175010_j.func_188389_a(entity3, p_180446_3_);
++                    }
++                }
++            }
++
++            if (i == 0 && this.func_174985_d() && (!list1.isEmpty() || this.field_184386_ad))
++            {
++                this.field_72769_h.field_72984_F.func_76318_c("entityOutlines");
++                this.field_175015_z.func_147614_f();
++                this.field_184386_ad = !list1.isEmpty();
++
++                if (!list1.isEmpty())
++                {
++                    GlStateManager.func_179143_c(519);
++                    GlStateManager.func_179106_n();
++                    this.field_175015_z.func_147610_a(false);
++                    RenderHelper.func_74518_a();
++                    this.field_175010_j.func_178632_c(true);
++
++                    for (int k = 0; k < list1.size(); ++k)
++                    {
++                        Entity entity4 = list1.get(k);
++
++                        if (!flag || Reflector.callBoolean(entity4, Reflector.ForgeEntity_shouldRenderInPass, i))
++                        {
++                            if (flag4)
++                            {
++                                Shaders.nextEntity(entity4);
++                            }
++
++                            this.field_175010_j.func_188388_a(entity4, p_180446_3_, false);
++                        }
++                    }
++
++                    this.field_175010_j.func_178632_c(false);
++                    RenderHelper.func_74519_b();
++                    GlStateManager.func_179132_a(false);
++                    this.field_174991_A.func_148018_a(p_180446_3_);
++                    GlStateManager.func_179145_e();
++                    GlStateManager.func_179132_a(true);
++                    GlStateManager.func_179127_m();
++                    GlStateManager.func_179147_l();
++                    GlStateManager.func_179142_g();
++                    GlStateManager.func_179143_c(515);
++                    GlStateManager.func_179126_j();
++                    GlStateManager.func_179141_d();
++                }
++
++                this.field_72777_q.func_147110_a().func_147610_a(false);
++            }
++
++            if (!this.func_174985_d() && (!list1.isEmpty() || this.field_184386_ad))
++            {
++                this.field_72769_h.field_72984_F.func_76318_c("entityOutlines");
++                this.field_184386_ad = !list1.isEmpty();
++
++                if (!list1.isEmpty())
++                {
++                    GlStateManager.func_179106_n();
++                    GlStateManager.func_179097_i();
++                    this.field_72777_q.field_71460_t.func_175072_h();
++                    RenderHelper.func_74518_a();
++                    this.field_175010_j.func_178632_c(true);
++
++                    for (int l = 0; l < list1.size(); ++l)
++                    {
++                        Entity entity5 = list1.get(l);
++
++                        if (!flag || Reflector.callBoolean(entity5, Reflector.ForgeEntity_shouldRenderInPass, i))
++                        {
++                            if (flag4)
++                            {
++                                Shaders.nextEntity(entity5);
++                            }
++
++                            this.field_175010_j.func_188388_a(entity5, p_180446_3_, false);
++                        }
++                    }
++
++                    this.field_175010_j.func_178632_c(false);
++                    RenderHelper.func_74519_b();
++                    this.field_72777_q.field_71460_t.func_180436_i();
++                    GlStateManager.func_179126_j();
++                    GlStateManager.func_179127_m();
++                }
++            }
++
++            this.field_72777_q.field_71474_y.field_74347_j = flag5;
++            FontRenderer fontrenderer = TileEntityRendererDispatcher.field_147556_a.func_147548_a();
++
++            if (flag4)
++            {
++                Shaders.endEntities();
++                Shaders.beginBlockEntities();
++            }
++
++            this.field_72769_h.field_72984_F.func_76318_c("blockentities");
++            RenderHelper.func_74519_b();
++
++            if (Reflector.ForgeTileEntity_hasFastRenderer.exists())
++            {
++                TileEntityRendererDispatcher.field_147556_a.preDrawBatch();
++            }
++
++            label251:
++
++            for (Object renderglobal$containerlocalrenderinformation10 : this.renderInfosTileEntities)
++            {
++                ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1 = (ContainerLocalRenderInformation) renderglobal$containerlocalrenderinformation10;
++                List<TileEntity> list3 = renderglobal$containerlocalrenderinformation1.field_178036_a.func_178571_g().func_178485_b();
++
++                if (!list3.isEmpty())
++                {
++                    Iterator iterator = list3.iterator();
++
++                    while (true)
++                    {
++                        TileEntity tileentity1;
++
++                        while (true)
++                        {
++                            if (!iterator.hasNext())
++                            {
++                                continue label251;
++                            }
++
++                            tileentity1 = (TileEntity)iterator.next();
++
++                            if (!flag1)
++                            {
++                                break;
++                            }
++
++                            if (Reflector.callBoolean(tileentity1, Reflector.ForgeTileEntity_shouldRenderInPass, i))
++                            {
++                                AxisAlignedBB axisalignedbb = (AxisAlignedBB)Reflector.call(tileentity1, Reflector.ForgeTileEntity_getRenderBoundingBox);
++
++                                if (axisalignedbb == null || p_180446_2_.func_78546_a(axisalignedbb))
++                                {
++                                    break;
++                                }
++                            }
++                        }
++
++                        Class oclass = tileentity1.getClass();
++
++                        if (oclass == TileEntitySign.class && !Config.zoomMode)
++                        {
++                            EntityPlayer entityplayer = this.field_72777_q.field_71439_g;
++                            double d6 = tileentity1.func_145835_a(entityplayer.field_70165_t, entityplayer.field_70163_u, entityplayer.field_70161_v);
++
++                            if (d6 > 256.0D)
++                            {
++                                fontrenderer.enabled = false;
++                            }
++                        }
++
++                        if (flag4)
++                        {
++                            Shaders.nextBlockEntity(tileentity1);
++                        }
++
++                        TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity1, p_180446_3_, -1);
++                        ++this.countTileEntitiesRendered;
++                        fontrenderer.enabled = true;
++                    }
++                }
++            }
++
++            synchronized (this.field_181024_n)
++            {
++                for (TileEntity tileentity : this.field_181024_n)
++                {
++                    if (!flag1 || Reflector.callBoolean(tileentity, Reflector.ForgeTileEntity_shouldRenderInPass, i))
++                    {
++                        if (flag4)
++                        {
++                            Shaders.nextBlockEntity(tileentity);
++                        }
++
++                        TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity, p_180446_3_, -1);
++                    }
++                }
++            }
++
++            if (Reflector.ForgeTileEntity_hasFastRenderer.exists())
++            {
++                TileEntityRendererDispatcher.field_147556_a.drawBatch(i);
++            }
++
++            this.renderOverlayDamaged = true;
++            this.func_180443_s();
++
++            for (DestroyBlockProgress destroyblockprogress : this.field_72738_E.values())
++            {
++                BlockPos blockpos = destroyblockprogress.func_180246_b();
++
++                if (this.field_72769_h.func_180495_p(blockpos).func_177230_c().func_149716_u())
++                {
++                    TileEntity tileentity2 = this.field_72769_h.func_175625_s(blockpos);
++
++                    if (tileentity2 instanceof TileEntityChest)
++                    {
++                        TileEntityChest tileentitychest = (TileEntityChest)tileentity2;
++
++                        if (tileentitychest.field_145991_k != null)
++                        {
++                            blockpos = blockpos.func_177972_a(EnumFacing.WEST);
++                            tileentity2 = this.field_72769_h.func_175625_s(blockpos);
++                        }
++                        else if (tileentitychest.field_145992_i != null)
++                        {
++                            blockpos = blockpos.func_177972_a(EnumFacing.NORTH);
++                            tileentity2 = this.field_72769_h.func_175625_s(blockpos);
++                        }
++                    }
++
++                    IBlockState iblockstate = this.field_72769_h.func_180495_p(blockpos);
++
++                    if (tileentity2 != null && iblockstate.func_191057_i())
++                    {
++                        if (flag4)
++                        {
++                            Shaders.nextBlockEntity(tileentity2);
++                        }
++
++                        TileEntityRendererDispatcher.field_147556_a.func_180546_a(tileentity2, p_180446_3_, destroyblockprogress.func_73106_e());
++                    }
++                }
++            }
++
++            this.func_174969_t();
++            this.renderOverlayDamaged = false;
++            this.field_72777_q.field_71460_t.func_175072_h();
++            this.field_72777_q.field_71424_I.func_76319_b();
++        }
++    }
++    
+     private boolean func_184383_a(Entity p_184383_1_, Entity p_184383_2_, ICamera p_184383_3_)
+     {
+         boolean flag = p_184383_2_ instanceof EntityLivingBase && ((EntityLivingBase)p_184383_2_).func_70608_bn();
+@@ -791,10 +1385,11 @@
+ 
+     public String func_72723_d()
+     {
+-        return "E: " + this.field_72749_I + "/" + this.field_72748_H + ", B: " + this.field_72750_J;
++        //return "E: " + this.countEntitiesRendered + "/" + this.countEntitiesTotal + ", B: " + this.countEntitiesHidden;
++        return "E: " + this.field_72749_I + "/" + this.field_72748_H + ", B: " + this.field_72750_J + ", " + Config.getVersionDebug();
+     }
+ 
+-    public void func_174970_a(Entity p_174970_1_, double p_174970_2_, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_)
++    public void setupTerrainO(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator)
+     {
+         if (this.field_72777_q.field_71474_y.field_151451_c != this.field_72739_F)
+         {
+@@ -802,25 +1397,25 @@
+         }
+ 
+         this.field_72769_h.field_72984_F.func_76320_a("camera");
+-        double d0 = p_174970_1_.field_70165_t - this.field_174992_B;
+-        double d1 = p_174970_1_.field_70163_u - this.field_174993_C;
+-        double d2 = p_174970_1_.field_70161_v - this.field_174987_D;
++        double d0 = viewEntity.field_70165_t - this.field_174992_B;
++        double d1 = viewEntity.field_70163_u - this.field_174993_C;
++        double d2 = viewEntity.field_70161_v - this.field_174987_D;
+ 
+-        if (this.field_174988_E != p_174970_1_.field_70176_ah || this.field_174989_F != p_174970_1_.field_70162_ai || this.field_174990_G != p_174970_1_.field_70164_aj || d0 * d0 + d1 * d1 + d2 * d2 > 16.0D)
++        if (this.field_174988_E != viewEntity.field_70176_ah || this.field_174989_F != viewEntity.field_70162_ai || this.field_174990_G != viewEntity.field_70164_aj || d0 * d0 + d1 * d1 + d2 * d2 > 16.0D)
+         {
+-            this.field_174992_B = p_174970_1_.field_70165_t;
+-            this.field_174993_C = p_174970_1_.field_70163_u;
+-            this.field_174987_D = p_174970_1_.field_70161_v;
+-            this.field_174988_E = p_174970_1_.field_70176_ah;
+-            this.field_174989_F = p_174970_1_.field_70162_ai;
+-            this.field_174990_G = p_174970_1_.field_70164_aj;
+-            this.field_175008_n.func_178163_a(p_174970_1_.field_70165_t, p_174970_1_.field_70161_v);
++            this.field_174992_B = viewEntity.field_70165_t;
++            this.field_174993_C = viewEntity.field_70163_u;
++            this.field_174987_D = viewEntity.field_70161_v;
++            this.field_174988_E = viewEntity.field_70176_ah;
++            this.field_174989_F = viewEntity.field_70162_ai;
++            this.field_174990_G = viewEntity.field_70164_aj;
++            this.field_175008_n.func_178163_a(viewEntity.field_70165_t, viewEntity.field_70161_v);
+         }
+ 
+         this.field_72769_h.field_72984_F.func_76318_c("renderlistcamera");
+-        double d3 = p_174970_1_.field_70142_S + (p_174970_1_.field_70165_t - p_174970_1_.field_70142_S) * p_174970_2_;
+-        double d4 = p_174970_1_.field_70137_T + (p_174970_1_.field_70163_u - p_174970_1_.field_70137_T) * p_174970_2_;
+-        double d5 = p_174970_1_.field_70136_U + (p_174970_1_.field_70161_v - p_174970_1_.field_70136_U) * p_174970_2_;
++        double d3 = viewEntity.field_70142_S + (viewEntity.field_70165_t - viewEntity.field_70142_S) * partialTicks;
++        double d4 = viewEntity.field_70137_T + (viewEntity.field_70163_u - viewEntity.field_70137_T) * partialTicks;
++        double d5 = viewEntity.field_70136_U + (viewEntity.field_70161_v - viewEntity.field_70136_U) * partialTicks;
+         this.field_174996_N.func_178004_a(d3, d4, d5);
+         this.field_72769_h.field_72984_F.func_76318_c("cull");
+ 
+@@ -828,19 +1423,19 @@
+         {
+             Frustum frustum = new Frustum(this.field_175001_U);
+             frustum.func_78547_a(this.field_175003_W.field_181059_a, this.field_175003_W.field_181060_b, this.field_175003_W.field_181061_c);
+-            p_174970_4_ = frustum;
++            camera = frustum;
+         }
+ 
+         this.field_72777_q.field_71424_I.func_76318_c("culling");
+-        BlockPos blockpos1 = new BlockPos(d3, d4 + (double)p_174970_1_.func_70047_e(), d5);
++        BlockPos blockpos1 = new BlockPos(d3, d4 + (double)viewEntity.func_70047_e(), d5);
+         RenderChunk renderchunk = this.field_175008_n.func_178161_a(blockpos1);
+         BlockPos blockpos = new BlockPos(MathHelper.func_76128_c(d3 / 16.0D) * 16, MathHelper.func_76128_c(d4 / 16.0D) * 16, MathHelper.func_76128_c(d5 / 16.0D) * 16);
+-        this.field_147595_R = this.field_147595_R || !this.field_175009_l.isEmpty() || p_174970_1_.field_70165_t != this.field_174997_H || p_174970_1_.field_70163_u != this.field_174998_I || p_174970_1_.field_70161_v != this.field_174999_J || (double)p_174970_1_.field_70125_A != this.field_175000_K || (double)p_174970_1_.field_70177_z != this.field_174994_L;
+-        this.field_174997_H = p_174970_1_.field_70165_t;
+-        this.field_174998_I = p_174970_1_.field_70163_u;
+-        this.field_174999_J = p_174970_1_.field_70161_v;
+-        this.field_175000_K = (double)p_174970_1_.field_70125_A;
+-        this.field_174994_L = (double)p_174970_1_.field_70177_z;
++        this.field_147595_R = this.field_147595_R || !this.field_175009_l.isEmpty() || viewEntity.field_70165_t != this.field_174997_H || viewEntity.field_70163_u != this.field_174998_I || viewEntity.field_70161_v != this.field_174999_J || (double)viewEntity.field_70125_A != this.field_175000_K || (double)viewEntity.field_70177_z != this.field_174994_L;
++        this.field_174997_H = viewEntity.field_70165_t;
++        this.field_174998_I = viewEntity.field_70163_u;
++        this.field_174999_J = viewEntity.field_70161_v;
++        this.field_175000_K = (double)viewEntity.field_70125_A;
++        this.field_174994_L = (double)viewEntity.field_70177_z;
+         boolean flag = this.field_175001_U != null;
+         this.field_72777_q.field_71424_I.func_76318_c("update");
+ 
+@@ -860,7 +1455,7 @@
+ 
+                 if (set1.size() == 1)
+                 {
+-                    Vector3f vector3f = this.func_174962_a(p_174970_1_, p_174970_2_);
++                    Vector3f vector3f = this.func_174962_a(viewEntity, partialTicks);
+                     EnumFacing enumfacing = EnumFacing.func_176737_a(vector3f.x, vector3f.y, vector3f.z).func_176734_d();
+                     set1.remove(enumfacing);
+                 }
+@@ -870,18 +1465,18 @@
+                     flag2 = true;
+                 }
+ 
+-                if (flag2 && !p_174970_6_)
++                if (flag2 && !playerSpectator)
+                 {
+                     this.field_72755_R.add(renderglobal$containerlocalrenderinformation3);
+                 }
+                 else
+                 {
+-                    if (p_174970_6_ && this.field_72769_h.func_180495_p(blockpos1).func_185914_p())
++                    if (playerSpectator && this.field_72769_h.func_180495_p(blockpos1).func_185914_p())
+                     {
+                         flag1 = false;
+                     }
+ 
+-                    renderchunk.func_178577_a(p_174970_5_);
++                    renderchunk.func_178577_a(frameCount);
+                     queue.add(renderglobal$containerlocalrenderinformation3);
+                 }
+             }
+@@ -895,9 +1490,9 @@
                      {
                          RenderChunk renderchunk1 = this.field_175008_n.func_178161_a(new BlockPos((j << 4) + 8, i, (k << 4) + 8));
  
 -                        if (renderchunk1 != null && p_174970_4_.func_78546_a(renderchunk1.field_178591_c))
-+                        if (renderchunk1 != null && p_174970_4_.func_78546_a(renderchunk1.field_178591_c.func_72321_a(0.0, blockpos1.func_177956_o() > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY, 0.0))) // Forge: fix MC-73139
++                        if (renderchunk1 != null && camera.func_78546_a(renderchunk1.field_178591_c.func_72321_a(0.0, blockpos1.func_177956_o() > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY, 0.0))) // Forge: fix MC-73139
                          {
-                             renderchunk1.func_178577_a(p_174970_5_);
+-                            renderchunk1.func_178577_a(p_174970_5_);
++                            renderchunk1.func_178577_a(frameCount);
                              queue.add(new RenderGlobal.ContainerLocalRenderInformation(renderchunk1, (EnumFacing)null, 0));
-@@ -951,7 +966,7 @@
+                         }
+                     }
+@@ -917,10 +1512,10 @@
+                 {
+                     RenderChunk renderchunk2 = this.func_181562_a(blockpos, renderchunk3, enumfacing1);
+ 
+-                    if ((!flag1 || !renderglobal$containerlocalrenderinformation1.func_189560_a(enumfacing1.func_176734_d())) && (!flag1 || enumfacing2 == null || renderchunk3.func_178571_g().func_178495_a(enumfacing2.func_176734_d(), enumfacing1)) && renderchunk2 != null && renderchunk2.func_178577_a(p_174970_5_) && p_174970_4_.func_78546_a(renderchunk2.field_178591_c))
++                    if ((!flag1 || !renderglobal$containerlocalrenderinformation1.func_189560_a(enumfacing1.func_176734_d())) && (!flag1 || enumfacing2 == null || renderchunk3.func_178571_g().func_178495_a(enumfacing2.func_176734_d(), enumfacing1)) && renderchunk2 != null && renderchunk2.func_178577_a(frameCount) && camera.func_78546_a(renderchunk2.field_178591_c))
+                     {
+                         RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation = new RenderGlobal.ContainerLocalRenderInformation(renderchunk2, enumfacing1, renderglobal$containerlocalrenderinformation1.field_178032_d + 1);
+-                        renderglobal$containerlocalrenderinformation.func_189561_a(renderglobal$containerlocalrenderinformation1.field_178035_c, enumfacing1);
++                        renderglobal$containerlocalrenderinformation.setDirection(renderglobal$containerlocalrenderinformation1.field_178035_c, enumfacing1);
+                         queue.add(renderglobal$containerlocalrenderinformation);
+                     }
+                 }
+@@ -951,7 +1546,7 @@
                  BlockPos blockpos2 = renderchunk4.func_178568_j().func_177982_a(8, 8, 8);
                  boolean flag3 = blockpos2.func_177951_i(blockpos1) < 768.0D;
  
@@ -102,29 +1011,1363 @@
                  {
                      this.field_175009_l.add(renderchunk4);
                  }
-@@ -1253,6 +1268,13 @@
+@@ -969,6 +1564,298 @@
+         this.field_72777_q.field_71424_I.func_76319_b();
+     }
  
-     public void func_174976_a(float p_174976_1_, int p_174976_2_)
++    public void func_174970_a(Entity p_174970_1_, double p_174970_2_, ICamera p_174970_4_, int p_174970_5_, boolean p_174970_6_)
++    {
++        if (this.field_72777_q.field_71474_y.field_151451_c != this.field_72739_F)
++        {
++            this.func_72712_a();
++        }
++
++        this.field_72769_h.field_72984_F.func_76320_a("camera");
++        double d0 = p_174970_1_.field_70165_t - this.field_174992_B;
++        double d1 = p_174970_1_.field_70163_u - this.field_174993_C;
++        double d2 = p_174970_1_.field_70161_v - this.field_174987_D;
++
++        if (this.field_174988_E != p_174970_1_.field_70176_ah || this.field_174989_F != p_174970_1_.field_70162_ai || this.field_174990_G != p_174970_1_.field_70164_aj || d0 * d0 + d1 * d1 + d2 * d2 > 16.0D)
++        {
++            this.field_174992_B = p_174970_1_.field_70165_t;
++            this.field_174993_C = p_174970_1_.field_70163_u;
++            this.field_174987_D = p_174970_1_.field_70161_v;
++            this.field_174988_E = p_174970_1_.field_70176_ah;
++            this.field_174989_F = p_174970_1_.field_70162_ai;
++            this.field_174990_G = p_174970_1_.field_70164_aj;
++            this.field_175008_n.func_178163_a(p_174970_1_.field_70165_t, p_174970_1_.field_70161_v);
++        }
++
++        if (Config.isDynamicLights())
++        {
++            DynamicLights.update(this);
++        }
++
++        this.field_72769_h.field_72984_F.func_76318_c("renderlistcamera");
++        double d3 = p_174970_1_.field_70142_S + (p_174970_1_.field_70165_t - p_174970_1_.field_70142_S) * p_174970_2_;
++        double d4 = p_174970_1_.field_70137_T + (p_174970_1_.field_70163_u - p_174970_1_.field_70137_T) * p_174970_2_;
++        double d5 = p_174970_1_.field_70136_U + (p_174970_1_.field_70161_v - p_174970_1_.field_70136_U) * p_174970_2_;
++        this.field_174996_N.func_178004_a(d3, d4, d5);
++        this.field_72769_h.field_72984_F.func_76318_c("cull");
++
++        if (this.field_175001_U != null)
++        {
++            Frustum frustum = new Frustum(this.field_175001_U);
++            frustum.func_78547_a(this.field_175003_W.field_181059_a, this.field_175003_W.field_181060_b, this.field_175003_W.field_181061_c);
++            p_174970_4_ = frustum;
++        }
++
++        this.field_72777_q.field_71424_I.func_76318_c("culling");
++        BlockPos blockpos1 = new BlockPos(d3, d4 + (double)p_174970_1_.func_70047_e(), d5);
++        RenderChunk renderchunk = this.field_175008_n.func_178161_a(blockpos1);
++        new BlockPos(MathHelper.func_76128_c(d3 / 16.0D) * 16, MathHelper.func_76128_c(d4 / 16.0D) * 16, MathHelper.func_76128_c(d5 / 16.0D) * 16);
++        this.field_147595_R = this.field_147595_R || !this.field_175009_l.isEmpty() || p_174970_1_.field_70165_t != this.field_174997_H || p_174970_1_.field_70163_u != this.field_174998_I || p_174970_1_.field_70161_v != this.field_174999_J || (double)p_174970_1_.field_70125_A != this.field_175000_K || (double)p_174970_1_.field_70177_z != this.field_174994_L;
++        this.field_174997_H = p_174970_1_.field_70165_t;
++        this.field_174998_I = p_174970_1_.field_70163_u;
++        this.field_174999_J = p_174970_1_.field_70161_v;
++        this.field_175000_K = (double)p_174970_1_.field_70125_A;
++        this.field_174994_L = (double)p_174970_1_.field_70177_z;
++        boolean flag = this.field_175001_U != null;
++        this.field_72777_q.field_71424_I.func_76318_c("update");
++        Lagometer.timerVisibility.start();
++        int i = this.getCountLoadedChunks();
++
++        if (i != this.countLoadedChunksPrev)
++        {
++            this.countLoadedChunksPrev = i;
++            this.field_147595_R = true;
++        }
++
++        if (Shaders.isShadowPass)
++        {
++            this.field_72755_R = this.renderInfosShadow;
++            this.renderInfosEntities = this.renderInfosEntitiesShadow;
++            this.renderInfosTileEntities = this.renderInfosTileEntitiesShadow;
++
++            if (!flag && this.field_147595_R)
++            {
++                this.field_72755_R.clear();
++                this.renderInfosEntities.clear();
++                this.renderInfosTileEntities.clear();
++                RenderInfoLazy renderinfolazy = new RenderInfoLazy();
++                Iterator<RenderChunk> iterator = ShadowUtils.makeShadowChunkIterator(this.field_72769_h, p_174970_2_, p_174970_1_, this.field_72739_F, this.field_175008_n);
++
++                while (iterator.hasNext())
++                {
++                    RenderChunk renderchunk1 = iterator.next();
++
++                    if (renderchunk1 != null)
++                    {
++                        renderinfolazy.setRenderChunk(renderchunk1);
++
++                        if (!renderchunk1.field_178590_b.func_178489_a() || renderchunk1.func_178569_m())
++                        {
++                            this.field_72755_R.add(renderinfolazy.getRenderInfo());
++                        }
++
++                        BlockPos blockpos = renderchunk1.func_178568_j();
++
++                        if (ChunkUtils.hasEntities(this.field_72769_h.func_175726_f(blockpos)))
++                        {
++                            this.renderInfosEntities.add(renderinfolazy.getRenderInfo());
++                        }
++
++                        if (renderchunk1.func_178571_g().func_178485_b().size() > 0)
++                        {
++                            this.renderInfosTileEntities.add(renderinfolazy.getRenderInfo());
++                        }
++                    }
++                }
++            }
++        }
++        else
++        {
++            this.field_72755_R = this.renderInfosNormal;
++            this.renderInfosEntities = this.renderInfosEntitiesNormal;
++            this.renderInfosTileEntities = this.renderInfosTileEntitiesNormal;
++        }
++
++        if (!flag && this.field_147595_R && !Shaders.isShadowPass)
++        {
++            this.field_147595_R = false;
++
++            for (ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1 : this.field_72755_R)
++            {
++                this.freeRenderInformation(renderglobal$containerlocalrenderinformation1);
++            }
++
++            this.field_72755_R.clear();
++            this.renderInfosEntities.clear();
++            this.renderInfosTileEntities.clear();
++            this.visibilityDeque.clear();
++            Deque deque = this.visibilityDeque;
++            Entity.func_184227_b(MathHelper.func_151237_a((double)this.field_72777_q.field_71474_y.field_151451_c / 8.0D, 1.0D, 2.5D));
++            boolean flag2 = this.field_72777_q.field_175612_E;
++
++            if (renderchunk != null)
++            {
++                boolean flag3 = false;
++                ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation3 = new ContainerLocalRenderInformation(renderchunk, (EnumFacing)null, 0);
++                Set set1 = SET_ALL_FACINGS;
++
++                if (set1.size() == 1)
++                {
++                    Vector3f vector3f = this.func_174962_a(p_174970_1_, p_174970_2_);
++                    EnumFacing enumfacing = EnumFacing.func_176737_a(vector3f.x, vector3f.y, vector3f.z).func_176734_d();
++                    set1.remove(enumfacing);
++                }
++
++                if (set1.isEmpty())
++                {
++                    flag3 = true;
++                }
++
++                if (flag3 && !p_174970_6_)
++                {
++                    this.field_72755_R.add(renderglobal$containerlocalrenderinformation3);
++                }
++                else
++                {
++                    if (p_174970_6_ && this.field_72769_h.func_180495_p(blockpos1).func_185914_p())
++                    {
++                        flag2 = false;
++                    }
++
++                    renderchunk.func_178577_a(p_174970_5_);
++                    deque.add(renderglobal$containerlocalrenderinformation3);
++                }
++            }
++            else
++            {
++                int i1 = blockpos1.func_177956_o() > 0 ? 248 : 8;
++
++                for (int j1 = -this.field_72739_F; j1 <= this.field_72739_F; ++j1)
++                {
++                    for (int j = -this.field_72739_F; j <= this.field_72739_F; ++j)
++                    {
++                        RenderChunk renderchunk2 = this.field_175008_n.func_178161_a(new BlockPos((j1 << 4) + 8, i1, (j << 4) + 8));
++
++                        if (renderchunk2 != null && p_174970_4_.func_78546_a(renderchunk2.field_178591_c))
++                        {
++                            renderchunk2.func_178577_a(p_174970_5_);
++                            deque.add(new ContainerLocalRenderInformation(renderchunk2, (EnumFacing)null, 0));
++                        }
++                    }
++                }
++            }
++
++            this.field_72777_q.field_71424_I.func_76320_a("iteration");
++            EnumFacing[] aenumfacing = EnumFacing.field_82609_l;
++            int k1 = aenumfacing.length;
++
++            while (!deque.isEmpty())
++            {
++                ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation4 = (ContainerLocalRenderInformation)deque.poll();
++                RenderChunk renderchunk5 = renderglobal$containerlocalrenderinformation4.field_178036_a;
++                EnumFacing enumfacing2 = renderglobal$containerlocalrenderinformation4.field_178034_b;
++                boolean flag1 = false;
++                CompiledChunk compiledchunk = renderchunk5.field_178590_b;
++
++                if (!compiledchunk.func_178489_a() || renderchunk5.func_178569_m())
++                {
++                    this.field_72755_R.add(renderglobal$containerlocalrenderinformation4);
++                    flag1 = true;
++                }
++
++                if (ChunkUtils.hasEntities(renderchunk5.getChunk(this.field_72769_h)))
++                {
++                    this.renderInfosEntities.add(renderglobal$containerlocalrenderinformation4);
++                    flag1 = true;
++                }
++
++                if (compiledchunk.func_178485_b().size() > 0)
++                {
++                    this.renderInfosTileEntities.add(renderglobal$containerlocalrenderinformation4);
++                    flag1 = true;
++                }
++
++                for (int k = 0; k < k1; ++k)
++                {
++                    EnumFacing enumfacing1 = aenumfacing[k];
++
++                    if ((!flag2 || !renderglobal$containerlocalrenderinformation4.func_189560_a(enumfacing1.func_176734_d())) && (!flag2 || enumfacing2 == null || compiledchunk.func_178495_a(enumfacing2.func_176734_d(), enumfacing1)))
++                    {
++                        RenderChunk renderchunk3 = this.func_181562_a(blockpos1, renderchunk5, enumfacing1);
++
++                        if (renderchunk3 != null && renderchunk3.func_178577_a(p_174970_5_) && p_174970_4_.func_78546_a(renderchunk3.field_178591_c))
++                        {
++                            int l = renderglobal$containerlocalrenderinformation4.field_178035_c | 1 << enumfacing1.ordinal();
++                            ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation = this.allocateRenderInformation(renderchunk3, enumfacing1, l);
++                            deque.add(renderglobal$containerlocalrenderinformation);
++                        }
++                    }
++                }
++
++                if (!flag1)
++                {
++                    this.freeRenderInformation(renderglobal$containerlocalrenderinformation4);
++                }
++            }
++
++            this.field_72777_q.field_71424_I.func_76319_b();
++        }
++
++        this.field_72777_q.field_71424_I.func_76318_c("captureFrustum");
++
++        if (this.field_175002_T)
++        {
++            this.func_174984_a(d3, d4, d5);
++            this.field_175002_T = false;
++        }
++
++        Lagometer.timerVisibility.end();
++
++        if (Shaders.isShadowPass)
++        {
++            Shaders.mcProfilerEndSection();
++        }
++        else
++        {
++            this.field_72777_q.field_71424_I.func_76318_c("rebuildNear");
++            Set<RenderChunk> set = this.field_175009_l;
++            this.field_175009_l = Sets.<RenderChunk>newLinkedHashSet();
++            Lagometer.timerChunkUpdate.start();
++
++            for (ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation2 : this.field_72755_R)
++            {
++                RenderChunk renderchunk4 = renderglobal$containerlocalrenderinformation2.field_178036_a;
++
++                if (renderchunk4.func_178569_m() || set.contains(renderchunk4))
++                {
++                    this.field_147595_R = true;
++                    BlockPos blockpos2 = renderchunk4.func_178568_j();
++                    boolean flag4 = blockpos1.func_177954_c((double)(blockpos2.func_177958_n() + 8), (double)(blockpos2.func_177956_o() + 8), (double)(blockpos2.func_177952_p() + 8)) < 768.0D;
++
++                    if (!flag4)
++                    {
++                        this.field_175009_l.add(renderchunk4);
++                    }
++                    else if (!renderchunk4.isPlayerUpdate())
++                    {
++                        this.chunksToUpdateForced.add(renderchunk4);
++                    }
++                    else
++                    {
++                        this.field_72777_q.field_71424_I.func_76320_a("build near");
++                        this.field_174995_M.func_178505_b(renderchunk4);
++                        renderchunk4.func_188282_m();
++                        this.field_72777_q.field_71424_I.func_76319_b();
++                    }
++                }
++            }
++
++            Lagometer.timerChunkUpdate.end();
++            this.field_175009_l.addAll(set);
++            this.field_72777_q.field_71424_I.func_76319_b();
++        }
++    }
++    
+     private Set<EnumFacing> func_174978_c(BlockPos p_174978_1_)
      {
+         VisGraph visgraph = new VisGraph();
+@@ -987,24 +1874,58 @@
+     }
+ 
+     @Nullable
+-    private RenderChunk func_181562_a(BlockPos p_181562_1_, RenderChunk p_181562_2_, EnumFacing p_181562_3_)
++    private RenderChunk getRenderChunkOffsetO(BlockPos playerPos, RenderChunk renderChunkBase, EnumFacing facing)
+     {
+-        BlockPos blockpos = p_181562_2_.func_181701_a(p_181562_3_);
++        BlockPos blockpos = renderChunkBase.func_181701_a(facing);
+ 
+-        if (MathHelper.func_76130_a(p_181562_1_.func_177958_n() - blockpos.func_177958_n()) > this.field_72739_F * 16)
++        if (MathHelper.func_76130_a(playerPos.func_177958_n() - blockpos.func_177958_n()) > this.field_72739_F * 16)
+         {
+             return null;
+         }
+         else if (blockpos.func_177956_o() >= 0 && blockpos.func_177956_o() < 256)
+         {
+-            return MathHelper.func_76130_a(p_181562_1_.func_177952_p() - blockpos.func_177952_p()) > this.field_72739_F * 16 ? null : this.field_175008_n.func_178161_a(blockpos);
++            return MathHelper.func_76130_a(playerPos.func_177952_p() - blockpos.func_177952_p()) > this.field_72739_F * 16 ? null : this.field_175008_n.func_178161_a(blockpos);
+         }
+         else
+         {
+             return null;
+         }
+     }
++    private RenderChunk func_181562_a(BlockPos p_181562_1_, RenderChunk p_181562_2_, EnumFacing p_181562_3_)
++    {
++        BlockPos blockpos = p_181562_2_.func_181701_a(p_181562_3_);
+ 
++        if (blockpos.func_177956_o() >= 0 && blockpos.func_177956_o() < 256)
++        {
++            int i = p_181562_1_.func_177958_n() - blockpos.func_177958_n();
++            int j = p_181562_1_.func_177952_p() - blockpos.func_177952_p();
++
++            if (Config.isFogOff())
++            {
++                if (Math.abs(i) > this.renderDistance || Math.abs(j) > this.renderDistance)
++                {
++                    return null;
++                }
++            }
++            else
++            {
++                int k = i * i + j * j;
++
++                if (k > this.renderDistanceSq)
++                {
++                    return null;
++                }
++            }
++
++            return p_181562_2_.getRenderChunkOffset16(this.field_175008_n, p_181562_3_);
++        }
++        else
++        {
++            return null;
++        }
++    }
++
++
+     private void func_174984_a(double p_174984_1_, double p_174984_3_, double p_174984_5_)
+     {
+         this.field_175001_U = new ClippingHelperImpl();
+@@ -1055,6 +1976,62 @@
+         return new Vector3f(f3 * f4, f5, f2 * f4);
+     }
+ 
++    public int renderBlockLayer0(BlockRenderLayer blockLayerIn, double partialTicks, int pass, Entity entityIn)
++    {
++        RenderHelper.func_74518_a();
++
++        if (blockLayerIn == BlockRenderLayer.TRANSLUCENT)
++        {
++            this.field_72777_q.field_71424_I.func_76320_a("translucent_sort");
++            double d0 = entityIn.field_70165_t - this.field_147596_f;
++            double d1 = entityIn.field_70163_u - this.field_147597_g;
++            double d2 = entityIn.field_70161_v - this.field_147602_h;
++
++            if (d0 * d0 + d1 * d1 + d2 * d2 > 1.0D)
++            {
++                this.field_147596_f = entityIn.field_70165_t;
++                this.field_147597_g = entityIn.field_70163_u;
++                this.field_147602_h = entityIn.field_70161_v;
++                int k = 0;
++
++                for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : this.field_72755_R)
++                {
++                    if (renderglobal$containerlocalrenderinformation.field_178036_a.field_178590_b.func_178492_d(blockLayerIn) && k++ < 15)
++                    {
++                        this.field_174995_M.func_178509_c(renderglobal$containerlocalrenderinformation.field_178036_a);
++                    }
++                }
++            }
++
++            this.field_72777_q.field_71424_I.func_76319_b();
++        }
++
++        this.field_72777_q.field_71424_I.func_76320_a("filterempty");
++        int l = 0;
++        boolean flag = blockLayerIn == BlockRenderLayer.TRANSLUCENT;
++        int i1 = flag ? this.field_72755_R.size() - 1 : 0;
++        int i = flag ? -1 : this.field_72755_R.size();
++        int j1 = flag ? -1 : 1;
++
++        for (int j = i1; j != i; j += j1)
++        {
++            RenderChunk renderchunk = (this.field_72755_R.get(j)).field_178036_a;
++
++            if (!renderchunk.func_178571_g().func_178491_b(blockLayerIn))
++            {
++                ++l;
++                this.field_174996_N.func_178002_a(renderchunk, blockLayerIn);
++            }
++        }
++
++        this.field_72777_q.field_71424_I.func_194339_b(() ->
++        {
++            return "render_" + blockLayerIn;
++        });
++        this.func_174982_a(blockLayerIn);
++        this.field_72777_q.field_71424_I.func_76319_b();
++        return l;
++    }
+     public int func_174977_a(BlockRenderLayer p_174977_1_, double p_174977_2_, int p_174977_4_, Entity p_174977_5_)
+     {
+         RenderHelper.func_74518_a();
+@@ -1072,12 +2049,13 @@
+                 this.field_147597_g = p_174977_5_.field_70163_u;
+                 this.field_147602_h = p_174977_5_.field_70161_v;
+                 int k = 0;
++                this.chunksToResortTransparency.clear();
+ 
+-                for (RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : this.field_72755_R)
++                for (ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation : this.field_72755_R)
+                 {
+                     if (renderglobal$containerlocalrenderinformation.field_178036_a.field_178590_b.func_178492_d(p_174977_1_) && k++ < 15)
+                     {
+-                        this.field_174995_M.func_178509_c(renderglobal$containerlocalrenderinformation.field_178036_a);
++                        this.chunksToResortTransparency.add(renderglobal$containerlocalrenderinformation.field_178036_a);
+                     }
+                 }
+             }
+@@ -1103,16 +2081,70 @@
+             }
+         }
+ 
+-        this.field_72777_q.field_71424_I.func_194339_b(() ->
++        if (l == 0)
+         {
+-            return "render_" + p_174977_1_;
+-        });
+-        this.func_174982_a(p_174977_1_);
+-        this.field_72777_q.field_71424_I.func_76319_b();
+-        return l;
++            this.field_72777_q.field_71424_I.func_76319_b();
++            return l;
++        }
++        else
++        {
++            if (Config.isFogOff() && this.field_72777_q.field_71460_t.fogStandard)
++            {
++                GlStateManager.func_179106_n();
++            }
++
++            this.field_72777_q.field_71424_I.func_76318_c("render_" + p_174977_1_);
++            this.func_174982_a(p_174977_1_);
++            this.field_72777_q.field_71424_I.func_76319_b();
++            return l;
++        }
+     }
+ 
+     @SuppressWarnings("incomplete-switch")
++    private void renderBlockLayer0(BlockRenderLayer blockLayerIn)
++    {
++        this.field_72777_q.field_71460_t.func_180436_i();
++
++        if (OpenGlHelper.func_176075_f())
++        {
++            GlStateManager.func_187410_q(32884);
++            OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
++            GlStateManager.func_187410_q(32888);
++            OpenGlHelper.func_77472_b(OpenGlHelper.field_77476_b);
++            GlStateManager.func_187410_q(32888);
++            OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
++            GlStateManager.func_187410_q(32886);
++        }
++
++        this.field_174996_N.func_178001_a(blockLayerIn);
++
++        if (OpenGlHelper.func_176075_f())
++        {
++            for (VertexFormatElement vertexformatelement : DefaultVertexFormats.field_176600_a.func_177343_g())
++            {
++                VertexFormatElement.EnumUsage vertexformatelement$enumusage = vertexformatelement.func_177375_c();
++                int k1 = vertexformatelement.func_177369_e();
++
++                switch (vertexformatelement$enumusage)
++                {
++                    case POSITION:
++                        GlStateManager.func_187429_p(32884);
++                        break;
++                    case UV:
++                        OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a + k1);
++                        GlStateManager.func_187429_p(32888);
++                        OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
++                        break;
++                    case COLOR:
++                        GlStateManager.func_187429_p(32886);
++                        GlStateManager.func_179117_G();
++                }
++            }
++        }
++
++        this.field_72777_q.field_71460_t.func_175072_h();
++    }
++    
+     private void func_174982_a(BlockRenderLayer p_174982_1_)
+     {
+         this.field_72777_q.field_71460_t.func_180436_i();
+@@ -1128,8 +2160,18 @@
+             GlStateManager.func_187410_q(32886);
+         }
+ 
++        if (Config.isShaders())
++        {
++            ShadersRender.preRenderChunkLayer(p_174982_1_);
++        }
++
+         this.field_174996_N.func_178001_a(p_174982_1_);
+ 
++        if (Config.isShaders())
++        {
++            ShadersRender.postRenderChunkLayer(p_174982_1_);
++        }
++
+         if (OpenGlHelper.func_176075_f())
+         {
+             for (VertexFormatElement vertexformatelement : DefaultVertexFormats.field_176600_a.func_177343_g())
+@@ -1142,11 +2184,13 @@
+                     case POSITION:
+                         GlStateManager.func_187429_p(32884);
+                         break;
++
+                     case UV:
+                         OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a + k1);
+                         GlStateManager.func_187429_p(32888);
+                         OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
+                         break;
++
+                     case COLOR:
+                         GlStateManager.func_187429_p(32886);
+                         GlStateManager.func_179117_G();
+@@ -1171,8 +2215,40 @@
+         }
+     }
+ 
++    public void updateCloudsO()
++    {
++        ++this.field_72773_u;
++
++        if (this.field_72773_u % 20 == 0)
++        {
++            this.func_174965_a(this.field_72738_E.values().iterator());
++        }
++
++        if (!this.field_184387_ae.isEmpty() && !this.field_174995_M.func_188248_h() && this.field_175009_l.isEmpty())
++        {
++            Iterator<BlockPos> iterator = this.field_184387_ae.iterator();
++
++            while (iterator.hasNext())
++            {
++                BlockPos blockpos = iterator.next();
++                iterator.remove();
++                int k1 = blockpos.func_177958_n();
++                int l1 = blockpos.func_177956_o();
++                int i2 = blockpos.func_177952_p();
++                this.func_184385_a(k1 - 1, l1 - 1, i2 - 1, k1 + 1, l1 + 1, i2 + 1, false);
++            }
++        }
++    }
++
+     public void func_72734_e()
+     {
++        if (Config.isShaders() && Keyboard.isKeyDown(61) && Keyboard.isKeyDown(19))
++        {
++            Shaders.uninit();
++            Shaders.loadShaderPack();
++            Reflector.Minecraft_actionKeyF3.setValue(this.field_72777_q, Boolean.TRUE);
++        }
++
+         ++this.field_72773_u;
+ 
+         if (this.field_72773_u % 20 == 0)
+@@ -1196,7 +2272,7 @@
+         }
+     }
+ 
+-    private void func_180448_r()
++    private void renderSkyEndO()
+     {
+         GlStateManager.func_179106_n();
+         GlStateManager.func_179118_c();
+@@ -1251,8 +2327,87 @@
+         GlStateManager.func_179141_d();
+     }
+ 
+-    public void func_174976_a(float p_174976_1_, int p_174976_2_)
++    private void func_180448_r()
+     {
++        if (Config.isSkyEnabled())
++        {
++            GlStateManager.func_179106_n();
++            GlStateManager.func_179118_c();
++            GlStateManager.func_179147_l();
++            GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
++            RenderHelper.func_74518_a();
++            GlStateManager.func_179132_a(false);
++            this.field_72770_i.func_110577_a(field_110926_k);
++            Tessellator tessellator = Tessellator.func_178181_a();
++            BufferBuilder bufferbuilder = tessellator.func_178180_c();
++
++            for (int k1 = 0; k1 < 6; ++k1)
++            {
++                GlStateManager.func_179094_E();
++
++                if (k1 == 1)
++                {
++                    GlStateManager.func_179114_b(90.0F, 1.0F, 0.0F, 0.0F);
++                }
++
++                if (k1 == 2)
++                {
++                    GlStateManager.func_179114_b(-90.0F, 1.0F, 0.0F, 0.0F);
++                }
++
++                if (k1 == 3)
++                {
++                    GlStateManager.func_179114_b(180.0F, 1.0F, 0.0F, 0.0F);
++                }
++
++                if (k1 == 4)
++                {
++                    GlStateManager.func_179114_b(90.0F, 0.0F, 0.0F, 1.0F);
++                }
++
++                if (k1 == 5)
++                {
++                    GlStateManager.func_179114_b(-90.0F, 0.0F, 0.0F, 1.0F);
++                }
++
++                bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181709_i);
++                int l1 = 40;
++                int i2 = 40;
++                int j2 = 40;
++
++                if (Config.isCustomColors())
++                {
++                    Vec3d vec3d = new Vec3d((double)l1 / 255.0D, (double)i2 / 255.0D, (double)j2 / 255.0D);
++                    vec3d = CustomColors.getWorldSkyColor(vec3d, this.field_72769_h, this.field_72777_q.func_175606_aa(), 0.0F);
++                    l1 = (int)(vec3d.field_72450_a * 255.0D);
++                    i2 = (int)(vec3d.field_72448_b * 255.0D);
++                    j2 = (int)(vec3d.field_72449_c * 255.0D);
++                }
++
++                bufferbuilder.func_181662_b(-100.0D, -100.0D, -100.0D).func_187315_a(0.0D, 0.0D).func_181669_b(l1, i2, j2, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-100.0D, -100.0D, 100.0D).func_187315_a(0.0D, 16.0D).func_181669_b(l1, i2, j2, 255).func_181675_d();
++                bufferbuilder.func_181662_b(100.0D, -100.0D, 100.0D).func_187315_a(16.0D, 16.0D).func_181669_b(l1, i2, j2, 255).func_181675_d();
++                bufferbuilder.func_181662_b(100.0D, -100.0D, -100.0D).func_187315_a(16.0D, 0.0D).func_181669_b(l1, i2, j2, 255).func_181675_d();
++                tessellator.func_78381_a();
++                GlStateManager.func_179121_F();
++            }
++
++            GlStateManager.func_179132_a(true);
++            GlStateManager.func_179098_w();
++            GlStateManager.func_179141_d();
++            GlStateManager.func_179084_k();
++        }
++    }
++    
++    public void renderSkyO(float partialTicks, int pass)
++    {
 +        net.minecraftforge.client.IRenderHandler renderer = this.field_72769_h.field_73011_w.getSkyRenderer();
 +        if (renderer != null)
 +        {
-+            renderer.render(p_174976_1_, field_72769_h, field_72777_q);
++            renderer.render(partialTicks, field_72769_h, field_72777_q);
 +            return;
 +        }
 +
          if (this.field_72777_q.field_71441_e.field_73011_w.func_186058_p().func_186068_a() == 1)
          {
              this.func_180448_r();
-@@ -1470,6 +1492,7 @@
+@@ -1260,12 +2415,12 @@
+         else if (this.field_72777_q.field_71441_e.field_73011_w.func_76569_d())
+         {
+             GlStateManager.func_179090_x();
+-            Vec3d vec3d = this.field_72769_h.func_72833_a(this.field_72777_q.func_175606_aa(), p_174976_1_);
++            Vec3d vec3d = this.field_72769_h.func_72833_a(this.field_72777_q.func_175606_aa(), partialTicks);
+             float f = (float)vec3d.field_72450_a;
+             float f1 = (float)vec3d.field_72448_b;
+             float f2 = (float)vec3d.field_72449_c;
  
-     public void func_180447_b(float p_180447_1_, int p_180447_2_, double p_180447_3_, double p_180447_5_, double p_180447_7_)
+-            if (p_174976_2_ != 2)
++            if (pass != 2)
+             {
+                 float f3 = (f * 30.0F + f1 * 59.0F + f2 * 11.0F) / 100.0F;
+                 float f4 = (f * 30.0F + f1 * 70.0F) / 100.0F;
+@@ -1301,7 +2456,7 @@
+             GlStateManager.func_179147_l();
+             GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+             RenderHelper.func_74518_a();
+-            float[] afloat = this.field_72769_h.field_73011_w.func_76560_a(this.field_72769_h.func_72826_c(p_174976_1_), p_174976_1_);
++            float[] afloat = this.field_72769_h.field_73011_w.func_76560_a(this.field_72769_h.func_72826_c(partialTicks), partialTicks);
+ 
+             if (afloat != null)
+             {
+@@ -1309,13 +2464,13 @@
+                 GlStateManager.func_179103_j(7425);
+                 GlStateManager.func_179094_E();
+                 GlStateManager.func_179114_b(90.0F, 1.0F, 0.0F, 0.0F);
+-                GlStateManager.func_179114_b(MathHelper.func_76126_a(this.field_72769_h.func_72929_e(p_174976_1_)) < 0.0F ? 180.0F : 0.0F, 0.0F, 0.0F, 1.0F);
++                GlStateManager.func_179114_b(MathHelper.func_76126_a(this.field_72769_h.func_72929_e(partialTicks)) < 0.0F ? 180.0F : 0.0F, 0.0F, 0.0F, 1.0F);
+                 GlStateManager.func_179114_b(90.0F, 0.0F, 0.0F, 1.0F);
+                 float f6 = afloat[0];
+                 float f7 = afloat[1];
+                 float f8 = afloat[2];
+ 
+-                if (p_174976_2_ != 2)
++                if (pass != 2)
+                 {
+                     float f9 = (f6 * 30.0F + f7 * 59.0F + f8 * 11.0F) / 100.0F;
+                     float f10 = (f6 * 30.0F + f7 * 70.0F) / 100.0F;
+@@ -1345,10 +2500,10 @@
+             GlStateManager.func_179098_w();
+             GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+             GlStateManager.func_179094_E();
+-            float f16 = 1.0F - this.field_72769_h.func_72867_j(p_174976_1_);
++            float f16 = 1.0F - this.field_72769_h.func_72867_j(partialTicks);
+             GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, f16);
+             GlStateManager.func_179114_b(-90.0F, 0.0F, 1.0F, 0.0F);
+-            GlStateManager.func_179114_b(this.field_72769_h.func_72826_c(p_174976_1_) * 360.0F, 1.0F, 0.0F, 0.0F);
++            GlStateManager.func_179114_b(this.field_72769_h.func_72826_c(partialTicks) * 360.0F, 1.0F, 0.0F, 0.0F);
+             float f17 = 30.0F;
+             this.field_72770_i.func_110577_a(field_110928_i);
+             bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181707_g);
+@@ -1373,7 +2528,7 @@
+             bufferbuilder.func_181662_b((double)(-f17), -100.0D, (double)(-f17)).func_187315_a((double)f24, (double)f23).func_181675_d();
+             tessellator.func_78381_a();
+             GlStateManager.func_179090_x();
+-            float f15 = this.field_72769_h.func_72880_h(p_174976_1_) * f16;
++            float f15 = this.field_72769_h.func_72880_h(partialTicks) * f16;
+ 
+             if (f15 > 0.0F)
+             {
+@@ -1401,7 +2556,7 @@
+             GlStateManager.func_179121_F();
+             GlStateManager.func_179090_x();
+             GlStateManager.func_179124_c(0.0F, 0.0F, 0.0F);
+-            double d3 = this.field_72777_q.field_71439_g.func_174824_e(p_174976_1_).field_72448_b - this.field_72769_h.func_72919_O();
++            double d3 = this.field_72777_q.field_71439_g.func_174824_e(partialTicks).field_72448_b - this.field_72769_h.func_72919_O();
+ 
+             if (d3 < 0.0D)
+             {
+@@ -1468,13 +2623,346 @@
+         }
+     }
+ 
+-    public void func_180447_b(float p_180447_1_, int p_180447_2_, double p_180447_3_, double p_180447_5_, double p_180447_7_)
++    public void func_174976_a(float p_174976_1_, int p_174976_2_)
      {
-+        if (net.minecraftforge.fml.client.FMLClientHandler.instance().renderClouds(this.field_72773_u, p_180447_1_)) return;
++        if (Reflector.ForgeWorldProvider_getSkyRenderer.exists())
++        {
++            WorldProvider worldprovider = this.field_72777_q.field_71441_e.field_73011_w;
++            Object object = Reflector.call(worldprovider, Reflector.ForgeWorldProvider_getSkyRenderer);
++
++            if (object != null)
++            {
++                Reflector.callVoid(object, Reflector.IRenderHandler_render, p_174976_1_, this.field_72769_h, this.field_72777_q);
++                return;
++            }
++        }
++
++        if (this.field_72777_q.field_71441_e.field_73011_w.func_186058_p() == DimensionType.THE_END)
++        {
++            this.func_180448_r();
++        }
++        else if (this.field_72777_q.field_71441_e.field_73011_w.func_76569_d())
++        {
++            GlStateManager.func_179090_x();
++            boolean flag1 = Config.isShaders();
++
++            if (flag1)
++            {
++                Shaders.disableTexture2D();
++            }
++
++            Vec3d vec3d = this.field_72769_h.func_72833_a(this.field_72777_q.func_175606_aa(), p_174976_1_);
++            vec3d = CustomColors.getSkyColor(vec3d, this.field_72777_q.field_71441_e, this.field_72777_q.func_175606_aa().field_70165_t, this.field_72777_q.func_175606_aa().field_70163_u + 1.0D, this.field_72777_q.func_175606_aa().field_70161_v);
++
++            if (flag1)
++            {
++                Shaders.setSkyColor(vec3d);
++            }
++
++            float f = (float)vec3d.field_72450_a;
++            float f1 = (float)vec3d.field_72448_b;
++            float f2 = (float)vec3d.field_72449_c;
++
++            if (p_174976_2_ != 2)
++            {
++                float f3 = (f * 30.0F + f1 * 59.0F + f2 * 11.0F) / 100.0F;
++                float f4 = (f * 30.0F + f1 * 70.0F) / 100.0F;
++                float f5 = (f * 30.0F + f2 * 70.0F) / 100.0F;
++                f = f3;
++                f1 = f4;
++                f2 = f5;
++            }
++
++            GlStateManager.func_179124_c(f, f1, f2);
++            Tessellator tessellator = Tessellator.func_178181_a();
++            BufferBuilder bufferbuilder = tessellator.func_178180_c();
++            GlStateManager.func_179132_a(false);
++            GlStateManager.func_179127_m();
++
++            if (flag1)
++            {
++                Shaders.enableFog();
++            }
++
++            GlStateManager.func_179124_c(f, f1, f2);
++
++            if (flag1)
++            {
++                Shaders.preSkyList();
++            }
++
++            if (Config.isSkyEnabled())
++            {
++                if (this.field_175005_X)
++                {
++                    this.field_175012_t.func_177359_a();
++                    GlStateManager.func_187410_q(32884);
++                    GlStateManager.func_187420_d(3, 5126, 12, 0);
++                    this.field_175012_t.func_177358_a(7);
++                    this.field_175012_t.func_177361_b();
++                    GlStateManager.func_187429_p(32884);
++                }
++                else
++                {
++                    GlStateManager.func_179148_o(this.field_72771_w);
++                }
++            }
++
++            GlStateManager.func_179106_n();
++
++            if (flag1)
++            {
++                Shaders.disableFog();
++            }
++
++            GlStateManager.func_179118_c();
++            GlStateManager.func_179147_l();
++            GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
++            RenderHelper.func_74518_a();
++            float[] afloat = this.field_72769_h.field_73011_w.func_76560_a(this.field_72769_h.func_72826_c(p_174976_1_), p_174976_1_);
++
++            if (afloat != null && Config.isSunMoonEnabled())
++            {
++                GlStateManager.func_179090_x();
++
++                if (flag1)
++                {
++                    Shaders.disableTexture2D();
++                }
++
++                GlStateManager.func_179103_j(7425);
++                GlStateManager.func_179094_E();
++                GlStateManager.func_179114_b(90.0F, 1.0F, 0.0F, 0.0F);
++                GlStateManager.func_179114_b(MathHelper.func_76126_a(this.field_72769_h.func_72929_e(p_174976_1_)) < 0.0F ? 180.0F : 0.0F, 0.0F, 0.0F, 1.0F);
++                GlStateManager.func_179114_b(90.0F, 0.0F, 0.0F, 1.0F);
++                float f6 = afloat[0];
++                float f7 = afloat[1];
++                float f8 = afloat[2];
++
++                if (p_174976_2_ != 2)
++                {
++                    float f9 = (f6 * 30.0F + f7 * 59.0F + f8 * 11.0F) / 100.0F;
++                    float f10 = (f6 * 30.0F + f7 * 70.0F) / 100.0F;
++                    float f11 = (f6 * 30.0F + f8 * 70.0F) / 100.0F;
++                    f6 = f9;
++                    f7 = f10;
++                    f8 = f11;
++                }
++
++                bufferbuilder.func_181668_a(6, DefaultVertexFormats.field_181706_f);
++                bufferbuilder.func_181662_b(0.0D, 100.0D, 0.0D).func_181666_a(f6, f7, f8, afloat[3]).func_181675_d();
++                int l1 = 16;
++
++                for (int j2 = 0; j2 <= 16; ++j2)
++                {
++                    float f18 = (float)j2 * ((float)Math.PI * 2F) / 16.0F;
++                    float f12 = MathHelper.func_76126_a(f18);
++                    float f13 = MathHelper.func_76134_b(f18);
++                    bufferbuilder.func_181662_b((double)(f12 * 120.0F), (double)(f13 * 120.0F), (double)(-f13 * 40.0F * afloat[3])).func_181666_a(afloat[0], afloat[1], afloat[2], 0.0F).func_181675_d();
++                }
++
++                tessellator.func_78381_a();
++                GlStateManager.func_179121_F();
++                GlStateManager.func_179103_j(7424);
++            }
++
++            GlStateManager.func_179098_w();
++
++            if (flag1)
++            {
++                Shaders.enableTexture2D();
++            }
++
++            GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
++            GlStateManager.func_179094_E();
++            float f15 = 1.0F - this.field_72769_h.func_72867_j(p_174976_1_);
++            GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, f15);
++            GlStateManager.func_179114_b(-90.0F, 0.0F, 1.0F, 0.0F);
++            CustomSky.renderSky(this.field_72769_h, this.field_72770_i, p_174976_1_);
++
++            if (flag1)
++            {
++                Shaders.preCelestialRotate();
++            }
++
++            GlStateManager.func_179114_b(this.field_72769_h.func_72826_c(p_174976_1_) * 360.0F, 1.0F, 0.0F, 0.0F);
++
++            if (flag1)
++            {
++                Shaders.postCelestialRotate();
++            }
++
++            float f16 = 30.0F;
++
++            if (Config.isSunTexture())
++            {
++                this.field_72770_i.func_110577_a(field_110928_i);
++                bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181707_g);
++                bufferbuilder.func_181662_b((double)(-f16), 100.0D, (double)(-f16)).func_187315_a(0.0D, 0.0D).func_181675_d();
++                bufferbuilder.func_181662_b((double)f16, 100.0D, (double)(-f16)).func_187315_a(1.0D, 0.0D).func_181675_d();
++                bufferbuilder.func_181662_b((double)f16, 100.0D, (double)f16).func_187315_a(1.0D, 1.0D).func_181675_d();
++                bufferbuilder.func_181662_b((double)(-f16), 100.0D, (double)f16).func_187315_a(0.0D, 1.0D).func_181675_d();
++                tessellator.func_78381_a();
++            }
++
++            f16 = 20.0F;
++
++            if (Config.isMoonTexture())
++            {
++                this.field_72770_i.func_110577_a(field_110927_h);
++                int k1 = this.field_72769_h.func_72853_d();
++                int i2 = k1 % 4;
++                int k2 = k1 / 4 % 2;
++                float f19 = (float)(i2 + 0) / 4.0F;
++                float f21 = (float)(k2 + 0) / 2.0F;
++                float f23 = (float)(i2 + 1) / 4.0F;
++                float f14 = (float)(k2 + 1) / 2.0F;
++                bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181707_g);
++                bufferbuilder.func_181662_b((double)(-f16), -100.0D, (double)f16).func_187315_a((double)f23, (double)f14).func_181675_d();
++                bufferbuilder.func_181662_b((double)f16, -100.0D, (double)f16).func_187315_a((double)f19, (double)f14).func_181675_d();
++                bufferbuilder.func_181662_b((double)f16, -100.0D, (double)(-f16)).func_187315_a((double)f19, (double)f21).func_181675_d();
++                bufferbuilder.func_181662_b((double)(-f16), -100.0D, (double)(-f16)).func_187315_a((double)f23, (double)f21).func_181675_d();
++                tessellator.func_78381_a();
++            }
++
++            GlStateManager.func_179090_x();
++
++            if (flag1)
++            {
++                Shaders.disableTexture2D();
++            }
++
++            float f17 = this.field_72769_h.func_72880_h(p_174976_1_) * f15;
++
++            if (f17 > 0.0F && Config.isStarsEnabled() && !CustomSky.hasSkyLayers(this.field_72769_h))
++            {
++                GlStateManager.func_179131_c(f17, f17, f17, f17);
++
++                if (this.field_175005_X)
++                {
++                    this.field_175013_s.func_177359_a();
++                    GlStateManager.func_187410_q(32884);
++                    GlStateManager.func_187420_d(3, 5126, 12, 0);
++                    this.field_175013_s.func_177358_a(7);
++                    this.field_175013_s.func_177361_b();
++                    GlStateManager.func_187429_p(32884);
++                }
++                else
++                {
++                    GlStateManager.func_179148_o(this.field_72772_v);
++                }
++            }
++
++            GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
++            GlStateManager.func_179084_k();
++            GlStateManager.func_179141_d();
++            GlStateManager.func_179127_m();
++
++            if (flag1)
++            {
++                Shaders.enableFog();
++            }
++
++            GlStateManager.func_179121_F();
++            GlStateManager.func_179090_x();
++
++            if (flag1)
++            {
++                Shaders.disableTexture2D();
++            }
++
++            GlStateManager.func_179124_c(0.0F, 0.0F, 0.0F);
++            double d3 = this.field_72777_q.field_71439_g.func_174824_e(p_174976_1_).field_72448_b - this.field_72769_h.func_72919_O();
++
++            if (d3 < 0.0D)
++            {
++                GlStateManager.func_179094_E();
++                GlStateManager.func_179109_b(0.0F, 12.0F, 0.0F);
++
++                if (this.field_175005_X)
++                {
++                    this.field_175011_u.func_177359_a();
++                    GlStateManager.func_187410_q(32884);
++                    GlStateManager.func_187420_d(3, 5126, 12, 0);
++                    this.field_175011_u.func_177358_a(7);
++                    this.field_175011_u.func_177361_b();
++                    GlStateManager.func_187429_p(32884);
++                }
++                else
++                {
++                    GlStateManager.func_179148_o(this.field_72781_x);
++                }
++
++                GlStateManager.func_179121_F();
++                float f20 = 1.0F;
++                float f22 = -((float)(d3 + 65.0D));
++                float f24 = -1.0F;
++                bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181706_f);
++                bufferbuilder.func_181662_b(-1.0D, (double)f22, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, (double)f22, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, -1.0D, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, -1.0D, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, -1.0D, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, -1.0D, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, (double)f22, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, (double)f22, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, -1.0D, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, -1.0D, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, (double)f22, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, (double)f22, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, (double)f22, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, (double)f22, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, -1.0D, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, -1.0D, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, -1.0D, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(-1.0D, -1.0D, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, -1.0D, 1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                bufferbuilder.func_181662_b(1.0D, -1.0D, -1.0D).func_181669_b(0, 0, 0, 255).func_181675_d();
++                tessellator.func_78381_a();
++            }
++
++            if (this.field_72769_h.field_73011_w.func_76561_g())
++            {
++                GlStateManager.func_179124_c(f * 0.2F + 0.04F, f1 * 0.2F + 0.04F, f2 * 0.6F + 0.1F);
++            }
++            else
++            {
++                GlStateManager.func_179124_c(f, f1, f2);
++            }
++
++            if (this.field_72777_q.field_71474_y.field_151451_c <= 4)
++            {
++                GlStateManager.func_179124_c(this.field_72777_q.field_71460_t.field_175080_Q, this.field_72777_q.field_71460_t.field_175082_R, this.field_72777_q.field_71460_t.field_175081_S);
++            }
++
++            GlStateManager.func_179094_E();
++            GlStateManager.func_179109_b(0.0F, -((float)(d3 - 16.0D)), 0.0F);
++
++            if (Config.isSkyEnabled())
++            {
++                GlStateManager.func_179148_o(this.field_72781_x);
++            }
++
++            GlStateManager.func_179121_F();
++            GlStateManager.func_179098_w();
++
++            if (flag1)
++            {
++                Shaders.enableTexture2D();
++            }
++
++            GlStateManager.func_179132_a(true);
++        }
++    }
++
++    public void renderCloudsO(float partialTicks, int pass, double p_180447_3_, double p_180447_5_, double p_180447_7_)
++    {
++        if (net.minecraftforge.fml.client.FMLClientHandler.instance().renderClouds(this.field_72773_u, partialTicks)) return;
          if (this.field_72777_q.field_71441_e.field_73011_w.func_76569_d())
          {
              if (this.field_72777_q.field_71474_y.func_181147_e() == 2)
-@@ -1852,7 +1875,8 @@
+             {
+-                this.func_180445_c(p_180447_1_, p_180447_2_, p_180447_3_, p_180447_5_, p_180447_7_);
++                this.func_180445_c(partialTicks, pass, p_180447_3_, p_180447_5_, p_180447_7_);
+             }
+             else
+             {
+@@ -1486,12 +2974,12 @@
+                 this.field_72770_i.func_110577_a(field_110925_j);
+                 GlStateManager.func_179147_l();
+                 GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+-                Vec3d vec3d = this.field_72769_h.func_72824_f(p_180447_1_);
++                Vec3d vec3d = this.field_72769_h.func_72824_f(partialTicks);
+                 float f = (float)vec3d.field_72450_a;
+                 float f1 = (float)vec3d.field_72448_b;
+                 float f2 = (float)vec3d.field_72449_c;
+ 
+-                if (p_180447_2_ != 2)
++                if (pass != 2)
+                 {
+                     float f3 = (f * 30.0F + f1 * 59.0F + f2 * 11.0F) / 100.0F;
+                     float f4 = (f * 30.0F + f1 * 70.0F) / 100.0F;
+@@ -1502,7 +2990,7 @@
+                 }
+ 
+                 float f9 = 4.8828125E-4F;
+-                double d5 = (double)((float)this.field_72773_u + p_180447_1_);
++                double d5 = (double)((float)this.field_72773_u + partialTicks);
+                 double d3 = p_180447_3_ + d5 * 0.029999999329447746D;
+                 int i2 = MathHelper.func_76128_c(d3 / 2048.0D);
+                 int j2 = MathHelper.func_76128_c(p_180447_7_ / 2048.0D);
+@@ -1532,6 +3020,107 @@
+         }
+     }
+ 
++    public void func_180447_b(float p_180447_1_, int p_180447_2_, double p_180447_3_, double p_180447_5_, double p_180447_7_)
++    {
++        if (!Config.isCloudsOff())
++        {
++            if (Reflector.ForgeWorldProvider_getCloudRenderer.exists())
++            {
++                WorldProvider worldprovider = this.field_72777_q.field_71441_e.field_73011_w;
++                Object object = Reflector.call(worldprovider, Reflector.ForgeWorldProvider_getCloudRenderer);
++
++                if (object != null)
++                {
++                    Reflector.callVoid(object, Reflector.IRenderHandler_render, p_180447_1_, this.field_72769_h, this.field_72777_q);
++                    return;
++                }
++            }
++
++            if (this.field_72777_q.field_71441_e.field_73011_w.func_76569_d())
++            {
++                if (Config.isShaders())
++                {
++                    Shaders.beginClouds();
++                }
++
++                if (Config.isCloudsFancy())
++                {
++                    this.func_180445_c(p_180447_1_, p_180447_2_, p_180447_3_, p_180447_5_, p_180447_7_);
++                }
++                else
++                {
++                    float f9 = p_180447_1_;
++                    p_180447_1_ = 0.0F;
++                    GlStateManager.func_179129_p();
++                    int l2 = 32;
++                    int k1 = 8;
++                    Tessellator tessellator = Tessellator.func_178181_a();
++                    BufferBuilder bufferbuilder = tessellator.func_178180_c();
++                    this.field_72770_i.func_110577_a(field_110925_j);
++                    GlStateManager.func_179147_l();
++                    GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
++                    Vec3d vec3d = this.field_72769_h.func_72824_f(p_180447_1_);
++                    float f = (float)vec3d.field_72450_a;
++                    float f1 = (float)vec3d.field_72448_b;
++                    float f2 = (float)vec3d.field_72449_c;
++                    this.cloudRenderer.prepareToRender(false, this.field_72773_u, f9, vec3d);
++
++                    if (this.cloudRenderer.shouldUpdateGlList())
++                    {
++                        this.cloudRenderer.startUpdateGlList();
++
++                        if (p_180447_2_ != 2)
++                        {
++                            float f3 = (f * 30.0F + f1 * 59.0F + f2 * 11.0F) / 100.0F;
++                            float f4 = (f * 30.0F + f1 * 70.0F) / 100.0F;
++                            float f5 = (f * 30.0F + f2 * 70.0F) / 100.0F;
++                            f = f3;
++                            f1 = f4;
++                            f2 = f5;
++                        }
++
++                        float f10 = 4.8828125E-4F;
++                        double d5 = (double)((float)this.field_72773_u + p_180447_1_);
++                        double d3 = p_180447_3_ + d5 * 0.029999999329447746D;
++                        int l1 = MathHelper.func_76128_c(d3 / 2048.0D);
++                        int i2 = MathHelper.func_76128_c(p_180447_7_ / 2048.0D);
++                        d3 = d3 - (double)(l1 * 2048);
++                        double d4 = p_180447_7_ - (double)(i2 * 2048);
++                        float f6 = this.field_72769_h.field_73011_w.func_76571_f() - (float)p_180447_5_ + 0.33F;
++                        f6 = f6 + this.field_72777_q.field_71474_y.ofCloudsHeight * 128.0F;
++                        float f7 = (float)(d3 * 4.8828125E-4D);
++                        float f8 = (float)(d4 * 4.8828125E-4D);
++                        bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181709_i);
++
++                        for (int j2 = -256; j2 < 256; j2 += 32)
++                        {
++                            for (int k2 = -256; k2 < 256; k2 += 32)
++                            {
++                                bufferbuilder.func_181662_b((double)(j2 + 0), (double)f6, (double)(k2 + 32)).func_187315_a((double)((float)(j2 + 0) * 4.8828125E-4F + f7), (double)((float)(k2 + 32) * 4.8828125E-4F + f8)).func_181666_a(f, f1, f2, 0.8F).func_181675_d();
++                                bufferbuilder.func_181662_b((double)(j2 + 32), (double)f6, (double)(k2 + 32)).func_187315_a((double)((float)(j2 + 32) * 4.8828125E-4F + f7), (double)((float)(k2 + 32) * 4.8828125E-4F + f8)).func_181666_a(f, f1, f2, 0.8F).func_181675_d();
++                                bufferbuilder.func_181662_b((double)(j2 + 32), (double)f6, (double)(k2 + 0)).func_187315_a((double)((float)(j2 + 32) * 4.8828125E-4F + f7), (double)((float)(k2 + 0) * 4.8828125E-4F + f8)).func_181666_a(f, f1, f2, 0.8F).func_181675_d();
++                                bufferbuilder.func_181662_b((double)(j2 + 0), (double)f6, (double)(k2 + 0)).func_187315_a((double)((float)(j2 + 0) * 4.8828125E-4F + f7), (double)((float)(k2 + 0) * 4.8828125E-4F + f8)).func_181666_a(f, f1, f2, 0.8F).func_181675_d();
++                            }
++                        }
++
++                        tessellator.func_78381_a();
++                        this.cloudRenderer.endUpdateGlList();
++                    }
++
++                    this.cloudRenderer.renderGlList();
++                    GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
++                    GlStateManager.func_179084_k();
++                    GlStateManager.func_179089_o();
++                }
++
++                if (Config.isShaders())
++                {
++                    Shaders.endClouds();
++                }
++            }
++        }
++    }
++
+     public boolean func_72721_a(double p_72721_1_, double p_72721_3_, double p_72721_5_, float p_72721_7_)
+     {
+         return false;
+@@ -1690,9 +3279,9 @@
+         GlStateManager.func_179089_o();
+     }
+ 
+-    public void func_174967_a(long p_174967_1_)
++    public void updateChunks0(long finishTimeNano)
+     {
+-        this.field_147595_R |= this.field_174995_M.func_178516_a(p_174967_1_);
++        this.field_147595_R |= this.field_174995_M.func_178516_a(finishTimeNano);
+ 
+         if (!this.field_175009_l.isEmpty())
+         {
+@@ -1719,7 +3308,7 @@
+ 
+                 renderchunk1.func_188282_m();
+                 iterator.remove();
+-                long k1 = p_174967_1_ - System.nanoTime();
++                long k1 = finishTimeNano - System.nanoTime();
+ 
+                 if (k1 < 0L)
+                 {
+@@ -1728,7 +3317,92 @@
+             }
+         }
+     }
++    
++    public void func_174967_a(long p_174967_1_)
++    {
++        p_174967_1_ = (long)((double)p_174967_1_ + 1.0E8D);
++        this.field_147595_R |= this.field_174995_M.func_178516_a(p_174967_1_);
+ 
++        if (this.chunksToUpdateForced.size() > 0)
++        {
++            Iterator iterator = this.chunksToUpdateForced.iterator();
++
++            while (iterator.hasNext())
++            {
++                RenderChunk renderchunk1 = (RenderChunk)iterator.next();
++
++                if (!this.field_174995_M.func_178507_a(renderchunk1))
++                {
++                    break;
++                }
++
++                renderchunk1.func_188282_m();
++                iterator.remove();
++                this.field_175009_l.remove(renderchunk1);
++                this.chunksToResortTransparency.remove(renderchunk1);
++            }
++        }
++
++        if (this.chunksToResortTransparency.size() > 0)
++        {
++            Iterator iterator2 = this.chunksToResortTransparency.iterator();
++
++            if (iterator2.hasNext())
++            {
++                RenderChunk renderchunk3 = (RenderChunk)iterator2.next();
++
++                if (this.field_174995_M.func_178509_c(renderchunk3))
++                {
++                    iterator2.remove();
++                }
++            }
++        }
++
++        int l1 = 0;
++        int i2 = Config.getUpdatesPerFrame();
++        int k1 = i2 * 2;
++
++        if (!this.field_175009_l.isEmpty())
++        {
++            Iterator<RenderChunk> iterator1 = this.field_175009_l.iterator();
++
++            while (iterator1.hasNext())
++            {
++                RenderChunk renderchunk2 = iterator1.next();
++                boolean flag1;
++
++                if (renderchunk2.func_188281_o())
++                {
++                    flag1 = this.field_174995_M.func_178505_b(renderchunk2);
++                }
++                else
++                {
++                    flag1 = this.field_174995_M.func_178507_a(renderchunk2);
++                }
++
++                if (!flag1)
++                {
++                    break;
++                }
++
++                renderchunk2.func_188282_m();
++                iterator1.remove();
++
++                if (renderchunk2.func_178571_g().func_178489_a() && i2 < k1)
++                {
++                    ++i2;
++                }
++
++                ++l1;
++
++                if (l1 >= i2)
++                {
++                    break;
++                }
++            }
++        }
++    }
++    
+     public void func_180449_a(Entity p_180449_1_, float p_180449_2_)
+     {
+         Tessellator tessellator = Tessellator.func_178181_a();
+@@ -1852,7 +3526,8 @@
          GlStateManager.func_187428_a(GlStateManager.SourceFactor.DST_COLOR, GlStateManager.DestFactor.SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
          GlStateManager.func_179147_l();
          GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 0.5F);
@@ -134,7 +2377,7 @@
          GlStateManager.func_179088_q();
          GlStateManager.func_179092_a(516, 0.1F);
          GlStateManager.func_179141_d();
-@@ -1892,8 +1916,11 @@
+@@ -1892,8 +3567,11 @@
                  double d7 = (double)blockpos.func_177956_o() - d4;
                  double d8 = (double)blockpos.func_177952_p() - d5;
                  Block block = this.field_72769_h.func_180495_p(blockpos).func_177230_c();
@@ -147,7 +2390,7 @@
                  {
                      if (d6 * d6 + d7 * d7 + d8 * d8 > 1024.0D)
                      {
-@@ -2388,7 +2415,7 @@
+@@ -2388,7 +4066,7 @@
  
                  if (block.func_176223_P().func_185904_a() != Material.field_151579_a)
                  {
@@ -156,3 +2399,163 @@
                      this.field_72769_h.func_184156_a(p_180439_3_, soundtype.func_185845_c(), SoundCategory.BLOCKS, (soundtype.func_185843_a() + 1.0F) / 2.0F, soundtype.func_185847_b() * 0.8F, false);
                  }
  
+@@ -2520,6 +4198,75 @@
+         this.field_147595_R = true;
+     }
+ 
++    public void resetClouds()
++    {
++        this.cloudRenderer.reset();
++    }
++
++    public int getCountRenderers()
++    {
++        return this.field_175008_n.field_178164_f.length;
++    }
++
++    public int getCountActiveRenderers()
++    {
++        return this.field_72755_R.size();
++    }
++
++    public int getCountEntitiesRendered()
++    {
++        return this.field_72749_I;
++    }
++
++    public int getCountTileEntitiesRendered()
++    {
++        return this.countTileEntitiesRendered;
++    }
++
++    public int getCountLoadedChunks()
++    {
++        if (this.field_72769_h == null)
++        {
++            return 0;
++        }
++        else
++        {
++            IChunkProvider ichunkprovider = this.field_72769_h.func_72863_F();
++
++            if (ichunkprovider == null)
++            {
++                return 0;
++            }
++            else
++            {
++                if (ichunkprovider != this.worldChunkProvider)
++                {
++                    this.worldChunkProvider = ichunkprovider;
++                    this.worldChunkProviderMap = (Long2ObjectMap)Reflector.getFieldValue(ichunkprovider, Reflector.ChunkProviderClient_chunkMapping);
++                }
++
++                return this.worldChunkProviderMap == null ? 0 : this.worldChunkProviderMap.size();
++            }
++        }
++    }
++
++    public int getCountChunksToUpdate()
++    {
++        return this.field_175009_l.size();
++    }
++
++    public RenderChunk getRenderChunk(BlockPos p_getRenderChunk_1_)
++    {
++        return this.field_175008_n.func_178161_a(p_getRenderChunk_1_);
++    }
++
++    public WorldClient getWorld()
++    {
++        return this.field_72769_h;
++    }
++
++
++
+     public void func_181023_a(Collection<TileEntity> p_181023_1_, Collection<TileEntity> p_181023_2_)
+     {
+         synchronized (this.field_181024_n)
+@@ -2529,29 +4276,76 @@
+         }
+     }
+ 
++    //op add 
++    private ContainerLocalRenderInformation allocateRenderInformation(RenderChunk p_allocateRenderInformation_1_, EnumFacing p_allocateRenderInformation_2_, int p_allocateRenderInformation_3_)
++    {
++        ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation1;
++
++        if (renderInfoCache.isEmpty())
++        {
++            renderglobal$containerlocalrenderinformation1 = new ContainerLocalRenderInformation(p_allocateRenderInformation_1_, p_allocateRenderInformation_2_, p_allocateRenderInformation_3_);
++        }
++        else
++        {
++            renderglobal$containerlocalrenderinformation1 = renderInfoCache.pollLast();
++            renderglobal$containerlocalrenderinformation1.initialize(p_allocateRenderInformation_1_, p_allocateRenderInformation_2_, p_allocateRenderInformation_3_);
++        }
++
++        renderglobal$containerlocalrenderinformation1.cacheable = true;
++        return renderglobal$containerlocalrenderinformation1;
++    }
++
++    private void freeRenderInformation(ContainerLocalRenderInformation p_freeRenderInformation_1_)
++    {
++        if (p_freeRenderInformation_1_.cacheable)
++        {
++            renderInfoCache.add(p_freeRenderInformation_1_);
++        }
++    }
++
++    //end
++
++
++
+     @SideOnly(Side.CLIENT)
+-    class ContainerLocalRenderInformation
++    // cherry add public static
++    public static class ContainerLocalRenderInformation
+     {
+-        final RenderChunk field_178036_a;
+-        final EnumFacing field_178034_b;
+-        byte field_178035_c;
++        //op del final
++        RenderChunk field_178036_a;
++        //op del final
++        EnumFacing field_178034_b;
++        int field_178035_c;
+         final int field_178032_d;
++        boolean cacheable = false; //op add
+ 
+-        private ContainerLocalRenderInformation(RenderChunk p_i46248_2_, @Nullable EnumFacing p_i46248_3_, int p_i46248_4_)
++        //cherry modify
++        public ContainerLocalRenderInformation(RenderChunk p_i46248_2_, @Nullable EnumFacing p_i46248_3_, int p_i46248_4_)
+         {
+             this.field_178036_a = p_i46248_2_;
+             this.field_178034_b = p_i46248_3_;
++            this.field_178035_c = p_i46248_4_;
+             this.field_178032_d = p_i46248_4_;
++            
+         }
+ 
+-        public void func_189561_a(byte p_189561_1_, EnumFacing p_189561_2_)
++        //op modify p_189561_1_ byte ->int
++        public void setDirection(int p_189561_1_, EnumFacing p_189561_2_)
+         {
+-            this.field_178035_c = (byte)(this.field_178035_c | p_189561_1_ | 1 << p_189561_2_.ordinal());
++            //this.setFacing = (byte)(this.setFacing | p_189561_1_ | 1 << p_189561_2_.ordinal());
++            this.field_178035_c = this.field_178035_c | p_189561_1_ | 1 << p_189561_2_.ordinal();
+         }
+ 
+         public boolean func_189560_a(EnumFacing p_189560_1_)
+         {
+             return (this.field_178035_c & 1 << p_189560_1_.ordinal()) > 0;
+         }
++
++        private void initialize(RenderChunk p_initialize_1_, EnumFacing p_initialize_2_, int p_initialize_3_)
++        {
++            this.field_178036_a = p_initialize_1_;
++            this.field_178034_b = p_initialize_2_;
++            this.field_178035_c = p_initialize_3_;
++        }
+     }
+ }

@@ -19,13 +19,15 @@
 package net.cherrymc.dev;
 
 
+import net.minecraft.client.main.Main;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MainClient extends Main {
+public class MainClient extends Main111 {
     public static void main(String[] args) throws Exception {
         new MainClient().start(args);
     }

@@ -5,7 +5,7 @@
          BlockPos blockpos = p_180614_3_.func_177972_a(p_180614_5_);
  
 -        if (p_180614_5_ != EnumFacing.DOWN && p_180614_5_ != EnumFacing.UP && p_180614_1_.func_175151_a(blockpos, p_180614_5_, itemstack))
-+        //cherry modify  去掉上下面检测
++        //cherry modify  å»æä¸ä¸é¢æ£æµ
 +        if (p_180614_1_.func_175151_a(blockpos, p_180614_5_, itemstack))
          {
              EntityHanging entityhanging = this.func_179233_a(p_180614_2_, blockpos, p_180614_5_);
@@ -15,7 +15,7 @@
          if (this.field_82811_a == EntityPainting.class)
          {
 -            return new EntityPainting(p_179233_1_, p_179233_2_, p_179233_3_);
-+            // cherry add  因为前面去掉检测 防止图画上下面放置
++            // cherry add  å ä¸ºåé¢å»ææ£æµ é²æ­¢å¾ç»ä¸ä¸é¢æ¾ç½®
 +            return p_179233_3_ == EnumFacing.UP || p_179233_3_ == EnumFacing.DOWN ? null : new EntityPainting(p_179233_1_, p_179233_2_, p_179233_3_);
          }
          else
