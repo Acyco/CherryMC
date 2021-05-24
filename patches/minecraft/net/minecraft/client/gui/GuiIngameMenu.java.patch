@@ -1,16 +1,29 @@
 --- ../src-base/minecraft/net/minecraft/client/gui/GuiIngameMenu.java
 +++ ../src-work/minecraft/net/minecraft/client/gui/GuiIngameMenu.java
-@@ -30,7 +30,8 @@
+@@ -1,6 +1,8 @@
+ package net.minecraft.client.gui;
+ 
+ import java.io.IOException;
++
++import net.cherrymc.client.gui.CherryGui;
+ import net.minecraft.client.gui.achievement.GuiStats;
+ import net.minecraft.client.gui.advancements.GuiScreenAdvancements;
+ import net.minecraft.client.multiplayer.WorldClient;
+@@ -30,7 +32,12 @@
  
          this.field_146292_n.add(new GuiButton(4, this.field_146294_l / 2 - 100, this.field_146295_m / 4 + 24 + -16, I18n.func_135052_a("menu.returnToGame")));
          this.field_146292_n.add(new GuiButton(0, this.field_146294_l / 2 - 100, this.field_146295_m / 4 + 96 + -16, 98, 20, I18n.func_135052_a("menu.options")));
 -        GuiButton guibutton = this.func_189646_b(new GuiButton(7, this.field_146294_l / 2 + 2, this.field_146295_m / 4 + 96 + -16, 98, 20, I18n.func_135052_a("menu.shareToLan")));
 +        this.field_146292_n.add(new GuiButton(12, this.field_146294_l / 2 + 2, this.field_146295_m / 4 + 96 + i, 98, 20, I18n.func_135052_a("fml.menu.modoptions")));
-+        GuiButton guibutton = this.func_189646_b(new GuiButton(7, this.field_146294_l / 2 - 100, this.field_146295_m / 4 + 72 + -16, 200, 20, I18n.func_135052_a("menu.shareToLan", new Object[0])));
++        //GuiButton guibutton = this.addButton(new GuiButton(7, this.width / 2 - 100, this.height / 4 + 72 + -16, 200, 20, I18n.format("menu.shareToLan", new Object[0])));
++        GuiButton guibutton = this.func_189646_b(new GuiButton(7, this.field_146294_l / 2 - 100, this.field_146295_m / 4 + 72 + -16, 98, 20, I18n.func_135052_a("menu.shareToLan", new Object[0])));
++        //cherry add 
++        this.field_146292_n.add(new GuiButton(14, this.field_146294_l / 2 + 2, this.field_146295_m / 4 + 72 + -16, 98, 20, I18n.func_135052_a("Cherry")));
++        
          guibutton.field_146124_l = this.field_146297_k.func_71356_B() && !this.field_146297_k.func_71401_C().func_71344_c();
          this.field_146292_n.add(new GuiButton(5, this.field_146294_l / 2 - 100, this.field_146295_m / 4 + 48 + -16, 98, 20, I18n.func_135052_a("gui.advancements")));
          this.field_146292_n.add(new GuiButton(6, this.field_146294_l / 2 + 2, this.field_146295_m / 4 + 48 + -16, 98, 20, I18n.func_135052_a("gui.stats")));
-@@ -73,13 +74,19 @@
+@@ -73,13 +80,21 @@
                  this.field_146297_k.func_71381_h();
                  break;
              case 5:
@@ -27,6 +40,8 @@
 +            case 12:
 +                net.minecraftforge.fml.client.FMLClientHandler.instance().showInGameModOptions(this);
 +                break;
++            case 14:
++                this.field_146297_k.func_147108_a(new CherryGui(this));
          }
      }
  
