@@ -1,6 +1,14 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/entity/layers/LayerSheepWool.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/entity/layers/LayerSheepWool.java
-@@ -14,7 +14,8 @@
+@@ -8,13 +8,16 @@
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.CustomColors;
+ 
+ @SideOnly(Side.CLIENT)
+ public class LayerSheepWool implements LayerRenderer<EntitySheep>
  {
      private static final ResourceLocation field_177165_a = new ResourceLocation("textures/entity/sheep/sheep_fur.png");
      private final RenderSheep field_177163_b;
@@ -10,3 +18,30 @@
  
      public LayerSheepWool(RenderSheep p_i46112_1_)
      {
+@@ -37,11 +40,26 @@
+                 float f = ((float)(p_177141_1_.field_70173_aa % 25) + p_177141_4_) / 25.0F;
+                 float[] afloat1 = EntitySheep.func_175513_a(EnumDyeColor.func_176764_b(k));
+                 float[] afloat2 = EntitySheep.func_175513_a(EnumDyeColor.func_176764_b(l));
++              //op add
++                if (Config.isCustomColors())
++                {
++                    afloat1 = CustomColors.getSheepColors(EnumDyeColor.func_176764_b(k), afloat1);
++                    afloat2 = CustomColors.getSheepColors(EnumDyeColor.func_176764_b(l), afloat2);
++                }              
++              //op end
++
+                 GlStateManager.func_179124_c(afloat1[0] * (1.0F - f) + afloat2[0] * f, afloat1[1] * (1.0F - f) + afloat2[1] * f, afloat1[2] * (1.0F - f) + afloat2[2] * f);
+             }
+             else
+             {
+                 float[] afloat = EntitySheep.func_175513_a(p_177141_1_.func_175509_cj());
++                //op add
++                if (Config.isCustomColors())
++                {
++                    afloat = CustomColors.getSheepColors(p_177141_1_.func_175509_cj(), afloat);
++                }
++                
++                //op end
+                 GlStateManager.func_179124_c(afloat[0], afloat[1], afloat[2]);
+             }
+ 

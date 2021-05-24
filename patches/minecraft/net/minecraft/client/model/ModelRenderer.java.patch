@@ -64,37 +64,19 @@
      {
          if (!this.field_78807_k)
          {
-@@ -116,9 +144,28 @@
+@@ -116,9 +144,9 @@
              {
                  if (!this.field_78812_q)
                  {
 -                    this.func_78788_d(p_78785_1_);
 +                    this.func_78788_d(scale);
                  }
- 
-+                //op add
-+                int J = 0;
-+                if (this.textureLocation != null && !this.renderGlobal.renderOverlayDamaged)
-+                {
-+                    if (this.renderGlobal.renderOverlayEyes)
-+                    {
-+                        return;
-+                    }
-+
-+                    J = GlStateManager.getBoundTexture();
-+                    Config.getTextureManager().func_110577_a(this.textureLocation);
-+                }
-+
-+                if (this.modelUpdater != null)
-+                {
-+                    this.modelUpdater.update();
-+                }
-+                boolean flag = this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F;
-+                //end 
+-
++                
                  GlStateManager.func_179109_b(this.field_82906_o, this.field_82908_p, this.field_82907_q);
  
                  if (this.field_78795_f == 0.0F && this.field_78796_g == 0.0F && this.field_78808_h == 0.0F)
-@@ -131,30 +178,30 @@
+@@ -131,30 +159,30 @@
                          {
                              for (int k = 0; k < this.field_78805_m.size(); ++k)
                              {
@@ -130,7 +112,7 @@
  
                      if (this.field_78808_h != 0.0F)
                      {
-@@ -177,7 +224,7 @@
+@@ -177,7 +205,7 @@
                      {
                          for (int i = 0; i < this.field_78805_m.size(); ++i)
                          {
@@ -139,7 +121,7 @@
                          }
                      }
  
-@@ -188,8 +235,136 @@
+@@ -188,8 +216,136 @@
              }
          }
      }
@@ -277,7 +259,7 @@
      {
          if (!this.field_78807_k)
          {
-@@ -197,11 +372,11 @@
+@@ -197,11 +353,11 @@
              {
                  if (!this.field_78812_q)
                  {
@@ -291,7 +273,7 @@
  
                  if (this.field_78796_g != 0.0F)
                  {
-@@ -223,7 +398,77 @@
+@@ -223,7 +379,77 @@
              }
          }
      }
@@ -369,7 +351,7 @@
      public void func_78794_c(float p_78794_1_)
      {
          if (!this.field_78807_k)
-@@ -265,7 +510,8 @@
+@@ -265,7 +491,8 @@
          }
      }
  
@@ -379,7 +361,7 @@
      {
          this.field_78811_r = GLAllocation.func_74526_a(1);
          GlStateManager.func_187423_f(this.field_78811_r, 4864);
-@@ -273,9 +519,36 @@
+@@ -273,9 +500,36 @@
  
          for (int i = 0; i < this.field_78804_l.size(); ++i)
          {
@@ -416,7 +398,7 @@
          GlStateManager.func_187415_K();
          this.field_78812_q = true;
      }
-@@ -286,4 +559,126 @@
+@@ -286,4 +540,126 @@
          this.field_78799_b = (float)p_78787_2_;
          return this;
      }

@@ -1,17 +1,184 @@
 --- ../src-base/minecraft/net/minecraft/util/ScreenShotHelper.java
 +++ ../src-work/minecraft/net/minecraft/util/ScreenShotHelper.java
-@@ -53,10 +53,14 @@
-                 file2 = new File(file1, p_148259_1_);
-             }
+@@ -8,6 +8,9 @@
+ import java.util.Date;
+ import javax.annotation.Nullable;
+ import javax.imageio.ImageIO;
++
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.gui.ScaledResolution;
+ import net.minecraft.client.renderer.GlStateManager;
+ import net.minecraft.client.renderer.OpenGlHelper;
+ import net.minecraft.client.renderer.texture.TextureUtil;
+@@ -18,6 +21,8 @@
+ import net.minecraft.util.text.event.ClickEvent;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.Reflector;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ import org.lwjgl.BufferUtils;
+@@ -35,13 +40,79 @@
+         return func_148259_a(p_148260_0_, (String)null, p_148260_1_, p_148260_2_, p_148260_3_);
+     }
  
++/*    public static ITextComponent saveScreenshot(File gameDirectory, @Nullable String screenshotName, int width, int height, Framebuffer buffer)
++    {
++        try
++        {
++            File file1 = new File(gameDirectory, "screenshots");
++            file1.mkdir();
++            BufferedImage bufferedimage = createScreenshot(width, height, buffer);
++            File file2;
++
++            if (screenshotName == null)
++            {
++                file2 = getTimestampedPNGFileForDirectory(file1);
++            }
++            else
++            {
++                file2 = new File(file1, screenshotName);
++            }
++
 +            file2 = file2.getCanonicalFile(); // FORGE: Fix errors on Windows with paths that include \.\
 +            net.minecraftforge.client.event.ScreenshotEvent event = net.minecraftforge.client.ForgeHooksClient.onScreenshot(bufferedimage, file2);
 +            if (event.isCanceled()) return event.getCancelMessage(); else file2 = event.getScreenshotFile();
++            ImageIO.write(bufferedimage, "png", file2);
++            ITextComponent itextcomponent = new TextComponentString(file2.getName());
++            itextcomponent.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file2.getAbsolutePath()));
++            itextcomponent.getStyle().setUnderlined(Boolean.valueOf(true));
++            if (event.getResultMessage() != null) return event.getResultMessage();
++            return new TextComponentTranslation("screenshot.success", new Object[] {itextcomponent});
++        }
++        catch (Exception exception)
++        {
++            LOGGER.warn("Couldn't save screenshot", (Throwable)exception);
++            return new TextComponentTranslation("screenshot.failure", new Object[] {exception.getMessage()});
++        }
++    }*/
++
++
++    /**
++     * Saves a screenshot in the game directory with the given file name (or null to generate a time-stamped name).
++     * Returns an ITextComponent indicating the success/failure of the saving.
++     */
+     public static ITextComponent func_148259_a(File p_148259_0_, @Nullable String p_148259_1_, int p_148259_2_, int p_148259_3_, Framebuffer p_148259_4_)
+     {
+         try
+         {
+             File file1 = new File(p_148259_0_, "screenshots");
+             file1.mkdir();
++            Minecraft minecraft = Minecraft.func_71410_x();
++            int i = Config.getGameSettings().field_74335_Z;
++            ScaledResolution scaledresolution = new ScaledResolution(minecraft);
++            int j = scaledresolution.func_78325_e();
++            int k = Config.getScreenshotSize();
++            boolean flag = OpenGlHelper.func_148822_b() && k > 1;
++
++            if (flag)
++            {
++                Config.getGameSettings().field_74335_Z = j * k;
++                resize(p_148259_2_ * k, p_148259_3_ * k);
++                GlStateManager.func_179094_E();
++                GlStateManager.func_179086_m(16640);
++                minecraft.func_147110_a().func_147610_a(true);
++                minecraft.field_71460_t.func_181560_a(minecraft.func_184121_ak(), System.nanoTime());
++            }
++
+             BufferedImage bufferedimage = func_186719_a(p_148259_2_, p_148259_3_, p_148259_4_);
++
++            if (flag)
++            {
++                minecraft.func_147110_a().func_147609_e();
++                GlStateManager.func_179121_F();
++                Config.getGameSettings().field_74335_Z = i;
++                resize(p_148259_2_, p_148259_3_);
++            }
++
+             File file2;
+ 
+             if (p_148259_1_ == null)
+@@ -53,19 +124,46 @@
+                 file2 = new File(file1, p_148259_1_);
+             }
+ 
++            file2 = file2.getCanonicalFile();
++            Object object = null;
++
++            if (Reflector.ForgeHooksClient_onScreenshot.exists())
++            {
++                object = Reflector.call(Reflector.ForgeHooksClient_onScreenshot, bufferedimage, file2);
++
++                if (Reflector.callBoolean(object, Reflector.Event_isCanceled))
++                {
++                    return (ITextComponent)Reflector.call(object, Reflector.ScreenshotEvent_getCancelMessage);
++                }
++
++                file2 = (File)Reflector.call(object, Reflector.ScreenshotEvent_getScreenshotFile);
++            }
++
              ImageIO.write(bufferedimage, "png", file2);
              ITextComponent itextcomponent = new TextComponentString(file2.getName());
              itextcomponent.func_150256_b().func_150241_a(new ClickEvent(ClickEvent.Action.OPEN_FILE, file2.getAbsolutePath()));
              itextcomponent.func_150256_b().func_150228_d(Boolean.valueOf(true));
-+            if (event.getResultMessage() != null) return event.getResultMessage();
++
++            if (object != null)
++            {
++                ITextComponent itextcomponent1 = (ITextComponent)Reflector.call(object, Reflector.ScreenshotEvent_getResultMessage);
++
++                if (itextcomponent1 != null)
++                {
++                    return itextcomponent1;
++                }
++            }
++
              return new TextComponentTranslation("screenshot.success", new Object[] {itextcomponent});
          }
-         catch (Exception exception)
+-        catch (Exception exception)
++        catch (Exception exception1)
+         {
+-            field_148261_a.warn("Couldn't save screenshot", (Throwable)exception);
+-            return new TextComponentTranslation("screenshot.failure", new Object[] {exception.getMessage()});
++            field_148261_a.warn("Couldn't save screenshot", (Throwable)exception1);
++            return new TextComponentTranslation("screenshot.failure", new Object[] {exception1.getMessage()});
+         }
+     }
+ 
++
+     public static BufferedImage func_186719_a(int p_186719_0_, int p_186719_1_, Framebuffer p_186719_2_)
+     {
+         if (OpenGlHelper.func_148822_b())
+@@ -120,4 +218,32 @@
+             ++i;
+         }
+     }
++    
++    //op add
++    private static void resize(int p_resize_0_, int p_resize_1_)
++    {
++        Minecraft minecraft = Minecraft.func_71410_x();
++        minecraft.field_71443_c = Math.max(1, p_resize_0_);
++        minecraft.field_71440_d = Math.max(1, p_resize_1_);
++
++        if (minecraft.field_71462_r != null)
++        {
++            ScaledResolution scaledresolution = new ScaledResolution(minecraft);
++            minecraft.field_71462_r.func_175273_b(minecraft, scaledresolution.func_78326_a(), scaledresolution.func_78328_b());
++        }
++
++        updateFramebufferSize();
++    }
++
++    private static void updateFramebufferSize()
++    {
++        Minecraft minecraft = Minecraft.func_71410_x();
++        minecraft.func_147110_a().func_147613_a(minecraft.field_71443_c, minecraft.field_71440_d);
++
++        if (minecraft.field_71460_t != null)
++        {
++            minecraft.field_71460_t.func_147704_a(minecraft.field_71443_c, minecraft.field_71440_d);
++        }
++    }    
++    //op end
+ }

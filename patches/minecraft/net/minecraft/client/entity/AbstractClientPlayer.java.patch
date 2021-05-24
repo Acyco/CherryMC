@@ -1,15 +1,16 @@
 --- ../src-base/minecraft/net/minecraft/client/entity/AbstractClientPlayer.java
 +++ ../src-work/minecraft/net/minecraft/client/entity/AbstractClientPlayer.java
-@@ -20,6 +20,8 @@
+@@ -20,6 +20,9 @@
  import net.minecraft.world.World;
  import net.minecraftforge.fml.relauncher.Side;
  import net.minecraftforge.fml.relauncher.SideOnly;
 +import optifine.CapeUtils;
++import optifine.Config;
 +import optifine.PlayerConfigurations;
  
  @SideOnly(Side.CLIENT)
  public abstract class AbstractClientPlayer extends EntityPlayer
-@@ -28,10 +30,23 @@
+@@ -28,10 +31,23 @@
      public float field_184835_a;
      public float field_184836_b;
      public float field_184837_c;
@@ -33,7 +34,33 @@
      }
  
      public boolean func_175149_v()
-@@ -135,7 +150,7 @@
+@@ -77,8 +93,23 @@
+     @Nullable
+     public ResourceLocation func_110303_q()
+     {
+-        NetworkPlayerInfo networkplayerinfo = this.func_175155_b();
+-        return networkplayerinfo == null ? null : networkplayerinfo.func_178861_h();
++        //NetworkPlayerInfo networkplayerinfo = this.getPlayerInfo();
++        //return networkplayerinfo == null ? null : networkplayerinfo.getLocationCape();
++        //op add
++        if (!Config.isShowCapes())
++        {
++            return null;
++        }
++        else if (this.locationOfCape != null)
++        {
++            return this.locationOfCape;
++        }
++        else
++        {
++            NetworkPlayerInfo networkplayerinfo = this.func_175155_b();
++            return networkplayerinfo == null ? null : networkplayerinfo.func_178861_h();
++        }        
++        //op end
+     }
+ 
+     public boolean func_184833_s()
+@@ -135,7 +166,7 @@
              f = 1.0F;
          }
  
@@ -42,7 +69,7 @@
          {
              int i = this.func_184612_cw();
              float f1 = (float)i / 20.0F;
-@@ -152,6 +167,38 @@
+@@ -152,6 +183,38 @@
              f *= 1.0F - f1 * 0.15F;
          }
  

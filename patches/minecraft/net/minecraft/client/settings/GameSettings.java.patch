@@ -1,6 +1,6 @@
 --- ../src-base/minecraft/net/minecraft/client/settings/GameSettings.java
 +++ ../src-work/minecraft/net/minecraft/client/settings/GameSettings.java
-@@ -6,15 +6,19 @@
+@@ -6,22 +6,28 @@
  import com.google.common.collect.Maps;
  import com.google.common.collect.Sets;
  import com.google.gson.Gson;
@@ -20,15 +20,16 @@
  import java.util.Iterator;
  import java.util.List;
  import java.util.Map;
-@@ -22,6 +26,7 @@
+ import java.util.Set;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.GuiNewChat;
++import net.minecraft.client.gui.GuiScreen;
  import net.minecraft.client.gui.chat.NarratorChatListener;
 +import net.minecraft.client.renderer.OpenGlHelper;
  import net.minecraft.client.renderer.texture.TextureMap;
  import net.minecraft.client.resources.I18n;
  import net.minecraft.client.tutorial.TutorialSteps;
-@@ -37,6 +42,16 @@
+@@ -37,6 +43,16 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraftforge.fml.relauncher.Side;
  import net.minecraftforge.fml.relauncher.SideOnly;
@@ -45,15 +46,16 @@
  import org.apache.commons.io.IOUtils;
  import org.apache.commons.lang3.ArrayUtils;
  import org.apache.logging.log4j.LogManager;
-@@ -44,6 +59,7 @@
+@@ -44,6 +60,8 @@
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
  import org.lwjgl.opengl.Display;
++import org.lwjgl.opengl.DisplayMode;
 +import shadersmod.client.Shaders;
  
  @SideOnly(Side.CLIENT)
  public class GameSettings
-@@ -162,9 +178,93 @@
+@@ -162,9 +180,93 @@
      public int field_192571_R;
      public String field_74363_ab;
      public boolean field_151455_aw;
@@ -147,7 +149,7 @@
          this.field_74324_K = (KeyBinding[])ArrayUtils.addAll(new KeyBinding[] {this.field_74312_F, this.field_74313_G, this.field_74351_w, this.field_74370_x, this.field_74368_y, this.field_74366_z, this.field_74314_A, this.field_74311_E, this.field_151444_V, this.field_74316_C, this.field_151445_Q, this.field_74310_D, this.field_74321_H, this.field_74322_I, this.field_74323_J, this.field_151447_Z, this.field_151457_aa, this.field_151458_ab, this.field_152395_am, this.field_178883_an, this.field_186718_X, this.field_193629_ap, this.field_193630_aq, this.field_194146_ao}, this.field_151456_ac);
          this.field_74318_M = EnumDifficulty.NORMAL;
          this.field_74332_R = "";
-@@ -183,11 +283,19 @@
+@@ -183,11 +285,19 @@
          }
  
          this.field_151451_c = p_i46326_1_.func_147111_S() ? 12 : 8;
@@ -168,7 +170,7 @@
          this.field_74324_K = (KeyBinding[])ArrayUtils.addAll(new KeyBinding[] {this.field_74312_F, this.field_74313_G, this.field_74351_w, this.field_74370_x, this.field_74368_y, this.field_74366_z, this.field_74314_A, this.field_74311_E, this.field_151444_V, this.field_74316_C, this.field_151445_Q, this.field_74310_D, this.field_74321_H, this.field_74322_I, this.field_74323_J, this.field_151447_Z, this.field_151457_aa, this.field_151458_ab, this.field_152395_am, this.field_178883_an, this.field_186718_X, this.field_193629_ap, this.field_193630_aq, this.field_194146_ao}, this.field_151456_ac);
          this.field_74318_M = EnumDifficulty.NORMAL;
          this.field_74332_R = "";
-@@ -239,6 +347,7 @@
+@@ -239,6 +349,7 @@
  
      public void func_74304_a(GameSettings.Options p_74304_1_, float p_74304_2_)
      {
@@ -176,7 +178,7 @@
          if (p_74304_1_ == GameSettings.Options.SENSITIVITY)
          {
              this.field_74341_c = p_74304_2_;
-@@ -299,7 +408,7 @@
+@@ -299,7 +410,7 @@
                  this.field_74317_L.func_147117_R().func_147633_a(this.field_151442_I);
                  this.field_74317_L.func_110434_K().func_110577_a(TextureMap.field_110575_b);
                  this.field_74317_L.func_147117_R().func_174937_a(false, this.field_151442_I > 0);
@@ -185,7 +187,7 @@
              }
          }
  
-@@ -312,6 +421,7 @@
+@@ -312,6 +423,7 @@
  
      public void func_74306_a(GameSettings.Options p_74306_1_, int p_74306_2_)
      {
@@ -193,16 +195,64 @@
          if (p_74306_1_ == GameSettings.Options.RENDER_DISTANCE)
          {
              this.func_74304_a(p_74306_1_, MathHelper.func_76131_a((float)(this.field_151451_c + p_74306_2_), p_74306_1_.func_186707_e(), p_74306_1_.func_148267_f()));
-@@ -361,7 +471,7 @@
+@@ -329,7 +441,35 @@
+ 
+         if (p_74306_1_ == GameSettings.Options.GUI_SCALE)
+         {
+-            this.field_74335_Z = this.field_74335_Z + p_74306_2_ & 3;
++            //this.guiScale = this.guiScale + value & 3;
++            //op add
++            this.field_74335_Z += p_74306_2_;
++
++            if (GuiScreen.func_146272_n())
++            {
++                this.field_74335_Z = 0;
++            }
++
++            DisplayMode displaymode = Config.getLargestDisplayMode();
++            int i = displaymode.getWidth() / 320;
++            int j = displaymode.getHeight() / 240;
++            int k = Math.min(i, j);
++
++            if (this.field_74335_Z < 0)
++            {
++                this.field_74335_Z = k - 1;
++            }
++
++            if (this.field_74317_L.func_152349_b() && this.field_74335_Z % 2 != 0)
++            {
++                this.field_74335_Z += p_74306_2_;
++            }
++
++            if (this.field_74335_Z < 0 || this.field_74335_Z >= k)
++            {
++                this.field_74335_Z = 0;
++            }            
++            //op end
+         }
+ 
+         if (p_74306_1_ == GameSettings.Options.PARTICLES)
+@@ -360,8 +500,18 @@
+ 
          if (p_74306_1_ == GameSettings.Options.ANAGLYPH)
          {
++            /*this.anaglyph = !this.anaglyph;
++            net.minecraftforge.fml.client.FMLClientHandler.instance().refreshResources(net.minecraftforge.client.resource.VanillaResourceType.TEXTURES);*/
++            //op add
++            if (!this.field_74337_g && Config.isShaders())
++            {
++                Config.showGuiMessage(Lang.get("of.message.an.shaders1"), Lang.get("of.message.an.shaders2"));
++                return;
++            }
++
              this.field_74337_g = !this.field_74337_g;
 -            this.field_74317_L.func_110436_a();
-+            net.minecraftforge.fml.client.FMLClientHandler.instance().refreshResources(net.minecraftforge.client.resource.VanillaResourceType.TEXTURES);
++            this.field_74317_L.func_110436_a();            
++            //op end
          }
  
          if (p_74306_1_ == GameSettings.Options.GRAPHICS)
-@@ -477,6 +587,12 @@
+@@ -477,6 +627,12 @@
  
      public float func_74296_a(GameSettings.Options p_74296_1_)
      {
@@ -215,7 +265,7 @@
          if (p_74296_1_ == GameSettings.Options.FOV)
          {
              return this.field_74334_X;
-@@ -586,144 +702,94 @@
+@@ -586,144 +742,94 @@
  
      public String func_74297_c(GameSettings.Options p_74297_1_)
      {
@@ -437,7 +487,7 @@
          try
          {
              if (!this.field_74354_ai.exists())
-@@ -732,7 +798,7 @@
+@@ -732,7 +838,7 @@
              }
  
              this.field_186714_aM.clear();
@@ -446,7 +496,7 @@
              NBTTagCompound nbttagcompound = new NBTTagCompound();
  
              for (String s : list)
-@@ -1068,7 +1134,12 @@
+@@ -1068,7 +1174,12 @@
                      {
                          if (s1.equals("key_" + keybinding.func_151464_g()))
                          {
@@ -460,7 +510,7 @@
                          }
                      }
  
-@@ -1100,6 +1171,8 @@
+@@ -1100,6 +1211,8 @@
          {
              field_151454_ax.error("Failed to load options", (Throwable)exception);
          }
@@ -469,7 +519,7 @@
      }
  
      private NBTTagCompound func_189988_a(NBTTagCompound p_189988_1_)
-@@ -1132,6 +1205,7 @@
+@@ -1132,6 +1245,7 @@
  
      public void func_74303_b()
      {
@@ -477,7 +527,7 @@
          PrintWriter printwriter = null;
  
          try
-@@ -1206,7 +1280,8 @@
+@@ -1206,7 +1320,8 @@
  
              for (KeyBinding keybinding : this.field_74324_K)
              {
@@ -487,7 +537,7 @@
              }
  
              for (SoundCategory soundcategory : SoundCategory.values())
-@@ -1228,6 +1303,7 @@
+@@ -1228,6 +1343,7 @@
              IOUtils.closeQuietly((Writer)printwriter);
          }
  
@@ -495,7 +545,7 @@
          this.func_82879_c();
      }
  
-@@ -1299,7 +1375,1824 @@
+@@ -1299,7 +1415,1824 @@
      {
          return this.field_181150_U;
      }
@@ -2320,7 +2370,7 @@
      @SideOnly(Side.CLIENT)
      public static enum Options
      {
-@@ -1342,8 +3235,76 @@
+@@ -1342,8 +3275,76 @@
          SHOW_SUBTITLES("options.showSubtitles", false, true),
          REALMS_NOTIFICATIONS("options.realmsNotifications", false, true),
          AUTO_JUMP("options.autoJump", false, true),
@@ -2399,7 +2449,7 @@
          private final boolean field_74385_A;
          private final boolean field_74386_B;
          private final String field_74387_C;
-@@ -1440,4 +3401,35 @@
+@@ -1440,4 +3441,35 @@
              return p_148264_1_;
          }
      }

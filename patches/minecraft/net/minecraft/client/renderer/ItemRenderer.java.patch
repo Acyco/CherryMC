@@ -1,6 +1,52 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/ItemRenderer.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/ItemRenderer.java
-@@ -216,7 +216,7 @@
+@@ -30,6 +30,9 @@
+ import net.minecraft.world.storage.MapData;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.DynamicLights;
++import shadersmod.client.Shaders;
+ 
+ @SideOnly(Side.CLIENT)
+ public class ItemRenderer
+@@ -67,10 +70,18 @@
+             GlStateManager.func_179094_E();
+             boolean flag = this.field_178112_h.func_175050_a(p_187462_2_) && block.func_180664_k() == BlockRenderLayer.TRANSLUCENT;
+ 
+-            if (flag)
++          /*  if (flag)
+             {
++                GlStateManager.depthMask(false);
++            }*/
++            //op add
++
++            if (flag && (!Config.isShaders() || !Shaders.renderItemKeepDepthMask))
++            {
+                 GlStateManager.func_179132_a(false);
+             }
++            
++            //op end
+ 
+             this.field_178112_h.func_184392_a(p_187462_2_, p_187462_1_, p_187462_3_, p_187462_4_);
+ 
+@@ -96,6 +107,15 @@
+     {
+         AbstractClientPlayer abstractclientplayer = this.field_78455_a.field_71439_g;
+         int i = this.field_78455_a.field_71441_e.func_175626_b(new BlockPos(abstractclientplayer.field_70165_t, abstractclientplayer.field_70163_u + (double)abstractclientplayer.func_70047_e(), abstractclientplayer.field_70161_v), 0);
++        
++        //op add
++        if (Config.isDynamicLights())
++        {
++            i = DynamicLights.getCombinedLight(this.field_78455_a.func_175606_aa(), i);
++        }
++        
++        //op end
++        
+         float f = (float)(i & 65535);
+         float f1 = (float)(i >> 16);
+         OpenGlHelper.func_77475_a(OpenGlHelper.field_77476_b, f, f1);
+@@ -216,7 +236,7 @@
          bufferbuilder.func_181662_b(135.0D, -7.0D, 0.0D).func_187315_a(1.0D, 0.0D).func_181675_d();
          bufferbuilder.func_181662_b(-7.0D, -7.0D, 0.0D).func_187315_a(0.0D, 0.0D).func_181675_d();
          tessellator.func_78381_a();
@@ -9,7 +55,7 @@
  
          if (mapdata != null)
          {
-@@ -312,7 +312,7 @@
+@@ -312,7 +332,7 @@
          {
              ItemStack itemstack = abstractclientplayer.func_184607_cu();
  
@@ -18,7 +64,7 @@
              {
                  EnumHand enumhand1 = abstractclientplayer.func_184600_cs();
                  flag = enumhand1 == EnumHand.MAIN_HAND;
-@@ -329,6 +329,7 @@
+@@ -329,6 +349,7 @@
          {
              float f3 = enumhand == EnumHand.MAIN_HAND ? f : 0.0F;
              float f5 = 1.0F - (this.field_187470_g + (this.field_187469_f - this.field_187470_g) * p_78440_1_);
@@ -26,7 +72,7 @@
              this.func_187457_a(abstractclientplayer, p_78440_1_, f1, EnumHand.MAIN_HAND, f3, this.field_187467_d, f5);
          }
  
-@@ -336,6 +337,7 @@
+@@ -336,6 +357,7 @@
          {
              float f4 = enumhand == EnumHand.OFF_HAND ? f : 0.0F;
              float f6 = 1.0F - (this.field_187472_i + (this.field_187471_h - this.field_187472_i) * p_78440_1_);
@@ -34,16 +80,166 @@
              this.func_187457_a(abstractclientplayer, p_78440_1_, f1, EnumHand.OFF_HAND, f4, this.field_187468_e, f6);
          }
  
-@@ -356,7 +358,7 @@
-                 this.func_187456_a(p_187457_7_, p_187457_5_, enumhandside);
-             }
-         }
+@@ -345,92 +367,81 @@
+ 
+     public void func_187457_a(AbstractClientPlayer p_187457_1_, float p_187457_2_, float p_187457_3_, EnumHand p_187457_4_, float p_187457_5_, ItemStack p_187457_6_, float p_187457_7_)
+     {
+-        boolean flag = p_187457_4_ == EnumHand.MAIN_HAND;
+-        EnumHandSide enumhandside = flag ? p_187457_1_.func_184591_cq() : p_187457_1_.func_184591_cq().func_188468_a();
+-        GlStateManager.func_179094_E();
++        //op add
++        if (!Config.isShaders() || !Shaders.isSkipRenderHand(p_187457_4_)) {
++            //op end
++            boolean flag = p_187457_4_ == EnumHand.MAIN_HAND;
++            EnumHandSide enumhandside = flag ? p_187457_1_.func_184591_cq() : p_187457_1_.func_184591_cq().func_188468_a();
++            GlStateManager.func_179094_E();
+ 
+-        if (p_187457_6_.func_190926_b())
+-        {
+-            if (flag && !p_187457_1_.func_82150_aj())
+-            {
+-                this.func_187456_a(p_187457_7_, p_187457_5_, enumhandside);
+-            }
+-        }
 -        else if (p_187457_6_.func_77973_b() == Items.field_151098_aY)
-+        else if (p_187457_6_.func_77973_b() instanceof net.minecraft.item.ItemMap)
-         {
-             if (flag && this.field_187468_e.func_190926_b())
-             {
-@@ -440,6 +442,7 @@
+-        {
+-            if (flag && this.field_187468_e.func_190926_b())
+-            {
+-                this.func_187463_a(p_187457_3_, p_187457_7_, p_187457_5_);
+-            }
+-            else
+-            {
+-                this.func_187465_a(p_187457_7_, enumhandside, p_187457_5_, p_187457_6_);
+-            }
+-        }
+-        else
+-        {
+-            boolean flag1 = enumhandside == EnumHandSide.RIGHT;
++            if (p_187457_6_.func_190926_b()) {
++                if (flag && !p_187457_1_.func_82150_aj()) {
++                    this.func_187456_a(p_187457_7_, p_187457_5_, enumhandside);
++                }
++            } else if (p_187457_6_.func_77973_b() instanceof net.minecraft.item.ItemMap) {
++                if (flag && this.field_187468_e.func_190926_b()) {
++                    this.func_187463_a(p_187457_3_, p_187457_7_, p_187457_5_);
++                } else {
++                    this.func_187465_a(p_187457_7_, enumhandside, p_187457_5_, p_187457_6_);
++                }
++            } else {
++                boolean flag1 = enumhandside == EnumHandSide.RIGHT;
+ 
+-            if (p_187457_1_.func_184587_cr() && p_187457_1_.func_184605_cv() > 0 && p_187457_1_.func_184600_cs() == p_187457_4_)
+-            {
+-                int j = flag1 ? 1 : -1;
++                if (p_187457_1_.func_184587_cr() && p_187457_1_.func_184605_cv() > 0 && p_187457_1_.func_184600_cs() == p_187457_4_) {
++                    int j = flag1 ? 1 : -1;
+ 
+-                switch (p_187457_6_.func_77975_n())
+-                {
+-                    case NONE:
+-                        this.func_187459_b(enumhandside, p_187457_7_);
+-                        break;
+-                    case EAT:
+-                    case DRINK:
+-                        this.func_187454_a(p_187457_2_, enumhandside, p_187457_6_);
+-                        this.func_187459_b(enumhandside, p_187457_7_);
+-                        break;
+-                    case BLOCK:
+-                        this.func_187459_b(enumhandside, p_187457_7_);
+-                        break;
+-                    case BOW:
+-                        this.func_187459_b(enumhandside, p_187457_7_);
+-                        GlStateManager.func_179109_b((float)j * -0.2785682F, 0.18344387F, 0.15731531F);
+-                        GlStateManager.func_179114_b(-13.935F, 1.0F, 0.0F, 0.0F);
+-                        GlStateManager.func_179114_b((float)j * 35.3F, 0.0F, 1.0F, 0.0F);
+-                        GlStateManager.func_179114_b((float)j * -9.785F, 0.0F, 0.0F, 1.0F);
+-                        float f5 = (float)p_187457_6_.func_77988_m() - ((float)this.field_78455_a.field_71439_g.func_184605_cv() - p_187457_2_ + 1.0F);
+-                        float f6 = f5 / 20.0F;
+-                        f6 = (f6 * f6 + f6 * 2.0F) / 3.0F;
++                    switch (p_187457_6_.func_77975_n()) {
++                        case NONE:
++                            this.func_187459_b(enumhandside, p_187457_7_);
++                            break;
++                        case EAT:
++                        case DRINK:
++                            this.func_187454_a(p_187457_2_, enumhandside, p_187457_6_);
++                            this.func_187459_b(enumhandside, p_187457_7_);
++                            break;
++                        case BLOCK:
++                            this.func_187459_b(enumhandside, p_187457_7_);
++                            break;
++                        case BOW:
++                            this.func_187459_b(enumhandside, p_187457_7_);
++                            GlStateManager.func_179109_b((float) j * -0.2785682F, 0.18344387F, 0.15731531F);
++                            GlStateManager.func_179114_b(-13.935F, 1.0F, 0.0F, 0.0F);
++                            GlStateManager.func_179114_b((float) j * 35.3F, 0.0F, 1.0F, 0.0F);
++                            GlStateManager.func_179114_b((float) j * -9.785F, 0.0F, 0.0F, 1.0F);
++                            float f5 = (float) p_187457_6_.func_77988_m() - ((float) this.field_78455_a.field_71439_g.func_184605_cv() - p_187457_2_ + 1.0F);
++                            float f6 = f5 / 20.0F;
++                            f6 = (f6 * f6 + f6 * 2.0F) / 3.0F;
+ 
+-                        if (f6 > 1.0F)
+-                        {
+-                            f6 = 1.0F;
+-                        }
++                            if (f6 > 1.0F) {
++                                f6 = 1.0F;
++                            }
+ 
+-                        if (f6 > 0.1F)
+-                        {
+-                            float f7 = MathHelper.func_76126_a((f5 - 0.1F) * 1.3F);
+-                            float f3 = f6 - 0.1F;
+-                            float f4 = f7 * f3;
+-                            GlStateManager.func_179109_b(f4 * 0.0F, f4 * 0.004F, f4 * 0.0F);
+-                        }
++                            if (f6 > 0.1F) {
++                                float f7 = MathHelper.func_76126_a((f5 - 0.1F) * 1.3F);
++                                float f3 = f6 - 0.1F;
++                                float f4 = f7 * f3;
++                                GlStateManager.func_179109_b(f4 * 0.0F, f4 * 0.004F, f4 * 0.0F);
++                            }
+ 
+-                        GlStateManager.func_179109_b(f6 * 0.0F, f6 * 0.0F, f6 * 0.04F);
+-                        GlStateManager.func_179152_a(1.0F, 1.0F, 1.0F + f6 * 0.2F);
+-                        GlStateManager.func_179114_b((float)j * 45.0F, 0.0F, -1.0F, 0.0F);
++                            GlStateManager.func_179109_b(f6 * 0.0F, f6 * 0.0F, f6 * 0.04F);
++                            GlStateManager.func_179152_a(1.0F, 1.0F, 1.0F + f6 * 0.2F);
++                            GlStateManager.func_179114_b((float) j * 45.0F, 0.0F, -1.0F, 0.0F);
++                    }
++                } else {
++                    float f = -0.4F * MathHelper.func_76126_a(MathHelper.func_76129_c(p_187457_5_) * (float) Math.PI);
++                    float f1 = 0.2F * MathHelper.func_76126_a(MathHelper.func_76129_c(p_187457_5_) * ((float) Math.PI * 2F));
++                    float f2 = -0.2F * MathHelper.func_76126_a(p_187457_5_ * (float) Math.PI);
++                    int i = flag1 ? 1 : -1;
++                    GlStateManager.func_179109_b((float) i * f, f1, f2);
++                    this.func_187459_b(enumhandside, p_187457_7_);
++                    this.func_187453_a(enumhandside, p_187457_5_);
+                 }
++
++                this.func_187462_a(p_187457_1_, p_187457_6_, flag1 ? ItemCameraTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemCameraTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag1);
+             }
+-            else
+-            {
+-                float f = -0.4F * MathHelper.func_76126_a(MathHelper.func_76129_c(p_187457_5_) * (float)Math.PI);
+-                float f1 = 0.2F * MathHelper.func_76126_a(MathHelper.func_76129_c(p_187457_5_) * ((float)Math.PI * 2F));
+-                float f2 = -0.2F * MathHelper.func_76126_a(p_187457_5_ * (float)Math.PI);
+-                int i = flag1 ? 1 : -1;
+-                GlStateManager.func_179109_b((float)i * f, f1, f2);
+-                this.func_187459_b(enumhandside, p_187457_7_);
+-                this.func_187453_a(enumhandside, p_187457_5_);
+-            }
+ 
+-            this.func_187462_a(p_187457_1_, p_187457_6_, flag1 ? ItemCameraTransforms.TransformType.FIRST_PERSON_RIGHT_HAND : ItemCameraTransforms.TransformType.FIRST_PERSON_LEFT_HAND, !flag1);
+-        }
+-
+-        GlStateManager.func_179121_F();
++            GlStateManager.func_179121_F();
++        }//op add
+     }
+ 
+     public void func_78447_b(float p_78447_1_)
+@@ -440,6 +451,7 @@
          if (this.field_78455_a.field_71439_g.func_70094_T())
          {
              IBlockState iblockstate = this.field_78455_a.field_71441_e.func_180495_p(new BlockPos(this.field_78455_a.field_71439_g));
@@ -51,7 +247,7 @@
              EntityPlayer entityplayer = this.field_78455_a.field_71439_g;
  
              for (int i = 0; i < 8; ++i)
-@@ -453,11 +456,13 @@
+@@ -453,11 +465,13 @@
                  if (iblockstate1.func_191058_s())
                  {
                      iblockstate = iblockstate1;
@@ -65,7 +261,7 @@
                  this.func_178108_a(this.field_78455_a.func_175602_ab().func_175023_a().func_178122_a(iblockstate));
              }
          }
-@@ -466,11 +471,13 @@
+@@ -466,11 +480,13 @@
          {
              if (this.field_78455_a.field_71439_g.func_70055_a(Material.field_151586_h))
              {
@@ -79,7 +275,68 @@
                  this.func_78442_d();
              }
          }
-@@ -592,8 +599,17 @@
+@@ -507,31 +523,35 @@
+ 
+     private void func_78448_c(float p_78448_1_)
+     {
+-        this.field_78455_a.func_110434_K().func_110577_a(field_110929_d);
+-        Tessellator tessellator = Tessellator.func_178181_a();
+-        BufferBuilder bufferbuilder = tessellator.func_178180_c();
+-        float f = this.field_78455_a.field_71439_g.func_70013_c();
+-        GlStateManager.func_179131_c(f, f, f, 0.5F);
+-        GlStateManager.func_179147_l();
+-        GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+-        GlStateManager.func_179094_E();
+-        float f1 = 4.0F;
+-        float f2 = -1.0F;
+-        float f3 = 1.0F;
+-        float f4 = -1.0F;
+-        float f5 = 1.0F;
+-        float f6 = -0.5F;
+-        float f7 = -this.field_78455_a.field_71439_g.field_70177_z / 64.0F;
+-        float f8 = this.field_78455_a.field_71439_g.field_70125_A / 64.0F;
+-        bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181707_g);
+-        bufferbuilder.func_181662_b(-1.0D, -1.0D, -0.5D).func_187315_a((double)(4.0F + f7), (double)(4.0F + f8)).func_181675_d();
+-        bufferbuilder.func_181662_b(1.0D, -1.0D, -0.5D).func_187315_a((double)(0.0F + f7), (double)(4.0F + f8)).func_181675_d();
+-        bufferbuilder.func_181662_b(1.0D, 1.0D, -0.5D).func_187315_a((double)(0.0F + f7), (double)(0.0F + f8)).func_181675_d();
+-        bufferbuilder.func_181662_b(-1.0D, 1.0D, -0.5D).func_187315_a((double)(4.0F + f7), (double)(0.0F + f8)).func_181675_d();
+-        tessellator.func_78381_a();
+-        GlStateManager.func_179121_F();
+-        GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
+-        GlStateManager.func_179084_k();
++        //op add
++        if (!Config.isShaders() || Shaders.isUnderwaterOverlay()) {
++            //op end
++            this.field_78455_a.func_110434_K().func_110577_a(field_110929_d);
++            Tessellator tessellator = Tessellator.func_178181_a();
++            BufferBuilder bufferbuilder = tessellator.func_178180_c();
++            float f = this.field_78455_a.field_71439_g.func_70013_c();
++            GlStateManager.func_179131_c(f, f, f, 0.5F);
++            GlStateManager.func_179147_l();
++            GlStateManager.func_187428_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
++            GlStateManager.func_179094_E();
++            float f1 = 4.0F;
++            float f2 = -1.0F;
++            float f3 = 1.0F;
++            float f4 = -1.0F;
++            float f5 = 1.0F;
++            float f6 = -0.5F;
++            float f7 = -this.field_78455_a.field_71439_g.field_70177_z / 64.0F;
++            float f8 = this.field_78455_a.field_71439_g.field_70125_A / 64.0F;
++            bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181707_g);
++            bufferbuilder.func_181662_b(-1.0D, -1.0D, -0.5D).func_187315_a((double) (4.0F + f7), (double) (4.0F + f8)).func_181675_d();
++            bufferbuilder.func_181662_b(1.0D, -1.0D, -0.5D).func_187315_a((double) (0.0F + f7), (double) (4.0F + f8)).func_181675_d();
++            bufferbuilder.func_181662_b(1.0D, 1.0D, -0.5D).func_187315_a((double) (0.0F + f7), (double) (0.0F + f8)).func_181675_d();
++            bufferbuilder.func_181662_b(-1.0D, 1.0D, -0.5D).func_187315_a((double) (4.0F + f7), (double) (0.0F + f8)).func_181675_d();
++            tessellator.func_78381_a();
++            GlStateManager.func_179121_F();
++            GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
++            GlStateManager.func_179084_k();
++        }//op add
+     }
+ 
+     private void func_78442_d()
+@@ -592,18 +612,40 @@
          else
          {
              float f = entityplayersp.func_184825_o(1.0F);
@@ -99,3 +356,26 @@
          }
  
          if (this.field_187469_f < 0.1F)
+         {
+             this.field_187467_d = itemstack;
++            //op add
++
++            if (Config.isShaders())
++            {
++                Shaders.setItemToRenderMain(this.field_187467_d);
++            }            
++            //op end
+         }
+ 
+         if (this.field_187471_h < 0.1F)
+         {
+             this.field_187468_e = itemstack1;
++            //op add
++            if (Config.isShaders())
++            {
++                Shaders.setItemToRenderOff(this.field_187468_e);
++            }            
++            //op end
+         }
+     }
+ 

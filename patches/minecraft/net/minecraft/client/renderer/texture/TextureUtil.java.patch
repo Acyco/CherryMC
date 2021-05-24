@@ -1,15 +1,16 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/texture/TextureUtil.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/texture/TextureUtil.java
-@@ -14,6 +14,8 @@
+@@ -14,6 +14,9 @@
  import net.minecraft.util.ResourceLocation;
  import net.minecraftforge.fml.relauncher.Side;
  import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
 +import optifine.Mipmaps;
 +import optifine.Reflector;
  import org.apache.commons.io.IOUtils;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -63,17 +65,18 @@
+@@ -63,17 +66,18 @@
          {
              boolean flag = false;
  
@@ -31,7 +32,7 @@
                  if (p_147949_2_[l1] != null)
                  {
                      aint[l1] = p_147949_2_[l1];
-@@ -83,6 +86,7 @@
+@@ -83,6 +87,7 @@
                      int[] aint1 = aint[l1 - 1];
                      int[] aint2 = new int[aint1.length >> 2];
                      int j = p_147949_1_ >> l1;
@@ -39,7 +40,7 @@
                      int k = aint2.length / j;
                      int l = j << 1;
  
-@@ -94,16 +98,18 @@
+@@ -94,16 +99,18 @@
                              aint2[i1 + j1 * j] = func_147943_a(aint1[k1 + 0], aint1[k1 + 1], aint1[k1 + 0 + l], aint1[k1 + 1 + l], flag);
                          }
                      }
@@ -59,7 +60,7 @@
      {
          if (p_147943_4_)
          {
-@@ -153,6 +159,11 @@
+@@ -153,6 +160,11 @@
          }
      }
  
@@ -71,7 +72,7 @@
      private static int func_147944_a(int p_147944_0_, int p_147944_1_, int p_147944_2_, int p_147944_3_, int p_147944_4_)
      {
          float f = func_188543_d(p_147944_0_ >> p_147944_4_);
-@@ -168,11 +179,12 @@
+@@ -168,11 +180,12 @@
          for (int i = 0; i < p_147955_0_.length; ++i)
          {
              int[] aint = p_147955_0_[i];
@@ -85,7 +86,7 @@
      {
          int i = 4194304 / p_147947_2_;
          func_147954_b(p_147947_6_, p_147947_8_);
-@@ -189,6 +201,23 @@
+@@ -189,6 +202,23 @@
          }
      }
  
@@ -109,7 +110,7 @@
      public static int func_110989_a(int p_110989_0_, BufferedImage p_110989_1_, boolean p_110989_2_, boolean p_110989_3_)
      {
          func_110991_a(p_110989_0_, p_110989_1_.getWidth(), p_110989_1_.getHeight());
-@@ -200,11 +229,42 @@
+@@ -200,11 +230,42 @@
          func_180600_a(p_110991_0_, 0, p_110991_1_, p_110991_2_);
      }
  
@@ -154,7 +155,7 @@
          if (p_180600_1_ >= 0)
          {
              GlStateManager.func_187421_b(3553, 33085, p_180600_1_);
-@@ -219,6 +279,7 @@
+@@ -219,6 +280,7 @@
          }
      }
  
@@ -162,7 +163,7 @@
      public static int func_110995_a(int p_110995_0_, BufferedImage p_110995_1_, int p_110995_2_, int p_110995_3_, boolean p_110995_4_, boolean p_110995_5_)
      {
          func_94277_a(p_110995_0_);
-@@ -246,7 +307,8 @@
+@@ -246,7 +308,8 @@
          }
      }
  
@@ -172,7 +173,7 @@
      {
          if (p_110997_0_)
          {
-@@ -265,7 +327,8 @@
+@@ -265,7 +328,8 @@
          func_147954_b(p_147951_0_, false);
      }
  
@@ -182,7 +183,25 @@
      {
          if (p_147954_0_)
          {
-@@ -294,9 +357,9 @@
+@@ -273,9 +337,14 @@
+             GlStateManager.func_187421_b(3553, 10240, 9729);
+         }
+         else
+-        {
+-            GlStateManager.func_187421_b(3553, 10241, p_147954_1_ ? 9986 : 9728);
+-            GlStateManager.func_187421_b(3553, 10240, 9728);
++        {/*
++            GlStateManager.glTexParameteri(3553, 10241, p_147954_1_ ? 9986 : 9728);
++            GlStateManager.glTexParameteri(3553, 10240, 9728);*/
++            //op add
++            int i = Config.getMipmapType();
++            GlStateManager.func_187421_b(3553, 10241, p_147954_1_ ? i : 9728);
++            GlStateManager.func_187421_b(3553, 10240, 9728);            
++            //op end
+         }
+     }
+ 
+@@ -294,9 +363,9 @@
          }
  
          field_111000_c.clear();

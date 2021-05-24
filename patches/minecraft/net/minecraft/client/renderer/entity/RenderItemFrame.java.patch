@@ -1,6 +1,10 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/entity/RenderItemFrame.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/entity/RenderItemFrame.java
-@@ -14,6 +14,7 @@
+@@ -11,14 +11,17 @@
+ import net.minecraft.client.renderer.block.model.ModelManager;
+ import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+ import net.minecraft.client.renderer.texture.TextureMap;
++import net.minecraft.entity.Entity;
  import net.minecraft.entity.item.EntityItemFrame;
  import net.minecraft.init.Items;
  import net.minecraft.item.ItemStack;
@@ -8,7 +12,13 @@
  import net.minecraft.util.ResourceLocation;
  import net.minecraft.util.math.BlockPos;
  import net.minecraft.world.storage.MapData;
-@@ -38,18 +39,25 @@
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
+ 
+ @SideOnly(Side.CLIENT)
+ public class RenderItemFrame extends Render<EntityItemFrame>
+@@ -38,18 +41,25 @@
      public void func_76986_a(EntityItemFrame p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
      {
          GlStateManager.func_179094_E();
@@ -36,8 +46,22 @@
          {
              ibakedmodel = modelmanager.func_174953_a(this.field_177073_g);
          }
-@@ -96,10 +104,13 @@
+@@ -94,12 +104,27 @@
+ 
+         if (!itemstack.func_190926_b())
          {
++            //op add
++            if (!Config.zoomMode)
++            {
++                Entity entity = this.field_147917_g.field_71439_g;
++                double d0 = p_82402_1_.func_70092_e(entity.field_70165_t, entity.field_70163_u, entity.field_70161_v);
++
++                if (d0 > 4096.0D)
++                {
++                    return;
++                }
++            }            
++            //op end
              GlStateManager.func_179094_E();
              GlStateManager.func_179140_f();
 -            boolean flag = itemstack.func_77973_b() == Items.field_151098_aY;
@@ -51,7 +75,7 @@
              if (flag)
              {
                  this.field_76990_c.field_78724_e.func_110577_a(field_110789_a);
-@@ -107,7 +118,7 @@
+@@ -107,7 +132,7 @@
                  float f = 0.0078125F;
                  GlStateManager.func_179152_a(0.0078125F, 0.0078125F, 0.0078125F);
                  GlStateManager.func_179109_b(-64.0F, -64.0F, 0.0F);
@@ -60,7 +84,7 @@
                  GlStateManager.func_179109_b(0.0F, 0.0F, -1.0F);
  
                  if (mapdata != null)
-@@ -124,6 +135,7 @@
+@@ -124,6 +149,7 @@
                  RenderHelper.func_74518_a();
                  GlStateManager.func_179099_b();
              }

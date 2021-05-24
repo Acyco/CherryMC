@@ -1,14 +1,28 @@
 --- ../src-base/minecraft/net/minecraft/client/particle/ParticleManager.java
 +++ ../src-work/minecraft/net/minecraft/client/particle/ParticleManager.java
-@@ -153,6 +153,7 @@
+@@ -34,6 +34,7 @@
+ import net.minecraft.world.World;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
+ 
+ @SideOnly(Side.CLIENT)
+ public class ParticleManager
+@@ -153,7 +154,12 @@
  
      public void func_78873_a(Particle p_78873_1_)
      {
+-        this.field_187241_h.add(p_78873_1_);
 +        if (p_78873_1_ == null) return; //Forge: Prevent modders from being bad and adding nulls causing untraceable NPEs.
-         this.field_187241_h.add(p_78873_1_);
++        //this.queue.add(effect);
++        if (!(p_78873_1_ instanceof ParticleFirework.Spark) || Config.isFireworkParticles())
++        {
++            this.field_187241_h.add(p_78873_1_);
++        }
      }
  
-@@ -409,7 +410,7 @@
+     public void func_78868_a()
+@@ -409,7 +415,7 @@
  
      public void func_180533_a(BlockPos p_180533_1_, IBlockState p_180533_2_)
      {
@@ -17,7 +31,7 @@
          {
              p_180533_2_ = p_180533_2_.func_185899_b(this.field_78878_a, p_180533_1_);
              int i = 4;
-@@ -493,4 +494,13 @@
+@@ -493,4 +499,13 @@
  
          return "" + i;
      }

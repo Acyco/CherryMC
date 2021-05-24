@@ -1,6 +1,241 @@
 --- ../src-base/minecraft/net/minecraft/profiler/Profiler.java
 +++ ../src-work/minecraft/net/minecraft/profiler/Profiler.java
-@@ -193,4 +193,16 @@
+@@ -6,8 +6,12 @@
+ import java.util.List;
+ import java.util.Map;
+ import java.util.function.Supplier;
++
++import net.minecraft.client.renderer.GlStateManager;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.Lagometer;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -19,61 +23,169 @@
+     public boolean field_76327_a;
+     private String field_76323_d = "";
+     private final Map<String, Long> field_76324_e = Maps.<String, Long>newHashMap();
++//op add
++    public boolean profilerGlobalEnabled = true;
++    private boolean profilerLocalEnabled;
++/*    private static final String SCHEDULED_EXECUTABLES = "scheduledExecutables";
++    private static final String TICK = "tick";
++    private static final String PRE_RENDER_ERRORS = "preRenderErrors";
++    private static final String RENDER = "render";
++    private static final String DISPLAY = "display";*/
++    private static final int HASH_SCHEDULED_EXECUTABLES = "scheduledExecutables".hashCode();
++    private static final int HASH_TICK = "tick".hashCode();
++    private static final int HASH_PRE_RENDER_ERRORS = "preRenderErrors".hashCode();
++    private static final int HASH_RENDER = "render".hashCode();
++    private static final int HASH_DISPLAY = "display".hashCode();
++    public Profiler()
++    {
++        this.profilerLocalEnabled = this.profilerGlobalEnabled;
++    }
+ 
++    //op end
+     public void func_76317_a()
+     {
+         this.field_76324_e.clear();
+         this.field_76323_d = "";
+         this.field_76325_b.clear();
++        //op add
++        this.profilerLocalEnabled = this.profilerGlobalEnabled;
++        //op end
+     }
+ 
+     public void func_76320_a(String p_76320_1_)
+     {
+-        if (this.field_76327_a)
++      /*  if (this.profilingEnabled)
+         {
+-            if (!this.field_76323_d.isEmpty())
++            if (!this.profilingSection.isEmpty())
+             {
+-                this.field_76323_d = this.field_76323_d + ".";
++                this.profilingSection = this.profilingSection + ".";
+             }
+ 
+-            this.field_76323_d = this.field_76323_d + p_76320_1_;
+-            this.field_76325_b.add(this.field_76323_d);
+-            this.field_76326_c.add(Long.valueOf(System.nanoTime()));
++            this.profilingSection = this.profilingSection + name;
++            this.sectionList.add(this.profilingSection);
++            this.timestampList.add(Long.valueOf(System.nanoTime()));
++        }*/
++        //op add
++        if (Lagometer.isActive())
++        {
++            int i = p_76320_1_.hashCode();
++
++            if (i == HASH_SCHEDULED_EXECUTABLES && p_76320_1_.equals("scheduledExecutables"))
++            {
++                Lagometer.timerScheduledExecutables.start();
++            }
++            else if (i == HASH_TICK && p_76320_1_.equals("tick") && Config.isMinecraftThread())
++            {
++                Lagometer.timerScheduledExecutables.end();
++                Lagometer.timerTick.start();
++            }
++            else if (i == HASH_PRE_RENDER_ERRORS && p_76320_1_.equals("preRenderErrors"))
++            {
++                Lagometer.timerTick.end();
++            }
+         }
++
++        if (Config.isFastRender())
++        {
++            int j = p_76320_1_.hashCode();
++
++            if (j == HASH_RENDER && p_76320_1_.equals("render"))
++            {
++                GlStateManager.clearEnabled = false;
++            }
++            else if (j == HASH_DISPLAY && p_76320_1_.equals("display"))
++            {
++                GlStateManager.clearEnabled = true;
++            }
++        }
++
++        if (this.profilerLocalEnabled)
++        {
++            if (this.field_76327_a)
++            {
++                if (!this.field_76323_d.isEmpty())
++                {
++                    this.field_76323_d = this.field_76323_d + ".";
++                }
++
++                this.field_76323_d = this.field_76323_d + p_76320_1_;
++                this.field_76325_b.add(this.field_76323_d);
++                this.field_76326_c.add(Long.valueOf(System.nanoTime()));
++            }
++        }        
++        //op end
+     }
+ 
+     public void func_194340_a(Supplier<String> p_194340_1_)
+     {
+-        if (this.field_76327_a)
++       /* if (this.profilingEnabled)
+         {
+-            this.func_76320_a(p_194340_1_.get());
++            this.startSection(p_194340_1_.get());
++        }*/
++        //op add
++        if (this.profilerLocalEnabled)
++        {
++            if (this.field_76327_a)
++            {
++                this.func_76320_a(p_194340_1_.get());
++            }
+         }
++        //op end
+     }
+ 
+     public void func_76319_b()
+     {
+-        if (this.field_76327_a)
++   /*     if (this.profilingEnabled)
+         {
++            // CherryMC add
++           // if (this.timestampList.size() == 0||this.sectionList.size() == 0) return;
++            // CherryMC end
+             long i = System.nanoTime();
+-            long j = ((Long)this.field_76326_c.remove(this.field_76326_c.size() - 1)).longValue();
+-            this.field_76325_b.remove(this.field_76325_b.size() - 1);
++            long j = ((Long)this.timestampList.remove(this.timestampList.size() - 1)).longValue();
++            this.sectionList.remove(this.sectionList.size() - 1);
+             long k = i - j;
+ 
+-            if (this.field_76324_e.containsKey(this.field_76323_d))
++            if (this.profilingMap.containsKey(this.profilingSection))
+             {
+-                this.field_76324_e.put(this.field_76323_d, Long.valueOf(((Long)this.field_76324_e.get(this.field_76323_d)).longValue() + k));
++                this.profilingMap.put(this.profilingSection, Long.valueOf(((Long)this.profilingMap.get(this.profilingSection)).longValue() + k));
+             }
+             else
+             {
+-                this.field_76324_e.put(this.field_76323_d, Long.valueOf(k));
++                this.profilingMap.put(this.profilingSection, Long.valueOf(k));
+             }
+ 
+             if (k > 100000000L)
+             {
+-                field_151234_b.warn("Something's taking too long! '{}' took aprox {} ms", this.field_76323_d, Double.valueOf((double)k / 1000000.0D));
++                LOGGER.warn("Something's taking too long! '{}' took aprox {} ms", this.profilingSection, Double.valueOf((double)k / 1000000.0D));
+             }
+ 
+-            this.field_76323_d = this.field_76325_b.isEmpty() ? "" : (String)this.field_76325_b.get(this.field_76325_b.size() - 1);
++            this.profilingSection = this.sectionList.isEmpty() ? "" : (String)this.sectionList.get(this.sectionList.size() - 1);
++        }*/
++        if (this.profilerLocalEnabled)
++        {
++            if (this.field_76327_a)
++            {
++                long i = System.nanoTime();
++                long j = ((Long)this.field_76326_c.remove(this.field_76326_c.size() - 1)).longValue();
++                this.field_76325_b.remove(this.field_76325_b.size() - 1);
++                long k = i - j;
++
++                if (this.field_76324_e.containsKey(this.field_76323_d))
++                {
++                    this.field_76324_e.put(this.field_76323_d, Long.valueOf(((Long)this.field_76324_e.get(this.field_76323_d)).longValue() + k));
++                }
++                else
++                {
++                    this.field_76324_e.put(this.field_76323_d, Long.valueOf(k));
++                }
++
++                if (k > 100000000L)
++                {
++                    field_151234_b.warn("Something's taking too long! '{}' took aprox {} ms", this.field_76323_d, Double.valueOf((double)k / 1000000.0D));
++                }
++
++                this.field_76323_d = this.field_76325_b.isEmpty() ? "" : (String)this.field_76325_b.get(this.field_76325_b.size() - 1);
++            }
+         }
+     }
+ 
+@@ -146,8 +258,15 @@
+ 
+     public void func_76318_c(String p_76318_1_)
+     {
+-        this.func_76319_b();
+-        this.func_76320_a(p_76318_1_);
++      /*  this.endSection();
++        this.startSection(name);*/
++        //op add
++        if (this.profilerLocalEnabled)
++        {
++            this.func_76319_b();
++            this.func_76320_a(p_76318_1_);
++        }
++        //op end
+     }
+ 
+     public String func_76322_c()
+@@ -158,8 +277,15 @@
+     @SideOnly(Side.CLIENT)
+     public void func_194339_b(Supplier<String> p_194339_1_)
+     {
+-        this.func_76319_b();
+-        this.func_194340_a(p_194339_1_);
++     /*   this.endSection();
++        this.func_194340_a(p_194339_1_);*/
++        //op add
++        if (this.profilerLocalEnabled)
++        {
++            this.func_76319_b();
++            this.func_194340_a(p_194339_1_);
++        }
++        //op end
+     }
+ 
+     public static final class Result implements Comparable<Profiler.Result>
+@@ -193,4 +319,16 @@
                  return (this.field_76331_c.hashCode() & 11184810) + 4473924;
              }
          }

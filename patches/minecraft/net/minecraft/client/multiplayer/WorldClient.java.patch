@@ -1,16 +1,35 @@
 --- ../src-base/minecraft/net/minecraft/client/multiplayer/WorldClient.java
 +++ ../src-work/minecraft/net/minecraft/client/multiplayer/WorldClient.java
-@@ -45,6 +45,9 @@
+@@ -4,6 +4,8 @@
+ import java.util.Random;
+ import java.util.Set;
+ import javax.annotation.Nullable;
++
++import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.block.state.IBlockState;
+ import net.minecraft.client.Minecraft;
+@@ -37,6 +39,7 @@
+ import net.minecraft.world.EnumSkyBlock;
+ import net.minecraft.world.GameType;
+ import net.minecraft.world.World;
++import net.minecraft.world.WorldProvider;
+ import net.minecraft.world.WorldSettings;
+ import net.minecraft.world.chunk.Chunk;
+ import net.minecraft.world.chunk.IChunkProvider;
+@@ -45,6 +48,11 @@
  import net.minecraft.world.storage.WorldInfo;
  import net.minecraftforge.fml.relauncher.Side;
  import net.minecraftforge.fml.relauncher.SideOnly;
 +import optifine.Config;
++import optifine.CustomGuis;
 +import optifine.DynamicLights;
 +import optifine.PlayerControllerOF;
++import optifine.Reflector;
  
  @SideOnly(Side.CLIENT)
  public class WorldClient extends World
-@@ -57,20 +60,27 @@
+@@ -57,22 +65,36 @@
      private final Set<ChunkPos> field_73038_N = Sets.<ChunkPos>newHashSet();
      private int field_184158_M;
      protected Set<ChunkPos> field_184157_a;
@@ -37,10 +56,20 @@
          this.func_72947_a();
 +        this.initCapabilities();
 +        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.world.WorldEvent.Load(this));
++        //op add
++        if (this.field_73037_M.field_71442_b != null && this.field_73037_M.field_71442_b.getClass() == PlayerControllerMP.class)
++        {
++            this.field_73037_M.field_71442_b = new PlayerControllerOF(this.field_73037_M, p_i45063_1_);
++            CustomGuis.setPlayerControllerOF((PlayerControllerOF)this.field_73037_M.field_71442_b);
++        }        
++        //op end
      }
- 
+-
++    
      public void func_72835_b()
-@@ -120,21 +130,45 @@
+     {
+         super.func_72835_b();
+@@ -120,21 +142,45 @@
  
      protected void func_184154_a()
      {
@@ -93,7 +122,20 @@
      }
  
      protected void func_147456_g()
-@@ -510,4 +544,48 @@
+@@ -334,6 +380,12 @@
+         int i = 32;
+         Random random = new Random();
+         ItemStack itemstack = this.field_73037_M.field_71439_g.func_184614_ca();
++        //op add
++        if (itemstack == null || Block.func_149634_a(itemstack.func_77973_b()) != Blocks.field_180401_cv)
++        {
++            itemstack = this.field_73037_M.field_71439_g.func_184592_cb();
++        }
++        //op end
+         boolean flag = this.field_73037_M.field_71442_b.func_178889_l() == GameType.CREATIVE && !itemstack.func_190926_b() && itemstack.func_77973_b() == Item.func_150898_a(Blocks.field_180401_cv);
+         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+ 
+@@ -510,4 +562,48 @@
      {
          return (ChunkProviderClient)super.func_72863_F();
      }

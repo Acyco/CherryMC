@@ -22,7 +22,24 @@
          ContextCapabilities contextcapabilities = GLContext.getCapabilities();
          field_153215_z = contextcapabilities.GL_ARB_multitexture && !contextcapabilities.OpenGL13;
          field_176088_V = contextcapabilities.GL_ARB_texture_env_combine && !contextcapabilities.OpenGL13;
-@@ -853,6 +859,12 @@
+@@ -624,7 +630,15 @@
+ 
+     public static boolean func_176075_f()
+     {
+-        return field_176083_O && Minecraft.func_71410_x().field_71474_y.field_178881_t;
++        //return vboSupported && Minecraft.getMinecraft().gameSettings.useVbo;
++        if (Config.isMultiTexture())
++        {
++            return false;
++        }
++        else
++        {
++            return field_176083_O && Minecraft.func_71410_x().field_71474_y.field_178881_t;
++        }
+     }
+ 
+     public static void func_153171_g(int p_153171_0_, int p_153171_1_)
+@@ -853,6 +867,12 @@
          {
              GL13.glMultiTexCoord2f(p_77475_0_, p_77475_1_, p_77475_2_);
          }
@@ -35,3 +52,26 @@
      }
  
      public static void func_148821_a(int p_148821_0_, int p_148821_1_, int p_148821_2_, int p_148821_3_)
+@@ -876,7 +896,21 @@
+ 
+     public static boolean func_148822_b()
+     {
+-        return field_148823_f && Minecraft.func_71410_x().field_71474_y.field_151448_g;
++     //   return framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
++        //op add
++        if (Config.isFastRender())
++        {
++            return false;
++        }
++        else if (Config.isAntialiasing())
++        {
++            return false;
++        }
++        else
++        {
++            return field_148823_f && Minecraft.func_71410_x().field_71474_y.field_151448_g;
++        }
++        //op end
+     }
+ 
+     public static String func_183029_j()

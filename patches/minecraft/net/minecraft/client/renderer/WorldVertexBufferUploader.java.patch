@@ -1,57 +1,91 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/WorldVertexBufferUploader.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/WorldVertexBufferUploader.java
-@@ -27,26 +27,8 @@
+@@ -6,6 +6,8 @@
+ import net.minecraft.client.renderer.vertex.VertexFormatElement;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import shadersmod.client.SVertexBuilder;
+ 
+ @SideOnly(Side.CLIENT)
+ public class WorldVertexBufferUploader
+@@ -27,29 +29,48 @@
                  int l = vertexformatelement.func_177369_e();
                  bytebuffer.position(vertexformat.func_181720_d(j));
  
--                switch (vertexformatelement$enumusage)
--                {
--                    case POSITION:
--                        GlStateManager.func_187427_b(vertexformatelement.func_177370_d(), k, i, bytebuffer);
--                        GlStateManager.func_187410_q(32884);
--                        break;
--                    case UV:
--                        OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a + l);
--                        GlStateManager.func_187404_a(vertexformatelement.func_177370_d(), k, i, bytebuffer);
--                        GlStateManager.func_187410_q(32888);
--                        OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
--                        break;
--                    case COLOR:
--                        GlStateManager.func_187400_c(vertexformatelement.func_177370_d(), k, i, bytebuffer);
--                        GlStateManager.func_187410_q(32886);
--                        break;
--                    case NORMAL:
--                        GlStateManager.func_187446_a(k, i, bytebuffer);
--                        GlStateManager.func_187410_q(32885);
--                }
 +                // moved to VertexFormatElement.preDraw
-+                vertexformatelement.func_177375_c().preDraw(vertexformat, j, i, bytebuffer);
++                //vertexformatelement.getUsage().preDraw(vertexformat, j, i, bytebuffer);
+                 switch (vertexformatelement$enumusage)
+                 {
+                     case POSITION:
+                         GlStateManager.func_187427_b(vertexformatelement.func_177370_d(), k, i, bytebuffer);
+                         GlStateManager.func_187410_q(32884);
+                         break;
++
+                     case UV:
+                         OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a + l);
+                         GlStateManager.func_187404_a(vertexformatelement.func_177370_d(), k, i, bytebuffer);
+                         GlStateManager.func_187410_q(32888);
+                         OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
+                         break;
++
+                     case COLOR:
+                         GlStateManager.func_187400_c(vertexformatelement.func_177370_d(), k, i, bytebuffer);
+                         GlStateManager.func_187410_q(32886);
+                         break;
++
+                     case NORMAL:
+                         GlStateManager.func_187446_a(k, i, bytebuffer);
+                         GlStateManager.func_187410_q(32885);
+                 }
              }
  
-             GlStateManager.func_187439_f(p_181679_1_.func_178979_i(), 0, p_181679_1_.func_178989_h());
-@@ -58,23 +40,8 @@
+-            GlStateManager.func_187439_f(p_181679_1_.func_178979_i(), 0, p_181679_1_.func_178989_h());
++            //GlStateManager.glDrawArrays(bufferBuilderIn.getDrawMode(), 0, bufferBuilderIn.getVertexCount());
++
++            if (p_181679_1_.isMultiTexture())
++            {
++                p_181679_1_.drawMultiTexture();
++            }
++            else if (Config.isShaders())
++            {
++                SVertexBuilder.drawArrays(p_181679_1_.func_178979_i(), 0, p_181679_1_.func_178989_h(), p_181679_1_);
++            }
++            else
++            {
++                GlStateManager.func_187439_f(p_181679_1_.func_178979_i(), 0, p_181679_1_.func_178989_h());
++            }
++            
+             int i1 = 0;
+ 
+             for (int j1 = list.size(); i1 < j1; ++i1)
+@@ -58,23 +79,29 @@
                  VertexFormatElement.EnumUsage vertexformatelement$enumusage1 = vertexformatelement1.func_177375_c();
                  int k1 = vertexformatelement1.func_177369_e();
  
--                switch (vertexformatelement$enumusage1)
--                {
--                    case POSITION:
--                        GlStateManager.func_187429_p(32884);
--                        break;
--                    case UV:
--                        OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a + k1);
--                        GlStateManager.func_187429_p(32888);
--                        OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
--                        break;
--                    case COLOR:
--                        GlStateManager.func_187429_p(32886);
--                        GlStateManager.func_179117_G();
--                        break;
--                    case NORMAL:
--                        GlStateManager.func_187429_p(32885);
--                }
 +                // moved to VertexFormatElement.postDraw
-+                vertexformatelement1.func_177375_c().postDraw(vertexformat, i1, i, bytebuffer);
++                //vertexformatelement1.getUsage().postDraw(vertexformat, i1, i, bytebuffer);
+                 switch (vertexformatelement$enumusage1)
+                 {
+                     case POSITION:
+                         GlStateManager.func_187429_p(32884);
+                         break;
++
+                     case UV:
+                         OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a + k1);
+                         GlStateManager.func_187429_p(32888);
+                         OpenGlHelper.func_77472_b(OpenGlHelper.field_77478_a);
+                         break;
++
+                     case COLOR:
+                         GlStateManager.func_187429_p(32886);
+                         GlStateManager.func_179117_G();
+                         break;
++
+                     case NORMAL:
+                         GlStateManager.func_187429_p(32885);
+                 }
++                
              }
          }
  

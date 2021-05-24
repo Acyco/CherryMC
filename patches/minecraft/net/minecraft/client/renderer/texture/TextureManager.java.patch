@@ -65,7 +65,7 @@
          Integer integer = this.field_110584_c.get(p_110578_1_);
  
          if (integer == null)
-@@ -137,17 +170,20 @@
+@@ -137,27 +170,113 @@
  
          if (itextureobject != null)
          {
@@ -77,17 +77,49 @@
 -    public void func_110549_a(IResourceManager p_110549_1_)
 +    public void onResourceManagerReloadO(IResourceManager resourceManager)
      {
+-        Iterator<Entry<ResourceLocation, ITextureObject>> iterator = this.field_110585_a.entrySet().iterator();
 +        net.minecraftforge.fml.common.ProgressManager.ProgressBar bar = net.minecraftforge.fml.common.ProgressManager.push("Reloading Texture Manager", this.field_110585_a.keySet().size(), true);
-         Iterator<Entry<ResourceLocation, ITextureObject>> iterator = this.field_110585_a.entrySet().iterator();
++        
++        //op add
++        Iterator iterator = this.field_110585_a.keySet().iterator();
  
          while (iterator.hasNext())
          {
-             Entry<ResourceLocation, ITextureObject> entry = (Entry)iterator.next();
+-            Entry<ResourceLocation, ITextureObject> entry = (Entry)iterator.next();
++            ResourceLocation resourcelocation = (ResourceLocation)iterator.next();
++            String s = resourcelocation.func_110623_a();
++
++            if (s.startsWith("mcpatcher/") || s.startsWith("optifine/"))
++            {
++                ITextureObject itextureobject = this.field_110585_a.get(resourcelocation);
++
++                if (itextureobject instanceof AbstractTexture)
++                {
++                    AbstractTexture abstracttexture = (AbstractTexture)itextureobject;
++                    abstracttexture.func_147631_c();
++                }
++
++                iterator.remove();
++            }
++        }
++        
++        //op end
++        
++        Iterator<Entry<ResourceLocation, ITextureObject>> iterator1 = this.field_110585_a.entrySet().iterator();
++
++        while (iterator1.hasNext())
++        {
++            Entry<ResourceLocation, ITextureObject> entry = (Entry)iterator1.next();
 +            bar.step(entry.getKey().toString());
              ITextureObject itextureobject = entry.getValue();
  
              if (itextureobject == TextureUtil.field_111001_a)
-@@ -159,5 +195,63 @@
+             {
+-                iterator.remove();
++                iterator1.remove();
+             }
+             else
+             {
                  this.func_110579_a(entry.getKey(), itextureobject);
              }
          }

@@ -1,15 +1,26 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/GlStateManager.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/GlStateManager.java
-@@ -6,6 +6,8 @@
+@@ -6,6 +6,9 @@
  import javax.annotation.Nullable;
  import net.minecraftforge.fml.relauncher.Side;
  import net.minecraftforge.fml.relauncher.SideOnly;
++
 +import optifine.Config;
 +import optifine.GlBlendState;
  import org.lwjgl.BufferUtils;
  import org.lwjgl.opengl.GL11;
  import org.lwjgl.opengl.GL15;
-@@ -40,6 +42,7 @@
+@@ -15,6 +18,9 @@
+ import org.lwjgl.opengl.GLContext;
+ import org.lwjgl.util.vector.Quaternion;
+ 
++import optifine.Config;
++import optifine.GlBlendState;
++
+ @SideOnly(Side.CLIENT)
+ public class GlStateManager
+ {
+@@ -40,6 +46,7 @@
      private static final GlStateManager.BooleanState field_179172_r;
      private static final GlStateManager.ColorMask field_179171_s;
      private static final GlStateManager.Color field_179170_t;
@@ -17,7 +28,7 @@
  
      public static void func_179123_a()
      {
-@@ -461,15 +464,15 @@
+@@ -461,15 +468,16 @@
  
      public static void func_179150_h(int p_179150_0_)
      {
@@ -32,7 +43,8 @@
 -                glstatemanager$texturestate.field_179059_b = -1;
 +            for (GlStateManager.TextureState glstatemanager$texturestate : field_179174_p) {
 +                if (glstatemanager$texturestate.field_179059_b == p_179150_0_) {
-+                    glstatemanager$texturestate.field_179059_b = -1;
++                    //glstatemanager$texturestate.textureName = -1;
++                    glstatemanager$texturestate.field_179059_b = 0;
 +                }
              }
 -        }
@@ -40,7 +52,18 @@
      }
  
      public static void func_179144_i(int p_179144_0_)
-@@ -834,7 +837,77 @@
+@@ -570,7 +578,9 @@
+ 
+     public static void func_179086_m(int p_179086_0_)
+     {
+-        GL11.glClear(p_179086_0_);
++        if (clearEnabled) {
++            GL11.glClear(p_179086_0_);
++        }
+     }
+ 
+     public static void func_179128_n(int p_179128_0_)
+@@ -834,7 +844,77 @@
      {
          p_187440_0_.func_187374_b();
      }
@@ -118,7 +141,7 @@
      static
      {
          for (int i = 0; i < 8; ++i)
-@@ -853,9 +926,9 @@
+@@ -853,9 +933,9 @@
          field_179163_l = new GlStateManager.ClearState();
          field_179164_m = new GlStateManager.StencilState();
          field_179161_n = new GlStateManager.BooleanState(2977);
@@ -131,3 +154,25 @@
          {
              field_179174_p[j] = new GlStateManager.TextureState();
          }
+@@ -1250,12 +1330,19 @@
+                 GL11.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, RenderHelper.func_74521_a(0.0F, 0.0F, 0.0F, 0.0F));
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_RGB, GL11.GL_MODULATE);
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_COMBINE_ALPHA, GL11.GL_MODULATE);
+-                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL15.GL_SRC0_RGB, GL11.GL_TEXTURE);
++         /*       GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL15.GL_SRC0_RGB, GL11.GL_TEXTURE);
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL15.GL_SRC1_RGB, GL13.GL_PREVIOUS);
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL15.GL_SRC2_RGB, GL13.GL_CONSTANT);
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL15.GL_SRC0_ALPHA, GL11.GL_TEXTURE);
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL15.GL_SRC1_ALPHA, GL13.GL_PREVIOUS);
+-                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL15.GL_SRC2_ALPHA, GL13.GL_CONSTANT);
++                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL15.GL_SRC2_ALPHA, GL13.GL_CONSTANT);*/
++                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_RGB, GL11.GL_TEXTURE);
++                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE1_RGB, GL13.GL_PREVIOUS);
++                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE2_RGB, GL13.GL_CONSTANT);
++                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE0_ALPHA, GL11.GL_TEXTURE);
++                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE1_ALPHA, GL13.GL_PREVIOUS);
++                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_SOURCE2_ALPHA, GL13.GL_CONSTANT);
++                
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND0_RGB, GL11.GL_SRC_COLOR);
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND1_RGB, GL11.GL_SRC_COLOR);
+                 GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL13.GL_OPERAND2_RGB, GL11.GL_SRC_ALPHA);

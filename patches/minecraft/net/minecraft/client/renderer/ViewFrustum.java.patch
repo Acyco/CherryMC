@@ -1,6 +1,6 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/ViewFrustum.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/ViewFrustum.java
-@@ -145,7 +145,8 @@
+@@ -145,11 +145,17 @@
      }
  
      @Nullable
@@ -8,5 +8,17 @@
 +    //op modify protected -> public
 +    public RenderChunk func_178161_a(BlockPos p_178161_1_)
      {
-         int i = MathHelper.func_76137_a(p_178161_1_.func_177958_n(), 16);
-         int j = MathHelper.func_76137_a(p_178161_1_.func_177956_o(), 16);
+-        int i = MathHelper.func_76137_a(p_178161_1_.func_177958_n(), 16);
+-        int j = MathHelper.func_76137_a(p_178161_1_.func_177956_o(), 16);
+-        int k = MathHelper.func_76137_a(p_178161_1_.func_177952_p(), 16);
++/*        int i = MathHelper.intFloorDiv(pos.getX(), 16);
++        int j = MathHelper.intFloorDiv(pos.getY(), 16);
++        int k = MathHelper.intFloorDiv(pos.getZ(), 16);*/
++        //op add
++        int i = p_178161_1_.func_177958_n() >> 4;
++        int j = p_178161_1_.func_177956_o() >> 4;
++        int k = p_178161_1_.func_177952_p() >> 4;        
++        //op end
+ 
+         if (j >= 0 && j < this.field_178168_c)
+         {

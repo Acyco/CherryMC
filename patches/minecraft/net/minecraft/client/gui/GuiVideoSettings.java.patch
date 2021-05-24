@@ -18,18 +18,20 @@
  
  @SideOnly(Side.CLIENT)
  public class GuiVideoSettings extends GuiScreen
-@@ -13,8 +24,9 @@
+@@ -13,8 +24,10 @@
      private final GuiScreen field_146498_f;
      protected String field_146500_a = "Video Settings";
      private final GameSettings field_146499_g;
 -    private GuiListExtended field_146501_h;
+-    private static final GameSettings.Options[] field_146502_i = new GameSettings.Options[] {GameSettings.Options.GRAPHICS, GameSettings.Options.RENDER_DISTANCE, GameSettings.Options.AMBIENT_OCCLUSION, GameSettings.Options.FRAMERATE_LIMIT, GameSettings.Options.ANAGLYPH, GameSettings.Options.VIEW_BOBBING, GameSettings.Options.GUI_SCALE, GameSettings.Options.ATTACK_INDICATOR, GameSettings.Options.GAMMA, GameSettings.Options.RENDER_CLOUDS, GameSettings.Options.PARTICLES, GameSettings.Options.USE_FULLSCREEN, GameSettings.Options.ENABLE_VSYNC, GameSettings.Options.MIPMAP_LEVELS, GameSettings.Options.USE_VBO, GameSettings.Options.ENTITY_SHADOWS};
 +    //private GuiListExtended optionsRowList;
-     private static final GameSettings.Options[] field_146502_i = new GameSettings.Options[] {GameSettings.Options.GRAPHICS, GameSettings.Options.RENDER_DISTANCE, GameSettings.Options.AMBIENT_OCCLUSION, GameSettings.Options.FRAMERATE_LIMIT, GameSettings.Options.ANAGLYPH, GameSettings.Options.VIEW_BOBBING, GameSettings.Options.GUI_SCALE, GameSettings.Options.ATTACK_INDICATOR, GameSettings.Options.GAMMA, GameSettings.Options.RENDER_CLOUDS, GameSettings.Options.PARTICLES, GameSettings.Options.USE_FULLSCREEN, GameSettings.Options.ENABLE_VSYNC, GameSettings.Options.MIPMAP_LEVELS, GameSettings.Options.USE_VBO, GameSettings.Options.ENTITY_SHADOWS};
++/*    private static final GameSettings.Options[] VIDEO_OPTIONS1 = new GameSettings.Options[] {GameSettings.Options.GRAPHICS, GameSettings.Options.RENDER_DISTANCE, GameSettings.Options.AMBIENT_OCCLUSION, GameSettings.Options.FRAMERATE_LIMIT, GameSettings.Options.ANAGLYPH, GameSettings.Options.VIEW_BOBBING, GameSettings.Options.GUI_SCALE, GameSettings.Options.ATTACK_INDICATOR, GameSettings.Options.GAMMA, GameSettings.Options.RENDER_CLOUDS, GameSettings.Options.PARTICLES, GameSettings.Options.USE_FULLSCREEN, GameSettings.Options.ENABLE_VSYNC, GameSettings.Options.MIPMAP_LEVELS, GameSettings.Options.USE_VBO, GameSettings.Options.ENTITY_SHADOWS};*/
++    private static GameSettings.Options[] field_146502_i = new GameSettings.Options[] {GameSettings.Options.GRAPHICS, GameSettings.Options.RENDER_DISTANCE, GameSettings.Options.AMBIENT_OCCLUSION, GameSettings.Options.FRAMERATE_LIMIT, GameSettings.Options.AO_LEVEL, GameSettings.Options.VIEW_BOBBING, GameSettings.Options.GUI_SCALE, GameSettings.Options.USE_VBO, GameSettings.Options.GAMMA, GameSettings.Options.ATTACK_INDICATOR, GameSettings.Options.DYNAMIC_LIGHTS, GameSettings.Options.DYNAMIC_FOV};
 +    private TooltipManager tooltipManager = new TooltipManager(this);
  
      public GuiVideoSettings(GuiScreen p_i1062_1_, GameSettings p_i1062_2_)
      {
-@@ -22,7 +34,7 @@
+@@ -22,7 +35,7 @@
          this.field_146499_g = p_i1062_2_;
      }
  
@@ -38,7 +40,7 @@
      {
          this.field_146500_a = I18n.func_135052_a("options.videoTitle");
          this.field_146292_n.clear();
-@@ -30,7 +42,7 @@
+@@ -30,7 +43,7 @@
  
          if (OpenGlHelper.field_176083_O)
          {
@@ -47,7 +49,7 @@
          }
          else
          {
-@@ -48,14 +60,58 @@
+@@ -48,14 +61,58 @@
                  ++i;
              }
  
@@ -108,7 +110,7 @@
      }
  
      protected void func_73869_a(char p_73869_1_, int p_73869_2_) throws IOException
-@@ -69,14 +125,118 @@
+@@ -69,14 +126,118 @@
      }
  
      protected void func_146284_a(GuiButton p_146284_1_) throws IOException
@@ -229,7 +231,7 @@
          }
      }
  
-@@ -84,7 +244,7 @@
+@@ -84,7 +245,7 @@
      {
          int i = this.field_146499_g.field_74335_Z;
          super.func_73864_a(p_73864_1_, p_73864_2_, p_73864_3_);
@@ -238,7 +240,7 @@
  
          if (this.field_146499_g.field_74335_Z != i)
          {
-@@ -95,26 +255,77 @@
+@@ -95,26 +256,77 @@
          }
      }
  

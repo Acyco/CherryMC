@@ -1,48 +1,244 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/entity/layers/LayerArmorBase.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/entity/layers/LayerArmorBase.java
-@@ -58,31 +58,29 @@
+@@ -13,6 +13,12 @@
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
++import optifine.CustomItems;
++import optifine.Reflector;
++import optifine.ReflectorForge;
++import shadersmod.client.Shaders;
++import shadersmod.client.ShadersRender;
+ 
+ @SideOnly(Side.CLIENT)
+ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRenderer<EntityLivingBase>
+@@ -47,6 +53,50 @@
+         return false;
+     }
+ 
++    private void renderArmorLayerO(EntityLivingBase entityLivingBaseIn, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale, EntityEquipmentSlot slotIn)
++    {
++        ItemStack itemstack = entityLivingBaseIn.func_184582_a(slotIn);
++
++        if (itemstack.func_77973_b() instanceof ItemArmor)
++        {
++            ItemArmor itemarmor = (ItemArmor)itemstack.func_77973_b();
++
++            if (itemarmor.func_185083_B_() == slotIn)
++            {
++                T t = this.func_188360_a(slotIn);
++                t = getArmorModelHook(entityLivingBaseIn, itemstack, slotIn, t);
++                t.func_178686_a(this.field_177190_a.func_177087_b());
++                t.func_78086_a(entityLivingBaseIn, limbSwing, limbSwingAmount, partialTicks);
++                this.func_188359_a(t, slotIn);
++                boolean flag = this.func_188363_b(slotIn);
++                this.field_177190_a.func_110776_a(this.getArmorResource(entityLivingBaseIn, itemstack, slotIn, null));
++         
++
++                {
++                    if (itemarmor.hasOverlay(itemstack)) // Allow this for anything, not only cloth
++                    {
++                        int i = itemarmor.func_82814_b(itemstack);
++                        float f = (float)(i >> 16 & 255) / 255.0F;
++                        float f1 = (float)(i >> 8 & 255) / 255.0F;
++                        float f2 = (float)(i & 255) / 255.0F;
++                        GlStateManager.func_179131_c(this.field_177184_f * f, this.field_177185_g * f1, this.field_177192_h * f2, this.field_177187_e);
++                        t.func_78088_a(entityLivingBaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
++                        this.field_177190_a.func_110776_a(this.getArmorResource(entityLivingBaseIn, itemstack, slotIn, "overlay"));
++                      
++                    }
++                    { // Non-colored
++                        GlStateManager.func_179131_c(this.field_177184_f, this.field_177185_g, this.field_177192_h, this.field_177187_e);
++                        t.func_78088_a(entityLivingBaseIn, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale);
++                    } // Default
++                   
++                        if (!this.field_177193_i && itemstack.func_77962_s())
++                        {
++                            func_188364_a(this.field_177190_a, entityLivingBaseIn, t, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch, scale);
++                        }
++                }
++            }
++        }
++    }
+     private void func_188361_a(EntityLivingBase p_188361_1_, float p_188361_2_, float p_188361_3_, float p_188361_4_, float p_188361_5_, float p_188361_6_, float p_188361_7_, float p_188361_8_, EntityEquipmentSlot p_188361_9_)
+     {
+         ItemStack itemstack = p_188361_1_.func_184582_a(p_188361_9_);
+@@ -58,12 +108,57 @@
              if (itemarmor.func_185083_B_() == p_188361_9_)
              {
                  T t = this.func_188360_a(p_188361_9_);
-+                t = getArmorModelHook(p_188361_1_, itemstack, p_188361_9_, t);
++
++                if (Reflector.ForgeHooksClient.exists())
++                {
++                    t = this.getArmorModelHook(p_188361_1_, itemstack, p_188361_9_, t);
++                }
++
                  t.func_178686_a(this.field_177190_a.func_177087_b());
                  t.func_78086_a(p_188361_1_, p_188361_2_, p_188361_3_, p_188361_4_);
                  this.func_188359_a(t, p_188361_9_);
                  boolean flag = this.func_188363_b(p_188361_9_);
 -                this.field_177190_a.func_110776_a(this.func_177181_a(itemarmor, flag));
-+                this.field_177190_a.func_110776_a(this.getArmorResource(p_188361_1_, itemstack, p_188361_9_, null));
  
--                switch (itemarmor.func_82812_d())
-                 {
--                    case LEATHER:
-+                    if (itemarmor.hasOverlay(itemstack)) // Allow this for anything, not only cloth
++                if (!Config.isCustomItems() || !CustomItems.bindCustomArmorTexture(itemstack, p_188361_9_, (String)null))
++                {
++                    if (Reflector.ForgeHooksClient_getArmorTexture.exists())
 +                    {
-                         int i = itemarmor.func_82814_b(itemstack);
-                         float f = (float)(i >> 16 & 255) / 255.0F;
-                         float f1 = (float)(i >> 8 & 255) / 255.0F;
++                        this.field_177190_a.func_110776_a(this.getArmorResource(p_188361_1_, itemstack, p_188361_9_, (String)null));
++                    }
++                    else
++                    {
++                        this.field_177190_a.func_110776_a(this.func_177181_a(itemarmor, flag));
++                    }
++                }
++
++                if (Reflector.ForgeHooksClient_getArmorTexture.exists())
++                {
++                    if (ReflectorForge.armorHasOverlay(itemarmor, itemstack))
++                    {
++                        int j = itemarmor.func_82814_b(itemstack);
++                        float f3 = (float)(j >> 16 & 255) / 255.0F;
++                        float f4 = (float)(j >> 8 & 255) / 255.0F;
++                        float f5 = (float)(j & 255) / 255.0F;
++                        GlStateManager.func_179131_c(this.field_177184_f * f3, this.field_177185_g * f4, this.field_177192_h * f5, this.field_177187_e);
++                        t.func_78088_a(p_188361_1_, p_188361_2_, p_188361_3_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_);
++
++                        if (!Config.isCustomItems() || !CustomItems.bindCustomArmorTexture(itemstack, p_188361_9_, "overlay"))
++                        {
++                            this.field_177190_a.func_110776_a(this.getArmorResource(p_188361_1_, itemstack, p_188361_9_, "overlay"));
++                        }
++                    }
++
++                    GlStateManager.func_179131_c(this.field_177184_f, this.field_177185_g, this.field_177192_h, this.field_177187_e);
++                    t.func_78088_a(p_188361_1_, p_188361_2_, p_188361_3_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_);
++
++                    if (!this.field_177193_i && itemstack.func_77962_s() && (!Config.isCustomItems() || !CustomItems.renderCustomArmorEffect(p_188361_1_, itemstack, t, p_188361_2_, p_188361_3_, p_188361_4_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_)))
++                    {
++                        func_188364_a(this.field_177190_a, p_188361_1_, t, p_188361_2_, p_188361_3_, p_188361_4_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_);
++                    }
++
++                    return;
++                }
++
+                 switch (itemarmor.func_82812_d())
+                 {
+                     case LEATHER:
+@@ -73,19 +168,23 @@
                          float f2 = (float)(i & 255) / 255.0F;
                          GlStateManager.func_179131_c(this.field_177184_f * f, this.field_177185_g * f1, this.field_177192_h * f2, this.field_177187_e);
                          t.func_78088_a(p_188361_1_, p_188361_2_, p_188361_3_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_);
 -                        this.field_177190_a.func_110776_a(this.func_177178_a(itemarmor, flag, "overlay"));
--                    case CHAIN:
--                    case IRON:
--                    case GOLD:
--                    case DIAMOND:
-+                        this.field_177190_a.func_110776_a(this.getArmorResource(p_188361_1_, itemstack, p_188361_9_, "overlay"));
-+                    }
-+                    { // Non-colored
++
++                        if (!Config.isCustomItems() || !CustomItems.bindCustomArmorTexture(itemstack, p_188361_9_, "overlay"))
++                        {
++                            this.field_177190_a.func_110776_a(this.func_177178_a(itemarmor, flag, "overlay"));
++                        }
++
+                     case CHAIN:
+                     case IRON:
+                     case GOLD:
+                     case DIAMOND:
                          GlStateManager.func_179131_c(this.field_177184_f, this.field_177185_g, this.field_177192_h, this.field_177187_e);
                          t.func_78088_a(p_188361_1_, p_188361_2_, p_188361_3_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_);
 -                    default:
--
++                }
+ 
 -                        if (!this.field_177193_i && itemstack.func_77948_v())
-+                    } // Default
-+                        if (!this.field_177193_i && itemstack.func_77962_s())
-                         {
-                             func_188364_a(this.field_177190_a, p_188361_1_, t, p_188361_2_, p_188361_3_, p_188361_4_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_);
-                         }
-@@ -139,11 +137,13 @@
-         Minecraft.func_71410_x().field_71460_t.func_191514_d(false);
+-                        {
+-                            func_188364_a(this.field_177190_a, p_188361_1_, t, p_188361_2_, p_188361_3_, p_188361_4_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_);
+-                        }
++                if (!this.field_177193_i && itemstack.func_77948_v() && (!Config.isCustomItems() || !CustomItems.renderCustomArmorEffect(p_188361_1_, itemstack, t, p_188361_2_, p_188361_3_, p_188361_4_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_)))
++                {
++                    func_188364_a(this.field_177190_a, p_188361_1_, t, p_188361_2_, p_188361_3_, p_188361_4_, p_188361_5_, p_188361_6_, p_188361_7_, p_188361_8_);
+                 }
+             }
+         }
+@@ -103,47 +202,67 @@
+ 
+     public static void func_188364_a(RenderLivingBase<?> p_188364_0_, EntityLivingBase p_188364_1_, ModelBase p_188364_2_, float p_188364_3_, float p_188364_4_, float p_188364_5_, float p_188364_6_, float p_188364_7_, float p_188364_8_, float p_188364_9_)
+     {
+-        float f = (float)p_188364_1_.field_70173_aa + p_188364_5_;
+-        p_188364_0_.func_110776_a(field_177188_b);
+-        Minecraft.func_71410_x().field_71460_t.func_191514_d(true);
+-        GlStateManager.func_179147_l();
+-        GlStateManager.func_179143_c(514);
+-        GlStateManager.func_179132_a(false);
+-        float f1 = 0.5F;
+-        GlStateManager.func_179131_c(0.5F, 0.5F, 0.5F, 1.0F);
++        //op add
++        if (!Config.isShaders() || !Shaders.isShadowPass) {
++            //op end
++            float f = (float) p_188364_1_.field_70173_aa + p_188364_5_;
++            p_188364_0_.func_110776_a(field_177188_b);
++            
++            //op add
++            if (Config.isShaders())
++            {
++                ShadersRender.renderEnchantedGlintBegin();
++            }            
++            //op end
++            
++            Minecraft.func_71410_x().field_71460_t.func_191514_d(true);
++            GlStateManager.func_179147_l();
++            GlStateManager.func_179143_c(514);
++            GlStateManager.func_179132_a(false);
++            float f1 = 0.5F;
++            GlStateManager.func_179131_c(0.5F, 0.5F, 0.5F, 1.0F);
+ 
+-        for (int i = 0; i < 2; ++i)
+-        {
+-            GlStateManager.func_179140_f();
+-            GlStateManager.func_187401_a(GlStateManager.SourceFactor.SRC_COLOR, GlStateManager.DestFactor.ONE);
+-            float f2 = 0.76F;
+-            GlStateManager.func_179131_c(0.38F, 0.19F, 0.608F, 1.0F);
++            for (int i = 0; i < 2; ++i) {
++                GlStateManager.func_179140_f();
++                GlStateManager.func_187401_a(GlStateManager.SourceFactor.SRC_COLOR, GlStateManager.DestFactor.ONE);
++                float f2 = 0.76F;
++                GlStateManager.func_179131_c(0.38F, 0.19F, 0.608F, 1.0F);
++                GlStateManager.func_179128_n(5890);
++                GlStateManager.func_179096_D();
++                float f3 = 0.33333334F;
++                GlStateManager.func_179152_a(0.33333334F, 0.33333334F, 0.33333334F);
++                GlStateManager.func_179114_b(30.0F - (float) i * 60.0F, 0.0F, 0.0F, 1.0F);
++                GlStateManager.func_179109_b(0.0F, f * (0.001F + (float) i * 0.003F) * 20.0F, 0.0F);
++                GlStateManager.func_179128_n(5888);
++                p_188364_2_.func_78088_a(p_188364_1_, p_188364_3_, p_188364_4_, p_188364_6_, p_188364_7_, p_188364_8_, p_188364_9_);
++                GlStateManager.func_187401_a(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
++            }
++
+             GlStateManager.func_179128_n(5890);
+             GlStateManager.func_179096_D();
+-            float f3 = 0.33333334F;
+-            GlStateManager.func_179152_a(0.33333334F, 0.33333334F, 0.33333334F);
+-            GlStateManager.func_179114_b(30.0F - (float)i * 60.0F, 0.0F, 0.0F, 1.0F);
+-            GlStateManager.func_179109_b(0.0F, f * (0.001F + (float)i * 0.003F) * 20.0F, 0.0F);
+             GlStateManager.func_179128_n(5888);
+-            p_188364_2_.func_78088_a(p_188364_1_, p_188364_3_, p_188364_4_, p_188364_6_, p_188364_7_, p_188364_8_, p_188364_9_);
+-            GlStateManager.func_187401_a(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+-        }
+-
+-        GlStateManager.func_179128_n(5890);
+-        GlStateManager.func_179096_D();
+-        GlStateManager.func_179128_n(5888);
+-        GlStateManager.func_179145_e();
+-        GlStateManager.func_179132_a(true);
+-        GlStateManager.func_179143_c(515);
+-        GlStateManager.func_179084_k();
+-        Minecraft.func_71410_x().field_71460_t.func_191514_d(false);
++            GlStateManager.func_179145_e();
++            GlStateManager.func_179132_a(true);
++            GlStateManager.func_179143_c(515);
++            GlStateManager.func_179084_k();
++            Minecraft.func_71410_x().field_71460_t.func_191514_d(false);
++            
++            //op add
++            if (Config.isShaders())
++            {
++                ShadersRender.renderEnchantedGlintEnd();
++            }            
++            //op end
++        }//op add
      }
  
 +    @Deprecated //Use the more sensitive version getArmorResource below
@@ -55,7 +251,7 @@
      private ResourceLocation func_177178_a(ItemArmor p_177178_1_, boolean p_177178_2_, String p_177178_3_)
      {
          String s = String.format("textures/models/armor/%s_layer_%d%s.png", p_177178_1_.func_82812_d().func_179242_c(), p_177178_2_ ? 2 : 1, p_177178_3_ == null ? "" : String.format("_%s", p_177178_3_));
-@@ -161,4 +161,49 @@
+@@ -161,4 +280,49 @@
      protected abstract void func_177177_a();
  
      protected abstract void func_188359_a(T p_188359_1_, EntityEquipmentSlot p_188359_2_);

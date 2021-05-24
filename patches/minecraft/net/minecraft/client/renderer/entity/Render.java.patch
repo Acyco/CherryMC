@@ -1,10 +1,12 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/entity/Render.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/entity/Render.java
-@@ -24,15 +24,21 @@
+@@ -24,15 +24,23 @@
  import net.minecraft.world.World;
  import net.minecraftforge.fml.relauncher.Side;
  import net.minecraftforge.fml.relauncher.SideOnly;
 +import net.optifine.entity.model.IEntityRenderer;
++import optifine.Config;
++import shadersmod.client.Shaders;
  
  @SideOnly(Side.CLIENT)
 -public abstract class Render<T extends Entity>
@@ -24,7 +26,107 @@
  
      protected Render(RenderManager p_i46179_1_)
      {
-@@ -361,4 +367,26 @@
+@@ -178,56 +186,59 @@
+         GlStateManager.func_179145_e();
+     }
+ 
++    /** 
++     *  Renders the entities shadow.
++     */
+     private void func_76975_c(Entity p_76975_1_, double p_76975_2_, double p_76975_4_, double p_76975_6_, float p_76975_8_, float p_76975_9_)
+     {
+-        GlStateManager.func_179147_l();
+-        GlStateManager.func_187401_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+-        this.field_76990_c.field_78724_e.func_110577_a(field_110778_a);
+-        World world = this.func_76982_b();
+-        GlStateManager.func_179132_a(false);
+-        float f = this.field_76989_e;
++        //op add
++        if (!Config.isShaders() || !Shaders.shouldSkipDefaultShadow) {
++            //op end
++            GlStateManager.func_179147_l();
++            GlStateManager.func_187401_a(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
++            this.field_76990_c.field_78724_e.func_110577_a(field_110778_a);
++            World world = this.func_76982_b();
++            GlStateManager.func_179132_a(false);
++            float f = this.field_76989_e;
+ 
+-        if (p_76975_1_ instanceof EntityLiving)
+-        {
+-            EntityLiving entityliving = (EntityLiving)p_76975_1_;
+-            f *= entityliving.func_70603_bj();
++            if (p_76975_1_ instanceof EntityLiving) {
++                EntityLiving entityliving = (EntityLiving) p_76975_1_;
++                f *= entityliving.func_70603_bj();
+ 
+-            if (entityliving.func_70631_g_())
+-            {
+-                f *= 0.5F;
++                if (entityliving.func_70631_g_()) {
++                    f *= 0.5F;
++                }
+             }
+-        }
+ 
+-        double d5 = p_76975_1_.field_70142_S + (p_76975_1_.field_70165_t - p_76975_1_.field_70142_S) * (double)p_76975_9_;
+-        double d0 = p_76975_1_.field_70137_T + (p_76975_1_.field_70163_u - p_76975_1_.field_70137_T) * (double)p_76975_9_;
+-        double d1 = p_76975_1_.field_70136_U + (p_76975_1_.field_70161_v - p_76975_1_.field_70136_U) * (double)p_76975_9_;
+-        int i = MathHelper.func_76128_c(d5 - (double)f);
+-        int j = MathHelper.func_76128_c(d5 + (double)f);
+-        int k = MathHelper.func_76128_c(d0 - (double)f);
+-        int l = MathHelper.func_76128_c(d0);
+-        int i1 = MathHelper.func_76128_c(d1 - (double)f);
+-        int j1 = MathHelper.func_76128_c(d1 + (double)f);
+-        double d2 = p_76975_2_ - d5;
+-        double d3 = p_76975_4_ - d0;
+-        double d4 = p_76975_6_ - d1;
+-        Tessellator tessellator = Tessellator.func_178181_a();
+-        BufferBuilder bufferbuilder = tessellator.func_178180_c();
+-        bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181709_i);
++            double d5 = p_76975_1_.field_70142_S + (p_76975_1_.field_70165_t - p_76975_1_.field_70142_S) * (double) p_76975_9_;
++            double d0 = p_76975_1_.field_70137_T + (p_76975_1_.field_70163_u - p_76975_1_.field_70137_T) * (double) p_76975_9_;
++            double d1 = p_76975_1_.field_70136_U + (p_76975_1_.field_70161_v - p_76975_1_.field_70136_U) * (double) p_76975_9_;
++            int i = MathHelper.func_76128_c(d5 - (double) f);
++            int j = MathHelper.func_76128_c(d5 + (double) f);
++            int k = MathHelper.func_76128_c(d0 - (double) f);
++            int l = MathHelper.func_76128_c(d0);
++            int i1 = MathHelper.func_76128_c(d1 - (double) f);
++            int j1 = MathHelper.func_76128_c(d1 + (double) f);
++            double d2 = p_76975_2_ - d5;
++            double d3 = p_76975_4_ - d0;
++            double d4 = p_76975_6_ - d1;
++            Tessellator tessellator = Tessellator.func_178181_a();
++            BufferBuilder bufferbuilder = tessellator.func_178180_c();
++            bufferbuilder.func_181668_a(7, DefaultVertexFormats.field_181709_i);
+ 
+-        for (BlockPos blockpos : BlockPos.func_177975_b(new BlockPos(i, k, i1), new BlockPos(j, l, j1)))
+-        {
+-            IBlockState iblockstate = world.func_180495_p(blockpos.func_177977_b());
++            for (BlockPos blockpos : BlockPos.func_177975_b(new BlockPos(i, k, i1), new BlockPos(j, l, j1))) {
++                IBlockState iblockstate = world.func_180495_p(blockpos.func_177977_b());
+ 
+-            if (iblockstate.func_185901_i() != EnumBlockRenderType.INVISIBLE && world.func_175671_l(blockpos) > 3)
+-            {
+-                this.func_188299_a(iblockstate, p_76975_2_, p_76975_4_, p_76975_6_, blockpos, p_76975_8_, f, d2, d3, d4);
++                if (iblockstate.func_185901_i() != EnumBlockRenderType.INVISIBLE && world.func_175671_l(blockpos) > 3) {
++                    this.func_188299_a(iblockstate, p_76975_2_, p_76975_4_, p_76975_6_, blockpos, p_76975_8_, f, d2, d3, d4);
++                }
+             }
+-        }
+ 
+-        tessellator.func_78381_a();
+-        GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
+-        GlStateManager.func_179084_k();
+-        GlStateManager.func_179132_a(true);
++            tessellator.func_78381_a();
++            GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
++            GlStateManager.func_179084_k();
++            GlStateManager.func_179132_a(true);
++        }//op add
+     }
+ 
+     private World func_76982_b()
+@@ -361,4 +372,26 @@
      public void func_188300_b(T p_188300_1_, double p_188300_2_, double p_188300_4_, double p_188300_6_, float p_188300_8_, float p_188300_9_)
      {
      }

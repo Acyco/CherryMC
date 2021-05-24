@@ -360,6 +360,15 @@
  
                      if (!itemstack.func_190926_b())
                      {
+@@ -2347,7 +2388,7 @@
+         this.field_70170_p.field_72984_F.func_76320_a("travel");
+         this.field_70702_br *= 0.98F;
+         this.field_191988_bg *= 0.98F;
+-        this.field_70704_bt *= 0.9F;
++       // this.randomYawVelocity *= 0.9F; //cherry remove
+         this.func_184616_r();
+         this.func_191986_a(this.field_70702_br, this.field_70701_bs, this.field_191988_bg);
+         this.field_70170_p.field_72984_F.func_76319_b();
 @@ -2575,6 +2616,40 @@
          this.field_70752_e = true;
      }

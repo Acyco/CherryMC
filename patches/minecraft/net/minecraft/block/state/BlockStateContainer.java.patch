@@ -1,6 +1,22 @@
 --- ../src-base/minecraft/net/minecraft/block/state/BlockStateContainer.java
 +++ ../src-work/minecraft/net/minecraft/block/state/BlockStateContainer.java
-@@ -59,12 +59,22 @@
+@@ -21,6 +21,7 @@
+ import java.util.regex.Pattern;
+ import javax.annotation.Nullable;
+ import net.minecraft.block.Block;
++import net.minecraft.block.BlockFlower;
+ import net.minecraft.block.material.EnumPushReaction;
+ import net.minecraft.block.material.MapColor;
+ import net.minecraft.block.material.Material;
+@@ -41,6 +42,7 @@
+ import net.minecraft.world.World;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.BlockModelUtils;
+ 
+ public class BlockStateContainer
+ {
+@@ -59,12 +61,22 @@
  
      public BlockStateContainer(Block p_i45663_1_, IProperty<?>... p_i45663_2_)
      {
@@ -26,7 +42,7 @@
              map.put(iproperty.func_177701_a(), iproperty);
          }
  
-@@ -75,7 +85,7 @@
+@@ -75,7 +87,7 @@
          for (List < Comparable<? >> list : Cartesian.func_179321_a(this.func_177620_e()))
          {
              Map < IProperty<?>, Comparable<? >> map1 = MapPopulator. < IProperty<?>, Comparable<? >> func_179400_b(this.field_177624_d.values(), list);
@@ -35,7 +51,7 @@
              map2.put(map1, blockstatecontainer$stateimplementation);
              list1.add(blockstatecontainer$stateimplementation);
          }
-@@ -170,6 +180,13 @@
+@@ -170,6 +182,13 @@
                  this.field_177237_b = p_i45660_2_;
              }
  
@@ -49,7 +65,30 @@
              public Collection < IProperty<? >> func_177227_a()
              {
                  return Collections. < IProperty<? >> unmodifiableCollection(this.field_177237_b.keySet());
-@@ -473,5 +490,94 @@
+@@ -436,7 +455,21 @@
+ 
+             public AxisAlignedBB func_185900_c(IBlockAccess p_185900_1_, BlockPos p_185900_2_)
+             {
+-                return this.field_177239_a.func_185496_a(this, p_185900_1_, p_185900_2_);
++                //return this.block.getBoundingBox(this, blockAccess, pos);
++                //op add
++                Block.EnumOffsetType block$enumoffsettype = this.field_177239_a.func_176218_Q();
++
++                if (block$enumoffsettype != Block.EnumOffsetType.NONE && !(this.field_177239_a instanceof BlockFlower))
++                {
++                    AxisAlignedBB axisalignedbb = this.field_177239_a.func_185496_a(this, p_185900_1_, p_185900_2_);
++                    axisalignedbb = BlockModelUtils.getOffsetBoundingBox(axisalignedbb, block$enumoffsettype, p_185900_2_);
++                    return axisalignedbb;
++                }
++                else
++                {
++                    return this.field_177239_a.func_185496_a(this, p_185900_1_, p_185900_2_);
++                }                
++                //op end
+             }
+ 
+             public RayTraceResult func_185910_a(World p_185910_1_, BlockPos p_185910_2_, Vec3d p_185910_3_, Vec3d p_185910_4_)
+@@ -473,5 +506,94 @@
              {
                  return this.field_177239_a.func_193383_a(p_193401_1_, this, p_193401_2_, p_193401_3_);
              }

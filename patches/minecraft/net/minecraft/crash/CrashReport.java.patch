@@ -1,6 +1,22 @@
 --- ../src-base/minecraft/net/minecraft/crash/CrashReport.java
 +++ ../src-work/minecraft/net/minecraft/crash/CrashReport.java
-@@ -116,6 +116,7 @@
+@@ -17,6 +17,7 @@
+ import net.minecraft.world.gen.layer.IntCache;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.CrashReporter;
+ import org.apache.commons.io.IOUtils;
+ import org.apache.commons.lang3.ArrayUtils;
+ import org.apache.logging.log4j.LogManager;
+@@ -32,6 +33,7 @@
+     private File field_71510_d;
+     private boolean field_85059_f = true;
+     private StackTraceElement[] field_85060_g = new StackTraceElement[0];
++    private boolean reported = false; //op add
+ 
+     public CrashReport(String p_i1348_1_, Throwable p_i1348_2_)
+     {
+@@ -116,6 +118,7 @@
                  return IntCache.func_85144_b();
              }
          });
@@ -8,8 +24,19 @@
      }
  
      public String func_71501_a()
-@@ -205,6 +206,7 @@
+@@ -203,8 +206,18 @@
+ 
+     public String func_71502_e()
      {
++        
++        //op add
++
++        if (!this.reported)
++        {
++            this.reported = true;
++            CrashReporter.onCrashReport(this, this.field_85061_c);
++        }        
++        //op end
          StringBuilder stringbuilder = new StringBuilder();
          stringbuilder.append("---- Minecraft Crash Report ----\n");
 +        net.minecraftforge.fml.relauncher.CoreModManager.onCrash(stringbuilder);

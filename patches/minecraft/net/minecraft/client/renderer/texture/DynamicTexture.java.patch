@@ -22,7 +22,7 @@
  
      public DynamicTexture(int p_i1271_1_, int p_i1271_2_)
      {
-+       /* this.shadersInitialized = false;///op add
++      /*  this.shadersInitialized = false;///op add
 +        this.width = textureWidth;
 +        this.height = textureHeight;
 +        this.dynamicTextureData = new int[textureWidth * textureHeight];

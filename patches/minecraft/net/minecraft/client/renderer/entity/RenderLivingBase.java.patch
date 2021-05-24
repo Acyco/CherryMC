@@ -1,6 +1,16 @@
 --- ../src-base/minecraft/net/minecraft/client/renderer/entity/RenderLivingBase.java
 +++ ../src-work/minecraft/net/minecraft/client/renderer/entity/RenderLivingBase.java
-@@ -27,11 +27,24 @@
+@@ -19,19 +19,34 @@
+ import net.minecraft.util.text.TextFormatting;
+ import net.minecraftforge.fml.relauncher.Side;
+ import net.minecraftforge.fml.relauncher.SideOnly;
++import optifine.Config;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import shadersmod.client.Shaders;
+ 
+ @SideOnly(Side.CLIENT)
+ public abstract class RenderLivingBase<T extends EntityLivingBase> extends Render<T>
  {
      private static final Logger field_147923_a = LogManager.getLogger();
      private static final DynamicTexture field_177096_e = new DynamicTexture(16, 16);
@@ -26,7 +36,7 @@
      public RenderLivingBase(RenderManager p_i46156_1_, ModelBase p_i46156_2_, float p_i46156_3_)
      {
          super(p_i46156_1_);
-@@ -72,10 +85,12 @@
+@@ -72,10 +87,12 @@
  
      public void func_76986_a(T p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
      {
@@ -40,7 +50,7 @@
          this.field_77045_g.field_78091_s = p_76986_1_.func_70631_g_();
  
          try
-@@ -84,7 +99,7 @@
+@@ -84,7 +101,7 @@
              float f1 = this.func_77034_a(p_76986_1_.field_70758_at, p_76986_1_.field_70759_as, p_76986_9_);
              float f2 = f1 - f;
  
@@ -49,7 +59,7 @@
              {
                  EntityLivingBase entitylivingbase = (EntityLivingBase)p_76986_1_.func_184187_bx();
                  f = this.func_77034_a(entitylivingbase.field_70760_ar, entitylivingbase.field_70761_aq, p_76986_9_);
-@@ -133,6 +148,7 @@
+@@ -133,6 +150,7 @@
                  {
                      f5 = 1.0F;
                  }
@@ -57,7 +67,7 @@
              }
  
              GlStateManager.func_179141_d();
-@@ -194,6 +210,7 @@
+@@ -194,6 +212,7 @@
          GlStateManager.func_179089_o();
          GlStateManager.func_179121_F();
          super.func_76986_a(p_76986_1_, p_76986_2_, p_76986_4_, p_76986_6_, p_76986_8_, p_76986_9_);
@@ -65,7 +75,48 @@
      }
  
      public float func_188322_c(T p_188322_1_, float p_188322_2_)
-@@ -454,10 +471,11 @@
+@@ -308,6 +327,12 @@
+                 this.field_177095_g.put(0.0F);
+                 this.field_177095_g.put(0.0F);
+                 this.field_177095_g.put(0.3F);
++                //op add
++                if (Config.isShaders())
++                {
++                    Shaders.setEntityColor(1.0F, 0.0F, 0.0F, 0.3F);
++                }                
++                //op end
+             }
+             else
+             {
+@@ -319,6 +344,13 @@
+                 this.field_177095_g.put(f3);
+                 this.field_177095_g.put(f4);
+                 this.field_177095_g.put(1.0F - f1);
++                //op add
++
++                if (Config.isShaders())
++                {
++                    Shaders.setEntityColor(f2, f3, f4, 1.0F - f1);
++                }                
++                //op end
+             }
+ 
+             this.field_177095_g.flip();
+@@ -379,6 +411,13 @@
+         GlStateManager.func_187399_a(8960, OpenGlHelper.field_176085_I, 770);
+         GlStateManager.func_187399_a(8960, OpenGlHelper.field_176078_F, 5890);
+         GlStateManager.func_179138_g(OpenGlHelper.field_77478_a);
++        
++        //op add
++        if (Config.isShaders())
++        {
++            Shaders.setEntityColor(0.0F, 0.0F, 0.0F, 0.0F);
++        }        
++        //op end
+     }
+ 
+     protected void func_77039_a(T p_77039_1_, double p_77039_2_, double p_77039_4_, double p_77039_6_)
+@@ -454,10 +493,11 @@
  
      public void func_177067_a(T p_177067_1_, double p_177067_2_, double p_177067_4_, double p_177067_6_)
      {
@@ -78,7 +129,7 @@
  
              if (d0 < (double)(f * f))
              {
-@@ -466,6 +484,7 @@
+@@ -466,6 +506,7 @@
                  this.func_188296_a(p_177067_1_, p_177067_2_, p_177067_4_, p_177067_6_, s, d0);
              }
          }
@@ -86,7 +137,7 @@
      }
  
      protected boolean func_177070_b(T p_177070_1_)
-@@ -501,6 +520,11 @@
+@@ -501,6 +542,11 @@
          return Minecraft.func_71382_s() && p_177070_1_ != this.field_76990_c.field_78734_h && flag && !p_177070_1_.func_184207_aI();
      }
  
