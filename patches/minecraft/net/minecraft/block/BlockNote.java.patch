@@ -15,7 +15,11 @@
  import net.minecraft.block.state.IBlockState;
  import net.minecraft.creativetab.CreativeTabs;
  import net.minecraft.entity.player.EntityPlayer;
-@@ -17,16 +24,26 @@
+@@ -14,19 +21,29 @@
+ import net.minecraft.util.EnumFacing;
+ import net.minecraft.util.EnumHand;
+ import net.minecraft.util.EnumParticleTypes;
++
  import net.minecraft.util.SoundCategory;
  import net.minecraft.util.SoundEvent;
  import net.minecraft.util.math.BlockPos;
@@ -27,18 +31,17 @@
      private static final List<SoundEvent> field_176434_a = Lists.newArrayList(SoundEvents.field_187682_dG, SoundEvents.field_187676_dE, SoundEvents.field_187688_dI, SoundEvents.field_187685_dH, SoundEvents.field_187679_dF, SoundEvents.field_193809_ey, SoundEvents.field_193807_ew, SoundEvents.field_193810_ez, SoundEvents.field_193808_ex, SoundEvents.field_193785_eE);
 +    // cherry add
 +    public static final PropertyBool POWERED =  PropertyBool.func_177716_a("powered");
-+    public static final PropertyDirection FACING = PropertyDirection.func_177714_a("facing");
  
 +    //cherry end
-+    
++
      public BlockNote()
      {
          super(Material.field_151575_d);
-+   
++
          this.func_149647_a(CreativeTabs.field_78028_d);
 +
 +        //cherry add
-+        this.func_180632_j(this.field_176227_L.func_177621_b().func_177226_a(FACING, EnumFacing.NORTH).func_177226_a(POWERED, Boolean.valueOf(false)));
++        this.func_180632_j(this.field_176227_L.func_177621_b().func_177226_a(POWERED, Boolean.valueOf(false)));
      }
  
      public void func_189540_a(IBlockState p_189540_1_, World p_189540_2_, BlockPos p_189540_3_, Block p_189540_4_, BlockPos p_189540_5_)
@@ -71,18 +74,18 @@
          float f = (float)Math.pow(2.0D, (double)(p_189539_5_ - 12) / 12.0D);
          p_189539_2_.func_184133_a((EntityPlayer)null, p_189539_3_, this.func_185576_e(p_189539_4_), SoundCategory.RECORDS, 3.0F, f);
          p_189539_2_.func_175688_a(EnumParticleTypes.NOTE, (double)p_189539_3_.func_177958_n() + 0.5D, (double)p_189539_3_.func_177956_o() + 1.2D, (double)p_189539_3_.func_177952_p() + 0.5D, (double)p_189539_5_ / 24.0D, 0.0D, 0.0D);
-@@ -113,4 +142,108 @@
+@@ -113,4 +142,88 @@
      {
          return EnumBlockRenderType.MODEL;
      }
 +
-+    
++
 +    //cherry add
 +
 +
 +    @Override
 +    protected BlockStateContainer func_180661_e() {
-+        return new BlockStateContainer(this, new IProperty[]{FACING, POWERED});
++        return new BlockStateContainer(this, new IProperty[]{ POWERED});
 +    }
 +
 +    @Override
@@ -118,42 +121,22 @@
 +                enumfacing = EnumFacing.UP;
 +        }
 +
-+        return this.func_176223_P().func_177226_a(FACING, enumfacing).func_177226_a(POWERED, Boolean.valueOf((meta & 8) > 0));
++        return this.func_176223_P().func_177226_a(POWERED, Boolean.valueOf((meta & 8) > 0));
 +
 +    }
 +
 +    @Override
 +    public int func_176201_c(IBlockState state) {
-+        int i;
++        int i = 0;
 +
-+        switch ((EnumFacing) state.func_177229_b(FACING)) {
-+            case EAST:
-+                i = 1;
-+                break;
-+            case WEST:
-+                i = 2;
-+                break;
-+            case SOUTH:
-+                i = 3;
-+                break;
-+            case NORTH:
-+                i = 4;
-+                break;
-+            case UP:
-+            default:
-+                i = 5;
-+                break;
-+            case DOWN:
-+                i = 0;
-+        }
-+
++       
 +        if (((Boolean) state.func_177229_b(POWERED)).booleanValue()) {
-+            i |= 8;
++            i |= 2;
 +        }
 +
 +        return i;
 +    }
-+    
++
 +
 +    public static BlockStateContainer createBlockState(net.minecraft.block.BlockNote blockNote, PropertyDirection FACING, PropertyBool POWERED) {
 +        return new BlockStateContainer(blockNote, new IProperty[]{FACING, POWERED});
@@ -171,12 +154,12 @@
 +        if (!((Boolean) blockState.func_177229_b(POWERED)).booleanValue()) {
 +            return 0;
 +        } else {
-+            return blockState.func_177229_b(FACING) == side ? 15 : 0;
++            return  15 ;
 +        }
 +    }
 +
-+    
-+    
++
++
 +    //cherry end
 +
  }
