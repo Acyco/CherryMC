@@ -2658,7 +2658,59 @@
              GlStateManager.func_179084_k();
          }
      }
-@@ -2148,9 +4015,9 @@
+@@ -1960,9 +3827,29 @@
+         tessellator.func_78381_a();
+     }
+ 
++    public static void drawBoundingBoxO(BufferBuilder buffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, float red, float green, float blue, float alpha)
++    {
++        buffer.func_181662_b(minX, minY, minZ).func_181666_a(red, green, blue, 0.0F).func_181675_d();
++        buffer.func_181662_b(minX, minY, minZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(maxX, minY, minZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(maxX, minY, maxZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(minX, minY, maxZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(minX, minY, minZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(minX, maxY, minZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(maxX, maxY, minZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(maxX, maxY, maxZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(minX, maxY, maxZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(minX, maxY, minZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(minX, maxY, maxZ).func_181666_a(red, green, blue, 0.0F).func_181675_d();
++        buffer.func_181662_b(minX, minY, maxZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(maxX, maxY, maxZ).func_181666_a(red, green, blue, 0.0F).func_181675_d();
++        buffer.func_181662_b(maxX, minY, maxZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(maxX, maxY, minZ).func_181666_a(red, green, blue, 0.0F).func_181675_d();
++        buffer.func_181662_b(maxX, minY, minZ).func_181666_a(red, green, blue, alpha).func_181675_d();
++        buffer.func_181662_b(maxX, minY, minZ).func_181666_a(red, green, blue, 0.0F).func_181675_d();
++    }
+     public static void func_189698_a(BufferBuilder p_189698_0_, double p_189698_1_, double p_189698_3_, double p_189698_5_, double p_189698_7_, double p_189698_9_, double p_189698_11_, float p_189698_13_, float p_189698_14_, float p_189698_15_, float p_189698_16_)
+     {
+-        p_189698_0_.func_181662_b(p_189698_1_, p_189698_3_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, 0.0F).func_181675_d();
+         p_189698_0_.func_181662_b(p_189698_1_, p_189698_3_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+         p_189698_0_.func_181662_b(p_189698_7_, p_189698_3_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+         p_189698_0_.func_181662_b(p_189698_7_, p_189698_3_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+@@ -1972,16 +3859,14 @@
+         p_189698_0_.func_181662_b(p_189698_7_, p_189698_9_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+         p_189698_0_.func_181662_b(p_189698_7_, p_189698_9_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+         p_189698_0_.func_181662_b(p_189698_1_, p_189698_9_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+-        p_189698_0_.func_181662_b(p_189698_1_, p_189698_9_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+-        p_189698_0_.func_181662_b(p_189698_1_, p_189698_9_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, 0.0F).func_181675_d();
++        p_189698_0_.func_181662_b(p_189698_1_, p_189698_9_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, 0.0F).func_181675_d();
++        p_189698_0_.func_181662_b(p_189698_1_, p_189698_9_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+         p_189698_0_.func_181662_b(p_189698_1_, p_189698_3_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+-        p_189698_0_.func_181662_b(p_189698_7_, p_189698_9_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, 0.0F).func_181675_d();
+-        p_189698_0_.func_181662_b(p_189698_7_, p_189698_3_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
++        p_189698_0_.func_181662_b(p_189698_7_, p_189698_3_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, 0.0F).func_181675_d();
++        p_189698_0_.func_181662_b(p_189698_7_, p_189698_9_, p_189698_11_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+         p_189698_0_.func_181662_b(p_189698_7_, p_189698_9_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, 0.0F).func_181675_d();
+         p_189698_0_.func_181662_b(p_189698_7_, p_189698_3_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, p_189698_16_).func_181675_d();
+-        p_189698_0_.func_181662_b(p_189698_7_, p_189698_3_, p_189698_5_).func_181666_a(p_189698_13_, p_189698_14_, p_189698_15_, 0.0F).func_181675_d();
+     }
+-
+     public static void func_189696_b(AxisAlignedBB p_189696_0_, float p_189696_1_, float p_189696_2_, float p_189696_3_, float p_189696_4_)
+     {
+         func_189695_b(p_189696_0_.field_72340_a, p_189696_0_.field_72338_b, p_189696_0_.field_72339_c, p_189696_0_.field_72336_d, p_189696_0_.field_72337_e, p_189696_0_.field_72334_f, p_189696_1_, p_189696_2_, p_189696_3_, p_189696_4_);
+@@ -2148,9 +4033,9 @@
              double d4 = entity.field_70163_u - p_190571_6_;
              double d5 = entity.field_70161_v - p_190571_8_;
  
@@ -2670,7 +2722,7 @@
              }
              else if (d3 * d3 + d4 * d4 + d5 * d5 > 1024.0D)
              {
-@@ -2158,8 +4025,125 @@
+@@ -2158,8 +4043,125 @@
              }
              else
              {
@@ -2797,7 +2849,7 @@
          }
          else
          {
-@@ -2186,10 +4170,24 @@
+@@ -2186,10 +4188,24 @@
  
      public void func_72703_a(Entity p_72703_1_)
      {
@@ -2822,7 +2874,7 @@
      }
  
      public void func_72728_f()
-@@ -2388,7 +4386,7 @@
+@@ -2388,7 +4404,7 @@
  
                  if (block.func_176223_P().func_185904_a() != Material.field_151579_a)
                  {
@@ -2831,7 +2883,7 @@
                      this.field_72769_h.func_184156_a(p_180439_3_, soundtype.func_185845_c(), SoundCategory.BLOCKS, (soundtype.func_185843_a() + 1.0F) / 2.0F, soundtype.func_185847_b() * 0.8F, false);
                  }
  
-@@ -2520,6 +4518,75 @@
+@@ -2520,6 +4536,75 @@
          this.field_147595_R = true;
      }
  
@@ -2907,7 +2959,7 @@
      public void func_181023_a(Collection<TileEntity> p_181023_1_, Collection<TileEntity> p_181023_2_)
      {
          synchronized (this.field_181024_n)
-@@ -2529,29 +4596,76 @@
+@@ -2529,29 +4614,76 @@
          }
      }
  

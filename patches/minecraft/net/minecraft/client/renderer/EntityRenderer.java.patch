@@ -816,7 +816,7 @@
                  }
  
                  this.field_78513_d.func_110564_a();
-@@ -968,21 +1430,195 @@
+@@ -968,14 +1430,188 @@
          }
      }
  
@@ -1002,28 +1002,11 @@
 +
      public void func_181560_a(float p_181560_1_, long p_181560_2_)
      {
--        boolean flag = Display.isActive();
-+        this.frameInit(); //初始化
-+        boolean flag = Display.isActive();  //处在焦点
++        this.frameInit();
+         boolean flag = Display.isActive();
  
          if (!flag && this.field_78531_r.field_71474_y.field_82881_y && (!this.field_78531_r.field_71474_y.field_85185_A || !Mouse.isButtonDown(1)))
-         {
-             if (Minecraft.func_71386_F() - this.field_78508_Y > 500L)
-             {
--                this.field_78531_r.func_71385_j();
-+                this.field_78531_r.func_71385_j(); //游戏暂停显示游戏菜单
-             }
-         }
-         else
-@@ -995,13 +1631,14 @@
-         if (flag && Minecraft.field_142025_a && this.field_78531_r.field_71415_G && !Mouse.isInsideWindow())
-         {
-             Mouse.setGrabbed(false);
--            Mouse.setCursorPosition(Display.getWidth() / 2, Display.getHeight() / 2 - 20);
-+            Mouse.setCursorPosition(Display.getWidth() / 2, Display.getHeight() / 2 - 20); //指针
-             Mouse.setGrabbed(true);
-         }
- 
+@@ -1002,6 +1638,7 @@
          if (this.field_78531_r.field_71415_G && flag)
          {
              this.field_78531_r.field_71417_B.func_74374_c();
@@ -1031,16 +1014,14 @@
              this.field_78531_r.func_193032_ao().func_193299_a(this.field_78531_r.field_71417_B);
              float f = this.field_78531_r.field_71474_y.field_74341_c * 0.6F + 0.2F;
              float f1 = f * f * f * 8.0F;
-@@ -1022,7 +1659,8 @@
+@@ -1022,6 +1659,7 @@
                  this.field_78492_L = p_181560_1_;
                  f2 = this.field_78498_J * f4;
                  f3 = this.field_78499_K * f4;
--                this.field_78531_r.field_71439_g.func_70082_c(f2, f3 * (float)i);
 +                //this.mc.player.setAngles(f2, f3 * (float)i);
-+                this.field_78531_r.field_71439_g.func_70082_c(f2, f3 * (float)i); //平滑视角。。。 电影模式
+                 this.field_78531_r.field_71439_g.func_70082_c(f2, f3 * (float)i);
              }
              else
-             {
 @@ -1044,8 +1682,20 @@
              final int l1 = j1 - Mouse.getY() * j1 / this.field_78531_r.field_71440_d - 1;
              int i2 = this.field_78531_r.field_71474_y.field_74350_i;
