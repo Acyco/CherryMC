@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "powered=true": { "model": "noteblock" },
+    "powered=false": { "model": "noteblock" }
+  }
+}
