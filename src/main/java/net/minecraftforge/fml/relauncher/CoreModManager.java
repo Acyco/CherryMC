@@ -376,6 +376,10 @@ public class CoreModManager {
                 if (mfAttributes == null) // Not a coremod and no access transformer list
                     continue;
 
+                if (net.cherrymc.Cherry.ignoreOptifineMod(mfAttributes)) { // cherry ignore optifine
+                    ignoredModFiles.add(coreMod.getName());
+                }
+                
                 String modSide = mfAttributes.getValue(LibraryManager.MODSIDE);
                 if (modSide != null && !"BOTH".equals(modSide) && !FMLLaunchHandler.side().name().equals(modSide))
                 {

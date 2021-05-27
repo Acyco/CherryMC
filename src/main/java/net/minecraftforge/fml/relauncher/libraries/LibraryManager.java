@@ -478,6 +478,9 @@ public class LibraryManager
             {
                 if (!list.contains(f))
                 {
+                    if (net.cherrymc.Cherry.ignoreOptifineMod(f)) { // cherry ignore optifine
+                        continue;
+                    }
                     FMLLog.log.debug("  Adding {} to the mod list", f.getName());
                     list.add(f);
                 }
